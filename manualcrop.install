@@ -1,0 +1,68 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the Manual Crop module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function manualcrop_schema() {
+  $schema['manualcrop'] = array(
+    'description' => 'Holds the crop-area position and size all cropped images.',
+    'fields' => array(
+      'fid' => array(
+        'description' => 'The {files}.fid of the image file.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'isid' => array(
+        'description' => 'The {image_styles}.isid of the style.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'x' => array(
+        'description' => "The x-position of the left top cropping-area corner.",
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'y' => array(
+        'description' => "The y-position of the left top cropping-area corner.",
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'width' => array(
+        'description' => "The width of the cropping-area.",
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'height' => array(
+        'description' => "The height of the cropping-area.",
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'foreign keys' => array(
+      'file' => array(
+        'table' => 'files',
+        'columns' => array('fid' => 'fid'),
+      ),
+      'style' => array(
+        'table' => 'image_styles',
+        'columns' => array('isid' => 'isid')
+      ),
+    ),
+    'primary key' => array('fid', 'isid'),
+  );
+  return $schema;
+}

@@ -1,0 +1,103 @@
+<?php
+/**
+ * @file
+ * Exposes functionality for manually cropping an image.
+ */
+
+/**
+ * Form Builder; Configuration settings for manual crop and scale effect.
+ *
+ * @param $data
+ *   The current configuration for this manual crop and scale effect.
+ */
+function manualcrop_crop_and_scale_form($data) {
+  $form = image_scale_form($data);
+
+  $form['width']['#required'] = TRUE;
+  $form['height']['#required'] = TRUE;
+
+  $form['respectminimum'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => (isset($data['respectminimum'])) ? $data['respectminimum'] : 0,
+    '#title' => t('Respect minimum'),
+    '#description' => t("Make sure the selected crop area is at least as big as the destination size. This doesn't enforce minimum image dimensions."),
+  );
+
+  $form['#validate'] = array('manualcrop_effect_validate');
+
+  return $form;
+}
+
+/**
+ * Returns HTML for a summary of an image manual crop and scale effect.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - data: The current configuration for this manual crop and scale effect.
+ *
+ * @ingroup themeable
+ */
+function theme_manualcrop_crop_and_scale_summary($variables) {
+  $data = $variables["data"];
+  $str = check_plain($data['width']) . 'x' . check_plain($data['height']);
+
+  if ($data['upscale'] || $data['respectminimum']) {
+    $str .= ' (' . ($data['upscale'] ? t('upscaling allowed') : '');
+    $str .= ($data['upscale'] && $data['respectminimum'] ? t('and') : '');
+    $str .= ($data['respectminimum'] ? t('crop minimum dimensions') : '') . ')';
+  }
+
+  return $str;
+}
+
+/**
+ * Form Builder; Configuration settings for manual crop effect.
+ *
+ * @param $data
+ *   The current configuration for this manual crop effect.
+ */
+function manualcrop_crop_form($data) {
+  $form = image_resize_form($data);
+
+  $form['width']['#required'] = FALSE;
+  $form['width']['#title'] = t('Minimum crop width');
+  $form['width']['#description'] = t("Only applied if a user tries to crop, this enforces no minimum image width!");
+
+  $form['height']['#required'] = FALSE;
+  $form['height']['#title'] = t('Minimum crop height');
+  $form['height']['#description'] = t("Only applied if a user tries to crop, this enforces no minimum image height!");
+
+  $form['#validate'] = array('manualcrop_effect_validate');
+
+  return $form;
+}
+
+/**
+ * Validation hook for the effect forms, used to set the isid.
+ */
+function manualcrop_effect_validate($form, &$form_state) {
+  $form_state['values']['isid'] = $form_state['image_style']['isid'];
+}
+
+/**
+ * Gets the crop area for an image.
+ *
+ * @param $file
+ *   Path to an image file.
+ * @param $isid
+ *   Image style id.
+ * @return
+ *   An object defining the cropping area with following items:
+ *   - "x": An integer representing the top left corner's x-position in pixels.
+ *   - "y": An integer representing the top left corner's y-position in pixels.
+ *   - "width": An integer representing the width in pixels.
+ *   - "height": An integer representing the height in pixels.
+ */
+function manualcrop_image_croparea($file, $isid) {
+  $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {files} f ON c.fid = f.fid WHERE c.isid = :isid AND f.uri = :uri', array(
+    ':isid' => $isid,
+    ':uri' => $file,
+  ));
+
+  return reset($result);
+}

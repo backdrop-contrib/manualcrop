@@ -1,0 +1,12 @@
+name = Manual Crop
+description = Let's you manually crop an image based upon the image style effects.
+package = Image
+
+core = 7.x
+dependencies[] = image
+dependencies[] = file
+
+files[] = manualcrop.install
+files[] = manualcrop.module
+files[] = manualcrop.effects.inc
+files[] = manualcrop.widget.inc
