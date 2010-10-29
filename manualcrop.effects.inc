@@ -8,25 +8,22 @@
  * Implements hook_image_effect_info().
  */
 function manualcrop_image_effect_info() {
-  $effects = array();
-
-  $effects['manualcrop_crop_and_scale'] = array(
-    'label' => t('Crop and scale manually'),
-    'help' => t('Crop and scale a user-selected area, respecting the ratio of the destination width and height.'),
-    'effect callback' => 'manualcrop_crop_and_scale_effect',
-    'form callback' => 'manualcrop_crop_and_scale_form',
-    'summary theme' => 'manualcrop_crop_and_scale_summary',
+  return array(
+    'manualcrop_crop_and_scale' => array(
+      'label' => t('Crop and scale manually'),
+      'help' => t('Crop and scale a user-selected area, respecting the ratio of the destination width and height.'),
+      'effect callback' => 'manualcrop_crop_and_scale_effect',
+      'form callback' => 'manualcrop_crop_and_scale_form',
+      'summary theme' => 'manualcrop_crop_and_scale_summary',
+    ),
+    'manualcrop_crop' => array(
+      'label' => t('Manual crop'),
+      'help' => t('Crop a freely user-selected area.'),
+      'effect callback' => 'manualcrop_crop_effect',
+      'form callback' => 'manualcrop_crop_form',
+      'summary theme' => 'manualcrop_crop_summary',
+    ),
   );
-
-  $effects['manualcrop_crop'] = array(
-    'label' => t('Manual crop'),
-    'help' => t('Crop a freely user-selected area.'),
-    'effect callback' => 'manualcrop_crop_effect',
-    'form callback' => 'manualcrop_crop_form',
-    'summary theme' => 'manualcrop_crop_summary',
-  );
-
-  return $effects;
 }
 
 /**

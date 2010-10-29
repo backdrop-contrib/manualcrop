@@ -8,6 +8,16 @@ require_once 'manualcrop.effects.inc';
 require_once 'manualcrop.widget.inc';
 
 /**
+ * Implements hook_help().
+ */
+function manualcrop_help($path) {
+  switch ($path) {
+    case 'admin/config/media/image-styles/edit/%':
+      return '<p>' . t("<strong>Note:</strong> if you are using a manual crop effect, it's forced to be the only manual crop effect and first effect in the list.") . '</p>';
+  }
+}
+
+/**
  * Form Builder; Configuration settings for manual crop and scale effect.
  *
  * @param $data
@@ -95,26 +105,102 @@ function theme_manualcrop_crop_summary($variables) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
-  if ($form_state['image_effect']['module'] == 'manualcrop') {
-    if (!is_array($form['#submit'])) {
-      $form['#submit'] = array('image_effect_form_submit');
-    }
+  if (!is_array($form['#submit'])) {
+    $form['#submit'] = array('image_effect_form_submit');
+  }
 
-    // Add a custom submit function to set the image style id.
-    array_unshift($form['#submit'], 'manualcrop_image_effect_form_set_isid');
+  // If it's a manual crop effect do a custom submit handler first.
+  // Otherwise reorder the effects after the submit.
+  if ($form_state['image_effect']['module'] == 'manualcrop') {
+    array_unshift($form['#submit'], 'manualcrop_image_effect_form_submit');
+  }
+  elseif (!empty($form_state['image_style']['effects'])) {
+    $form['#submit'][] = 'manualcrop_force_effect_order';
   }
 }
 
 /**
- * Sets the image style id when submitting the effect form.
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
+  $style = $form_state['image_style'];
+
+  if (!empty($style['effects'])) {
+    if (!is_array($form['#submit'])) {
+      $form['#submit'] = array('image_style_form_submit');
+    }
+
+    // Reorder effects on submit.
+    $form['#submit'][] = 'manualcrop_force_effect_order';
+
+    // Filter all manual crop effects out of the form if there's already a manual crop effect.
+    if (isset($form['effects']['new']['new'])) {
+      foreach ($style['effects'] as $effect) {
+        if ($effect['module'] == 'manualcrop') {
+          $form['effects']['new']['new']['#options'] = array_diff_key($form['effects']['new']['new']['#options'], manualcrop_image_effect_info());
+          break;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Sets the image style id and weight of the effect.
  *
  * @param $form
  *   Effect form array.
  * @param $form_state
+ *   Form state array.
+ */
+function manualcrop_image_effect_form_submit($form, &$form_state) {
+  $style = $form_state['image_style'];
+  $effect = $form_state['image_effect'];
+
+  // Set style id so the effect can use it.
+  $form_state['values']['data']['isid'] = $style['isid'];
+
+  if (count($style['effects']) == 0) {
+    // First effect, so weight is 0.
+    $form_state['values']['weight'] = 0;
+  }
+  elseif (!isset($effect['ieid'])) {
+    // New effect, weight must be the weight of the first one minus 1.
+    $first = reset($style['effects']);
+    $form_state['values']['weight'] = $first["weight"] - 1;
+  }
+}
+
+/**
+ * Force the manual crop effect to be the first one.
+ *
+ * @param $form
+ *   Effect or style form array.
+ * @param $form_state
  *   Fom state array.
  */
-function manualcrop_image_effect_form_set_isid($form, &$form_state) {
-  $form_state['values']['data']['isid'] = $form_state['image_style']['isid'];
+function manualcrop_force_effect_order($form, &$form_state) {
+  // In both forms (style and effect) we find the style in the same key.
+  // The style array is received trough the loader to make sure the function
+  // works with the latest version.
+  $style = $form_state['image_style'];
+  $style = image_style_load(NULL, $style['isid']);
+
+  if (!empty($style['effects'])) {
+    foreach ($style['effects'] as $eid => $effect) {
+      if ($effect['module'] == 'manualcrop') {
+        $first = reset($style['effects']);
+
+        if ($eid != key($style['effects'])) {
+          // Change the weight of this effect to the weight of the first effect minus 1.
+          $effect['weight'] = $first['weight'] - 1;
+          image_effect_save($effect);
+        }
+
+        break;
+      }
+    }
+  }
 }
 
 /**
