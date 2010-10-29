@@ -4,7 +4,6 @@ package = Image
 
 core = 7.x
 dependencies[] = image
-dependencies[] = file
 
 files[] = manualcrop.install
 files[] = manualcrop.module
