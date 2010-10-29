@@ -12,7 +12,7 @@ function manualcrop_schema() {
     'description' => 'Holds the crop-area position and size all cropped images.',
     'fields' => array(
       'fid' => array(
-        'description' => 'The {files}.fid of the image file.',
+        'description' => 'The {file_managed}.fid of the image file.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE
@@ -54,7 +54,7 @@ function manualcrop_schema() {
     ),
     'foreign keys' => array(
       'file' => array(
-        'table' => 'files',
+        'table' => 'file_managed',
         'columns' => array('fid' => 'fid'),
       ),
       'style' => array(

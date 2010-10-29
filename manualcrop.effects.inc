@@ -23,7 +23,7 @@ function manualcrop_image_effect_info() {
     'help' => t('Crop a freely user-selected area.'),
     'effect callback' => 'manualcrop_crop_effect',
     'form callback' => 'manualcrop_crop_form',
-    'summary theme' => 'image_resize_summary',
+    'summary theme' => 'manualcrop_crop_summary',
   );
 
   return $effects;

@@ -4,6 +4,9 @@
  * Exposes functionality for manually cropping an image.
  */
 
+require_once 'manualcrop.effects.inc';
+require_once 'manualcrop.widget.inc';
+
 /**
  * Form Builder; Configuration settings for manual crop and scale effect.
  *
@@ -22,8 +25,6 @@ function manualcrop_crop_and_scale_form($data) {
     '#title' => t('Respect minimum'),
     '#description' => t("Make sure the selected crop area is at least as big as the destination size. This doesn't enforce minimum image dimensions."),
   );
-
-  $form['#validate'] = array('manualcrop_effect_validate');
 
   return $form;
 }
@@ -67,16 +68,53 @@ function manualcrop_crop_form($data) {
   $form['height']['#title'] = t('Minimum crop height');
   $form['height']['#description'] = t("Only applied if a user tries to crop, this enforces no minimum image height!");
 
-  $form['#validate'] = array('manualcrop_effect_validate');
-
   return $form;
 }
 
 /**
- * Validation hook for the effect forms, used to set the isid.
+ * Returns HTML for a summary of an image resize effect.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - data: The current configuration for this resize effect.
+ *
+ * @ingroup themeable
  */
-function manualcrop_effect_validate($form, &$form_state) {
-  $form_state['values']['isid'] = $form_state['image_style']['isid'];
+function theme_manualcrop_crop_summary($variables) {
+  $data = $variables['data'];
+
+  if ($data['width'] && $data['height']) {
+    return ' (' . t('minimum crop dimensions ') . ' ' . check_plain($data['width']) . 'x' . check_plain($data['height']) . ')';
+  }
+  elseif ($data['width'] || $data['height']) {
+    return ' (' . ($data['width']) ? t('minimum crop width @width', array('@width' => $data['width'])) : t('minimum crop height @height', array('@height' => $data['height'])) . ')';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
+  if ($form_state['image_effect']['module'] == 'manualcrop') {
+    if (!is_array($form['#submit'])) {
+      $form['#submit'] = array('image_effect_form_submit');
+    }
+
+    // Add a custom submit function to set the image style id.
+    array_unshift($form['#submit'], 'manualcrop_image_effect_form_set_isid');
+  }
+}
+
+/**
+ * Sets the image style id when submitting the effect form.
+ *
+ * @param $form
+ *   Effect form array.
+ * @param $form_state
+ *   Fom state array.
+ */
+function manualcrop_image_effect_form_set_isid($form, &$form_state) {
+  $form_state['values']['data']['isid'] = $form_state['image_style']['isid'];
 }
 
 /**
@@ -94,10 +132,28 @@ function manualcrop_effect_validate($form, &$form_state) {
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_image_croparea($file, $isid) {
-  $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {files} f ON c.fid = f.fid WHERE c.isid = :isid AND f.uri = :uri', array(
+  $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.isid = :isid AND f.uri = :uri', array(
     ':isid' => $isid,
     ':uri' => $file,
   ));
 
-  return reset($result);
+  foreach ($result as $record) {
+    return $record;
+  }
+
+  return NULL;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function manualcrop_theme() {
+  return array(
+    'manualcrop_crop_and_scale_summary' => array(
+      'variables' => array('data' => NULL),
+    ),
+    'theme_manualcrop_crop_summary' => array(
+      'variables' => array('data' => NULL),
+    ),
+  );
 }
