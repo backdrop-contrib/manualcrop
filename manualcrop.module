@@ -18,6 +18,26 @@ function manualcrop_help($path) {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function manualcrop_theme() {
+  return array(
+    'manualcrop_crop_and_scale_summary' => array(
+      'variables' => array('data' => NULL),
+    ),
+    'manualcrop_crop_summary' => array(
+      'variables' => array('data' => NULL),
+    ),
+    'manualcrop_overlay' => array(
+      'variables' => array('fid' => NULL, 'path' => NULL),
+    ),
+    'manualcrop_widget' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
  * Form Builder; Configuration settings for manual crop and scale effect.
  *
  * @param $data
@@ -228,18 +248,4 @@ function manualcrop_image_croparea($file, $isid) {
   }
 
   return NULL;
-}
-
-/**
- * Implements hook_theme().
- */
-function manualcrop_theme() {
-  return array(
-    'manualcrop_crop_and_scale_summary' => array(
-      'variables' => array('data' => NULL),
-    ),
-    'theme_manualcrop_crop_summary' => array(
-      'variables' => array('data' => NULL),
-    ),
-  );
 }
