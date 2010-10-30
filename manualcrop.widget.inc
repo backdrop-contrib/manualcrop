@@ -73,11 +73,14 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
   $item = $element['#value'];
   $item['fid'] = $element['fid']['#value'];
 
-  if ($element['#file']) {
+  if ($element['#file'] && isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
     $hascrop = manualcrop_get_styles_with_crop();
 
     if (sizeof($hascrop) > 0) {
       $element['#theme'] = 'manualcrop_widget';
+
+      // Get image info, width and height are used by the cropping widget.
+      $image = image_get_info($element['#file']->uri);
 
       // Overlay with the original image for cropping.
       $element['manualcrop_overlay'] = array(
@@ -90,6 +93,8 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
           'image' => array(
             'path' => $element['#file']->uri,
             'alt' => t('Manual crop'),
+            'width' => $image['width'],
+            'height' => $image['height'],
             'attributes' => array('class' => 'manualcrop-image'),
           )
         )),
@@ -125,11 +130,11 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-            drupal_get_path('module', 'manualcrop') . '/Jcrop/Jcrop.css',
+            drupal_get_path('module', 'manualcrop') . '/imgAreaSelect/imgareaselect-animated.css',
           ),
           'js' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-            drupal_get_path('module', 'manualcrop') . '/Jcrop/jquery.Jcrop.min.js',
+            drupal_get_path('module', 'manualcrop') . '/imgAreaSelect/jquery.imgareaselect.pack.js',
           ),
         ),
       );
@@ -195,7 +200,7 @@ function theme_manualcrop_widget($variables) {
  *
  * @ingroup themeable
  */
-function theme_manualcrop_overlay($variables) {
+function theme_manualcrop_overlay($variables) {  
   $output = '<div ' . drupal_attributes($variables["attributes"]) . '>';
 
   $output .= '<div class="manualcrop-overlay-bg"></div>';
@@ -206,16 +211,16 @@ function theme_manualcrop_overlay($variables) {
 
   $output .= '<div class="manualcrop-details">';
   $output .= t('Image style') . ': <span class="manualcrop-details-value manualcrop-image-style">&nbsp;</span>, ';
-  $output .= t('Selection x') . ': <span class="manualcrop-details-value manualcrop-selection-x">&nbsp;</span>, ';
-  $output .= t('Selection y') . ': <span class="manualcrop-details-value manualcrop-selection-y">&nbsp;</span>, ';
-  $output .= t('Selection width') . ': <span class="manualcrop-details-value manualcrop-selection-width">&nbsp;</span>, ';
-  $output .= t('Selection height') . ': <span class="manualcrop-details-value manualcrop-selection-height">&nbsp;</span>';
+  $output .= t('Selection x') . ': <span class="manualcrop-details-value manualcrop-selection-x">-</span>, ';
+  $output .= t('Selection y') . ': <span class="manualcrop-details-value manualcrop-selection-y">-</span>, ';
+  $output .= t('Selection width') . ': <span class="manualcrop-details-value manualcrop-selection-width">-</span>, ';
+  $output .= t('Selection height') . ': <span class="manualcrop-details-value manualcrop-selection-height">-</span>';
   $output .= '</div>';
 
   $output .= '<div class="manualcrop-buttons">';
-  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:ManualCrop.resetSelection();">' . t('Reset selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:ManualCrop.clearSelection();">' . t('Clear selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-close clearfix" href="javascript:ManualCrop.closeOverlay();">' . t('Close overlay') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-reset" href="#" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Reset selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-clear" href="#" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Clear selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-close clearfix" href="#" onclick="ManualCrop.closeOverlay(); this.blur();">' . t('Close overlay') . '</a>';
   $output .= '</div>';
 
   $output .= '</div>';

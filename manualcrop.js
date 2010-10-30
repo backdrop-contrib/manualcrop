@@ -1,4 +1,4 @@
-var ManualCrop = { "overlay": null, "oldstate": null, "jcrop": null, "output": null };
+var ManualCrop = {"overlay": null, "oldSelection": null, "widget": null, "output": null};
 
 (function ($) {
 
@@ -12,69 +12,97 @@ var ManualCrop = { "overlay": null, "oldstate": null, "jcrop": null, "output": n
  */
 ManualCrop.showOverlay = function(select, fid) {
   if (!ManualCrop.overlay) {
-	var styleSelect = $(select);
-	var settings = Drupal.settings.manualCrop[styleSelect.val()] || {};
-	var jcropOptions = {
-	  onSelect: ManualCrop.updateCoords,
-      onChange: ManualCrop.updateCoords
-	};
+    var styleSelect = $(select);
+    var settings = Drupal.settings.manualCrop[styleSelect.val()] || {};
 
-	// Get the destination field and current value.
-	ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleSelect.val());
-	ManualCrop.oldstate = ManualCrop.parseStringSelection(ManualCrop.output.val());
+    // Get the destination field and the current selection.
+    ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleSelect.val());
+    ManualCrop.oldSelection = ManualCrop.parseStringSelection(ManualCrop.output.val());
 
-	// Create the overlay.
-	ManualCrop.overlay = $('#manualcrop-overlay-' + fid).clone();
-	ManualCrop.overlay.removeAttr('id');
-	ManualCrop.overlay.removeClass('element-invisible');
+    // Create the overlay.
+    ManualCrop.overlay = $('#manualcrop-overlay-' + fid).clone();
+    ManualCrop.overlay.removeAttr('id');
+    ManualCrop.overlay.removeClass('element-invisible');
+    ManualCrop.overlay.css('width', $(window).width() + 'px');
+    ManualCrop.overlay.css('height', $(window).height() + 'px');
 
-	// Additional jcrop options.
-	if (settings) {
-	  if (settings.name == "manualcrop_crop_and_scale") {
-		jcropOptions.aspectRatio = settings.data.width / settings.data.height;
+    // Get the image and the dimensions.
+    var image = $('img.manualcrop-image', ManualCrop.overlay);
+    var width = parseInt(image.attr('width'));
+    var height = parseInt(image.attr('height'));
 
-		if (settings.data.respectminimum) {
-		  jcropOptions.minSize = [settings.data.width, settings.data.height]
-		}
-	  }
-	  else if (settings.name == "manualcrop_crop") {
-		if (settings.data.width && settings.data.height) {
-		  jcropOptions.minSize = [settings.data.width, settings.data.height];
-		}
-		else if (settings.data.width) {
-		  jcropOptions.minSize = [settings.data.width, 0];
-		}
-		else if (settings.data.height) {
-		  jcropOptions.minSize = [0, settings.data.height];
-		}
-	  }
+    // Scale the image to fit the maximum width and height (the visible part of the page).
+    var newWidth = width;
+    var maxWidth = $(window).width() - parseInt(image.css('margin-left')) - parseInt(image.css('margin-right'));
+    var newHeight = height;
+    var maxHeight = $(window).height() - parseInt(image.css('margin-top')) - parseInt(image.css('margin-bottom'));
+ 
+    if(newWidth > maxWidth) {
+      newHeight = Math.floor((newHeight * maxWidth) / newWidth);
+      newWidth = maxWidth;
 	}
 
-	// Current selection.
-	if (ManualCrop.oldstate) {
-	  jcropOptions.setSelect = [ManualCrop.oldstate.x, ManualCrop.oldstate.y, ManualCrop.oldstate.x2, ManualCrop.oldstate.y2];
+	if(newHeight > maxHeight) {
+	  newWidth = Math.floor((newWidth * maxHeight) / newHeight);
+	  newHeight = maxHeight;
 	}
 
-	// Create the Jcrop field.
-	ManualCrop.jcrop = $('img.manualcrop-image', ManualCrop.overlay);
-	jcropOptions.boxWidth = ManualCrop.jcrop.parent().width();
-	jcropOptions.boxHeight = ManualCrop.jcrop.parent().height();
-	ManualCrop.jcrop = ManualCrop.jcrop.Jcrop(jcropOptions);
+    image.css('width', newWidth + 'px');
+    image.css('height', newHeight + 'px');
 
-	// Set the name of the style.
-	$('.manualcrop-image-style', ManualCrop.overlay).text($('option:selected', styleSelect).text());
+    // Basic options.
+    var options = {
+      handles: true,
+      instance: true,
+      keys: true,
+      parent: image.parent(),
+      imagewidth: width,
+      imageHeight: height,
+      onSelectChange: ManualCrop.updateSelection
+    };
 
-	// Add a handler for tressing ESC.
-	ManualCrop.overlay.keydown(function(event) {
-	  if (event.keycode == 27) {
-		ManualCrop.resetSelection();
-		ManualCrop.closeOverlay();
-	  }
-	});
+    // Additional options based upon the effect.
+    if (settings) {
+      switch (settings.name) {
+        // Manual crop and scale effect.
+        case 'manualcrop_crop_and_scale':
+          options.aspectRatio = settings.data.width + ':' + settings.data.height;
 
-	// Insert the overlay and reset the style selection.
-	$("body").append(ManualCrop.overlay);
-	styleSelect.val(-1);
+          if (settings.data.respectminimum) {
+            // Crop at least the minimum.
+            options.minWidth = settings.data.width;
+            options.minHeight = settings.data.height;
+          }
+          break;
+
+        // Manual crop effect
+        case 'manualcrop_crop':
+          if (settings.data.width) {
+            options.minWidth = settings.data.width;
+          }
+          if (settings.data.height) {
+            options.minHeight = settings.data.height;
+          }
+      }
+    }
+
+    // Set the image style name.
+    $('.manualcrop-image-style', ManualCrop.overlay).text($('option:selected', styleSelect).text());
+
+    // Reset the image style selection list.
+    styleSelect.val(-1);
+    styleSelect.blur();
+
+    // Append the cropping area (last, to prevent that '_11' is undefinded).
+    $("body").append(ManualCrop.overlay);
+
+    // Create the cropping tool.
+    ManualCrop.widget = image.imgAreaSelect(options);
+
+    // Set the initian selection.
+    if (ManualCrop.oldSelection) {
+      ManualCrop.resetSelection();
+    }
   }
 }
 
@@ -83,11 +111,11 @@ ManualCrop.showOverlay = function(select, fid) {
  */
 ManualCrop.closeOverlay = function() {
   if (ManualCrop.overlay) {
-	ManualCrop.jcrop.destroy()
-	ManualCrop.overlay.remove();
-	ManualCrop.overlay = null;
-	ManualCrop.oldstate = null;
-	ManualCrop.jcrop = null;
+    ManualCrop.widget.setOptions({remove: true});
+    ManualCrop.overlay.remove();
+    ManualCrop.overlay = null;
+    ManualCrop.oldSelection = null;
+    ManualCrop.widget = null;
   }
 }
 
@@ -96,17 +124,15 @@ ManualCrop.closeOverlay = function() {
  */
 ManualCrop.resetSelection = function() {
   if (ManualCrop.overlay) {
-	if (ManualCrop.oldstate) {
-	  if (ManualCrop.jcrop.tellSelect()) {
-		ManualCrop.jcrop.animateTo([ManualCrop.oldstate.x, ManualCrop.oldstate.y, ManualCrop.oldstate.x2, ManualCrop.oldstate.y2]);
-	  }
-	  else {
-		ManualCrop.jcrop.setSelect([ManualCrop.oldstate.x, ManualCrop.oldstate.y, ManualCrop.oldstate.x2, ManualCrop.oldstate.y2]);
-	  }
-	}
-	else {
-	  ManualCrop.clearSelection();
-	}
+    if (ManualCrop.oldSelection) {
+      ManualCrop.widget.setSelection(ManualCrop.oldSelection.x1, ManualCrop.oldSelection.y1, ManualCrop.oldSelection.x2, ManualCrop.oldSelection.y2);
+      ManualCrop.widget.setOptions({hide: false, show: true});
+      ManualCrop.widget.update();
+      ManualCrop.updateSelection(null, ManualCrop.oldSelection);
+    }
+    else {
+      ManualCrop.clearSelection();
+    }
   }
 }
 
@@ -115,49 +141,63 @@ ManualCrop.resetSelection = function() {
  */
 ManualCrop.clearSelection = function() {
   if (ManualCrop.overlay) {
-	ManualCrop.jcrop.release();
+    ManualCrop.widget.setOptions({hide: true, show: false});
+    ManualCrop.widget.update();
+    ManualCrop.updateSelection();
   }
 }
 
 /**
- * When a selection updates set the new coordinates to the output field.
+ * When a selection updates write the position and dimensions to the output field.
  *
- * @param coords
- *   Array of coordinates.
+ * @param image
+ *   Reference to the image thats being cropped.
+ * @param selection
+ *   Object defining the current selection.
  */
-ManualCrop.updateCoords = function(coords) {
+ManualCrop.updateSelection = function(image, selection) {
   if (ManualCrop.overlay) {
-	ManualCrop.output.val(coords.x + ';' + coords.y + ';' + coords.w + ';' + coords.h);
+    if (selection && selection.width && selection.height && selection.x1 >= 0 && selection.y1 >= 0) {
+      ManualCrop.output.val(selection.x1 + ';' + selection.y1 + ';' + selection.width + ';' + selection.height);
 
-	$('.manualcrop-selection-x', ManualCrop.overlay).text(coords.x);
-	$('.manualcrop-selection-y', ManualCrop.overlay).text(coords.y);
-	$('.manualcrop-selection-width', ManualCrop.overlay).text(coords.w);
-	$('.manualcrop-selection-height', ManualCrop.overlay).text(coords.h);
+      $('.manualcrop-selection-x', ManualCrop.overlay).text(selection.x1);
+      $('.manualcrop-selection-y', ManualCrop.overlay).text(selection.y1);
+      $('.manualcrop-selection-width', ManualCrop.overlay).text(selection.width);
+      $('.manualcrop-selection-height', ManualCrop.overlay).text(selection.height);
+    }
+    else {
+      ManualCrop.output.val('');
+
+      $('.manualcrop-selection-x', ManualCrop.overlay).text('-');
+      $('.manualcrop-selection-y', ManualCrop.overlay).text('-');
+      $('.manualcrop-selection-width', ManualCrop.overlay).text('-');
+      $('.manualcrop-selection-height', ManualCrop.overlay).text('-');
+    }
   }
 }
 
 /**
- * Parse a string selection to a coordinates object.
+ * Parse a string defining the selection to an object.
  *
- * @param txtcoords
+ * @param txtSelection
  *   The selection as a string e.a.: "x;y;width;height".
  * @return
- *   An object containing the selection coordinates.
+ *   An object containing defining the selection.
  */
-ManualCrop.parseStringSelection = function(txtcoords) {
-  if (txtcoords) {
-	var parts = txtcoords.split(';');
-	var coords = {
-	  x: Number(parts[0]),
-	  y: Number(parts[1]),
-	  w: Number(parts[2]),
-	  h: Number(parts[3])
-	};
+ManualCrop.parseStringSelection = function(txtSelection) {
+  if (txtSelection) {
+    var parts = txtSelection.split(';');
+    var selection = {
+      x1: parseInt(parts[0]),
+      y1: parseInt(parts[1]),
+      width: parseInt(parts[2]),
+      height: parseInt(parts[3])
+    };
 
-	coords.x2 = coords.x + coords.w;
-	coords.y2 = coords.y + coords.h;
+    selection.x2 = selection.x1 + selection.width;
+    selection.y2 = selection.y1 + selection.height;
 
-	return coords;
+    return selection;
   }
 
   return null;
