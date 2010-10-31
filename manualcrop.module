@@ -140,32 +140,6 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
- */
-function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
-  $style = $form_state['image_style'];
-
-  if (!empty($style['effects'])) {
-    if (!is_array($form['#submit'])) {
-      $form['#submit'] = array('image_style_form_submit');
-    }
-
-    // Reorder effects on submit.
-    $form['#submit'][] = 'manualcrop_force_effect_order';
-
-    // Filter all manual crop effects out of the form if there's already a manual crop effect.
-    if (isset($form['effects']['new']['new'])) {
-      foreach ($style['effects'] as $effect) {
-        if ($effect['module'] == 'manualcrop') {
-          $form['effects']['new']['new']['#options'] = array_diff_key($form['effects']['new']['new']['#options'], manualcrop_image_effect_info());
-          break;
-        }
-      }
-    }
-  }
-}
-
-/**
  * Sets the image style id and weight of the effect.
  *
  * @param $form
@@ -188,6 +162,32 @@ function manualcrop_image_effect_form_submit($form, &$form_state) {
     // New effect, weight must be the weight of the first one minus 1.
     $first = reset($style['effects']);
     $form_state['values']['weight'] = $first["weight"] - 1;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
+  $style = $form_state['image_style'];
+
+  if (!empty($style['effects'])) {
+    if (!is_array($form['#submit'])) {
+      $form['#submit'] = array('image_style_form_submit');
+    }
+
+    // Reorder effects on submit.
+    $form['#submit'][] = 'manualcrop_force_effect_order';
+
+    // Filter all manual crop effects out of the form if there's already a manual crop effect.
+    if (isset($form['effects']['new']['new'])) {
+      foreach ($style['effects'] as $effect) {
+        if ($effect['module'] == 'manualcrop') {
+          $form['effects']['new']['new']['#options'] = array_diff_key($form['effects']['new']['new']['#options'], manualcrop_image_effect_info());
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -248,4 +248,33 @@ function manualcrop_image_croparea($file, $isid) {
   }
 
   return NULL;
+}
+
+/**
+ * Returns the styles that have crop settings.
+ *
+ * @return
+ *   An array of styles with the style name as key and containing:
+ *   - "isid": The style id.
+ *   - "effect": The effect data.
+ */
+function manualcrop_get_styles_with_crop() {
+  $hascrop = &drupal_static(__FUNCTION__, array());
+
+  if(empty($hascrop)) {
+    $styles = image_styles();
+
+    foreach ($styles as $name => $style) {
+      if (!empty($style['effects'])) {
+        $effect = reset($style['effects']);
+
+        if ($effect['module'] == 'manualcrop') {
+          // The first effect is a manual crop effect.
+          $hascrop[$name] = $effect;
+        }
+      }
+    }
+  }
+
+  return $hascrop;
 }

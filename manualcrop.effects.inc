@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Functions needed to execute image effects provided by the Manual Crop module.
+ * Functions needed to execute the manual crop image effects.
  */
 
 /**

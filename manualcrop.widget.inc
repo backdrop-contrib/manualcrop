@@ -148,35 +148,6 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
 }
 
 /**
- * Returns the styles that have crop settings.
- *
- * @return
- *   An array of styles with the style name as key and containing:
- *   - "isid": The style id.
- *   - "effect": The effect data.
- */
-function manualcrop_get_styles_with_crop() {
-  $hascrop = &drupal_static(__FUNCTION__, array());
-
-  if(empty($hascrop)) {
-    $styles = image_styles();
-
-    foreach ($styles as $name => $style) {
-      if (!empty($style['effects'])) {
-        $effect = reset($style['effects']);
-
-        if ($effect['module'] == 'manualcrop') {
-          // The first effect is a manual crop effect.
-          $hascrop[$name] = $effect;
-        }
-      }
-    }
-  }
-
-  return $hascrop;
-}
-
-/**
  * Returns HTML for an manual crop image field widget.
  *
  * @param $variables
