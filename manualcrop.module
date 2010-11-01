@@ -140,7 +140,7 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Sets the image style id and weight of the effect.
+ * Effect form submit handler; Sets the image style id and weight of the effect.
  *
  * @param $form
  *   Effect form array.
@@ -192,12 +192,12 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Force the manual crop effect to be the first one.
+ * Effect and style form submit handler; Force the manual crop effect to be the first one.
  *
  * @param $form
  *   Effect or style form array.
  * @param $form_state
- *   Fom state array.
+ *   Form state array.
  */
 function manualcrop_force_effect_order($form, &$form_state) {
   // In both forms (style and effect) we find the style in the same key.
@@ -224,27 +224,154 @@ function manualcrop_force_effect_order($form, &$form_state) {
 }
 
 /**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function manualcrop_form_node_form_alter(&$form, &$form_state, $form_id) {
+  $form['#validate'][] = 'manualcrop_validate_crop_selection';
+  $form['#submit'][] = 'manualcrop_save_crop_selection';
+
+  if (!isset($form_state['manualcrop_widget_data'])) {
+    $form_state['manualcrop_widget_data'] = array('images' => array());
+  }
+}
+
+/**
+ * Node form validation handler; Check the cropped selection.
+ *
+ * @param $form
+ *   Node form array.
+ * @param $form_state
+ *   Form state array.
+ */
+function manualcrop_validate_crop_selection($form, &$form_state) {
+  if (!empty($form_state['manualcrop_widget_data']['images'])) {
+    // Create a new selections key in the data array, this is some kind of cache.
+    $form_state['manualcrop_widget_data']['selections'] = array();
+    $save = &$form_state['manualcrop_widget_data']['selections'];
+
+    // Loop trough the positions to get the manualcrop data.
+    foreach ($form_state['manualcrop_widget_data']['images'] as $image) {
+      $value = $form_state['values'];
+
+      foreach ($image['parents'] as $key) {
+        $value = $value[$key];
+      }
+
+      // Create a selections array for the current image.
+      $save[$value['fid']] = array();
+      $first = TRUE;
+
+      foreach ($value['manualcrop_selection'] as $isid => $selection) {
+        if (!empty($selection)) {
+          if (preg_match('/^([0-9]+\|){3}[0-9]+$/', $selection)) {
+            $selection = array_map('intval', explode('|', $selection));
+
+            // Check position and minimum dimensions.
+            if ($selection[0] >= 0 && $selection[1] >= 0 && $selection[2] > 0 && $selection[3] > 0) {
+              // Check if the selections fits on the image.
+              if (($selection[0] + $selection[2]) <= $image['width'] && ($selection[1] + $selection[3]) <= $image['height']) {
+                $save[$value['fid']][$isid] = array(
+                  'x' => $selection[0],
+                  'y' => $selection[1],
+                  'width' => $selection[2],
+                  'height' => $selection[3],
+                );
+                continue;
+              }
+            }
+          }
+
+          $style = image_style_load(NULL, $isid);
+
+          if ($first) {
+            $key = implode('][', $image['parents']) . '][manualcrop_style';
+          }
+          else {
+            $key = implode('][', $image['parents']) . '][manualcrop_selection][' . $isid;
+          }
+
+          form_set_error($key, t('The crop selection for %filename (@style image style) is invalid, please clear it or reselect.', array(
+            '@style' => $style['name'],
+            '%filename' => $image['filename']
+          )));
+
+          $first = FALSE;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Node form submit handler; Save the cropped selection.
+ *
+ * @param $form
+ *   Node form array.
+ * @param $form_state
+ *   Form state array.
+ */
+function manualcrop_save_crop_selection($form, &$form_state) {
+  if (!empty($form_state['manualcrop_widget_data']['selections'])) {
+    // Loop trough the selections to save them. $styles can by an empty array, but we loop trough
+    // the whole array to delete old selections.
+    foreach ($form_state['manualcrop_widget_data']['selections'] as $fid => $styles) {
+      if (!empty($form_state['values']['nid'])) {
+        db_delete('manualcrop')
+          ->condition('fid', $fid)
+          ->execute();
+      }
+
+      foreach ($styles as $isid => $selection) {
+        db_insert('manualcrop')
+          ->fields(array_merge($selection, array(
+            'fid' => $fid,
+            'isid' => $isid,)
+          ))
+          ->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_file_delete().
+ */
+function manualcrop_file_delete($file) {
+  db_delete('manualcrop')->condition('fid', $file->fid)->execute();
+}
+
+/**
  * Gets the crop area for an image.
  *
  * @param $file
  *   Path to an image file.
  * @param $isid
- *   Image style id.
+ *   Image style id, or 0 for all styles.
  * @return
  *   An object defining the cropping area with following items:
  *   - "x": An integer representing the top left corner's x-position in pixels.
  *   - "y": An integer representing the top left corner's y-position in pixels.
  *   - "width": An integer representing the width in pixels.
  *   - "height": An integer representing the height in pixels.
+ *   If $isid was 0 an object with all the styles is returned.
  */
-function manualcrop_image_croparea($file, $isid) {
-  $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.isid = :isid AND f.uri = :uri', array(
-    ':isid' => $isid,
-    ':uri' => $file,
-  ));
+function manualcrop_load_crop_selection($file, $isid = 0) {
+  if ($isid == 0) {
+    $result = db_query('SELECT c.isid, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
+      ':uri' => $file,
+    ));
 
-  foreach ($result as $record) {
-    return $record;
+    return $result;
+  }
+  else {
+    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.isid = :isid AND f.uri = :uri', array(
+      ':isid' => $isid,
+      ':uri' => $file,
+    ));
+
+    foreach ($result as $record) {
+      return $record;
+    }
   }
 
   return NULL;

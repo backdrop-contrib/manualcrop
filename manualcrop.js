@@ -158,7 +158,7 @@ ManualCrop.clearSelection = function() {
 ManualCrop.updateSelection = function(image, selection) {
   if (ManualCrop.overlay) {
     if (selection && selection.width && selection.height && selection.x1 >= 0 && selection.y1 >= 0) {
-      ManualCrop.output.val(selection.x1 + ';' + selection.y1 + ';' + selection.width + ';' + selection.height);
+      ManualCrop.output.val(selection.x1 + '|' + selection.y1 + '|' + selection.width + '|' + selection.height);
 
       $('.manualcrop-selection-x', ManualCrop.overlay).text(selection.x1);
       $('.manualcrop-selection-y', ManualCrop.overlay).text(selection.y1);
@@ -180,13 +180,13 @@ ManualCrop.updateSelection = function(image, selection) {
  * Parse a string defining the selection to an object.
  *
  * @param txtSelection
- *   The selection as a string e.a.: "x;y;width;height".
+ *   The selection as a string e.a.: "x|y|width|height".
  * @return
  *   An object containing defining the selection.
  */
 ManualCrop.parseStringSelection = function(txtSelection) {
   if (txtSelection) {
-    var parts = txtSelection.split(';');
+    var parts = txtSelection.split('|');
     var selection = {
       x1: parseInt(parts[0]),
       y1: parseInt(parts[1]),

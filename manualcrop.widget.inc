@@ -47,15 +47,12 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
       'data' => $data['data']
     );
   }
-  drupal_add_js(array('manualCrop' => $settings), 'setting');
+  $form['#attached']['js'][] = array('data' => array('manualCrop' => $settings), 'type' => 'setting');
 
-  // Modify the #process function for eacht element.
+  // Add our process function to the elements.
   foreach ($elements as $key => $element) {
     if (isset($element['#process'])) {
-      $element['#process'] = array_diff($element['#process'], array('image_field_widget_process'));
-      $element['#process'][] = 'manualcrop_field_widget_process';
-
-      $elements[$key] = $element;
+      $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
     }
   }
 
@@ -68,8 +65,6 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
  * Expands the default image widget to allow cropping.
  */
 function manualcrop_field_widget_process($element, &$form_state, $form) {
-  $element = image_field_widget_process($element, $form_state, $form);
-
   $item = $element['#value'];
   $item['fid'] = $element['fid']['#value'];
 
@@ -77,10 +72,28 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
     $hascrop = manualcrop_get_styles_with_crop();
 
     if (sizeof($hascrop) > 0) {
+      // Override the theming function.
       $element['#theme'] = 'manualcrop_widget';
 
       // Get image info, width and height are used by the cropping widget.
       $image = image_get_info($element['#file']->uri);
+
+      // Save some images data to improve processing.
+      $form_state['manualcrop_widget_data']['images'][$item['fid']] = array(
+        'parents' => $element['#array_parents'],
+        'filename' => $element['#file']->filename,
+        'width' => $image['width'],
+        'height' => $image['height'],
+      );
+
+      // Get the saved selections for this file.
+      if (!$form_state['submitted']) {
+        $selections = manualcrop_load_crop_selection($element['#file']->uri);
+
+        foreach ($selections as $data) {
+          $item['manualcrop_selection'][$data->isid] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
+        }
+      }
 
       // Overlay with the original image for cropping.
       $element['manualcrop_overlay'] = array(
@@ -100,13 +113,14 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         )),
       );
 
+      // Image style options.
       $options = array('-1' => t('Select a style to crop'));
 
-      // Generate hidden fields, to save the crop area, for each image style.
+      // Hidden fields to save the crop selection, one for each image style.
       foreach ($hascrop as $name => $data) {
-        $element['manualcrop_area'][$data['isid']] = array(
+        $element['manualcrop_selection'][$data['isid']] = array(
           '#type' => 'hidden',
-          '#value' => (isset($item['manualcrop_area'][$data['isid']]) ? $item['manualcrop_area'][$data['isid']] : ''),
+          '#value' => (isset($item['manualcrop_selection'][$data['isid']]) ? $item['manualcrop_selection'][$data['isid']] : ''),
           '#attributes' => array(
             'id' => 'manualcrop-area-' . $item['fid'] . '-' . $data['isid'],
             'class' => array('manualcrop-overlay'),
@@ -189,9 +203,9 @@ function theme_manualcrop_overlay($variables) {
   $output .= '</div>';
 
   $output .= '<div class="manualcrop-buttons">';
-  $output .= '<a class="manualcrop-button manualcrop-reset" href="#" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Reset selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-clear" href="#" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Clear selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-close clearfix" href="#" onclick="ManualCrop.closeOverlay(); this.blur();">' . t('Close overlay') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Reset selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Clear selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-close clearfix" href="javascript:void(0);" onclick="ManualCrop.closeOverlay(); this.blur();">' . t('Close overlay') . '</a>';
   $output .= '</div>';
 
   $output .= '</div>';

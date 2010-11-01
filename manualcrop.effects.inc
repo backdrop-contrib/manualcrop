@@ -46,7 +46,7 @@ function manualcrop_image_effect_info() {
 function manualcrop_crop_and_scale_effect(&$image, $data) {
   // The width and height will be possibly overwritten for the cropping, so copy the data array for later.
   $scale_data = $data;
-  $crop = manualcrop_image_croparea($image->source, $data["isid"]);
+  $crop = manualcrop_load_crop_selection($image->source, $data["isid"]);
 
   if ($crop) {
     // Only crop if a crop was applied.
@@ -79,7 +79,7 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  * @see image_crop_effect()
  */
 function manualcrop_crop_effect(&$image, $data) {
-  $crop = manualcrop_image_croparea($image->source, $data["isid"]);
+  $crop = manualcrop_load_crop_selection($image->source, $data["isid"]);
 
   if ($crop) {
     $data["width"] = $crop->width;
