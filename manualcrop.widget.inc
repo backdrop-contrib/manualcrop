@@ -50,9 +50,9 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
   $form['#attached']['js'][] = array('data' => array('manualCrop' => $settings), 'type' => 'setting');
 
   // Add our process function to the elements.
-  foreach ($elements as $key => $element) {
-    if (isset($element['#process'])) {
-      $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
+  foreach ($elements as $key => $child) {
+    if (isset($child['#process']) && is_array($child['#process']) && in_array('image_field_widget_process', $child['#process'])) {
+	  $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
     }
   }
 
@@ -185,7 +185,7 @@ function theme_manualcrop_widget($variables) {
  *
  * @ingroup themeable
  */
-function theme_manualcrop_overlay($variables) {  
+function theme_manualcrop_overlay($variables) {
   $output = '<div ' . drupal_attributes($variables["attributes"]) . '>';
 
   $output .= '<div class="manualcrop-overlay-bg"></div>';
