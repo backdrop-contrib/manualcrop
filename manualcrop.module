@@ -341,6 +341,13 @@ function manualcrop_file_delete($file) {
 }
 
 /**
+ * Implements hook_image_style_delete().
+ */
+function manualcrop_image_style_delete($style) {
+  db_delete('manualcrop')->condition('isid', $style['isid'])->execute();
+}
+
+/**
  * Gets the crop area for an image.
  *
  * @param $file
