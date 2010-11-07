@@ -168,6 +168,34 @@ function manualcrop_image_effect_form_submit($form, &$form_state) {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
+function manualcrop_form_image_effect_delete_form_alter(&$form, &$form_state) {
+  if (!is_array($form['#submit'])) {
+    $form['#submit'] = array('image_effect_delete_form_submit');
+  }
+
+  // If it's a manual crop effect do a custom submit handler to cleanup the cropped areas.
+  if ($form_state['image_effect']['module'] == 'manualcrop') {
+    array_unshift($form['#submit'], 'manualcrop_image_effect_delete_form_submit');
+  }
+}
+
+/**
+ * Effect deletion form submit handler; Cleanup old selection areas.
+ *
+ * @param $form
+ *   Effect form array.
+ * @param $form_state
+ *   Form state array.
+ */
+function manualcrop_image_effect_form_submit($form, &$form_state) {
+  db_delete('manualcrop')
+    ->condition('isid', $form_state['image_style']['isid'])
+    ->execute();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
 function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
   $style = $form_state['image_style'];
 
@@ -315,11 +343,9 @@ function manualcrop_save_crop_selection($form, &$form_state) {
     // Loop trough the selections to save them. $styles can by an empty array, but we loop trough
     // the whole array to delete old selections.
     foreach ($form_state['manualcrop_widget_data']['selections'] as $fid => $styles) {
-      if (!empty($form_state['values']['nid'])) {
-        db_delete('manualcrop')
-          ->condition('fid', $fid)
-          ->execute();
-      }
+      db_delete('manualcrop')
+        ->condition('fid', $fid)
+        ->execute();
 
       foreach ($styles as $isid => $selection) {
         db_insert('manualcrop')
@@ -344,7 +370,9 @@ function manualcrop_file_delete($file) {
  * Implements hook_image_style_delete().
  */
 function manualcrop_image_style_delete($style) {
-  db_delete('manualcrop')->condition('isid', $style['isid'])->execute();
+  db_delete('manualcrop')
+    ->condition('isid', $style['isid'])
+    ->execute();
 }
 
 /**
