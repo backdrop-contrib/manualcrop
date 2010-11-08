@@ -59,7 +59,7 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
     }
   }
 
-  return image_scale_effect($image, $scale_data);
+  return image_scale_and_crop_effect($image, $scale_data);
 }
 
 /**
