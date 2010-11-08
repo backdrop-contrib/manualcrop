@@ -81,6 +81,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
       // Save some images data to improve processing.
       $form_state['manualcrop_widget_data']['images'][$item['fid']] = array(
         'parents' => $element['#array_parents'],
+        'uri' => $element['#file']->uri,
         'filename' => $element['#file']->filename,
         'width' => $image['width'],
         'height' => $image['height'],
