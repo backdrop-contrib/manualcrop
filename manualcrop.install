@@ -64,5 +64,6 @@ function manualcrop_schema() {
     ),
     'primary key' => array('fid', 'isid'),
   );
+
   return $schema;
 }
