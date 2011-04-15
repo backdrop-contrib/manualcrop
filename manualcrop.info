@@ -4,8 +4,3 @@ package = Image
 
 core = 7.x
 dependencies[] = image
-
-files[] = manualcrop.install
-files[] = manualcrop.module
-files[] = manualcrop.effects.inc
-files[] = manualcrop.widget.inc
