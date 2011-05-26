@@ -438,6 +438,12 @@ function manualcrop_get_styles_with_crop() {
         $effect = reset($style['effects']);
 
         if ($effect['module'] == 'manualcrop') {
+          if (!isset($style['isid'])) {
+            // Image style is not yet overridden, save it to db so we have an id.
+            $style = image_default_style_save($style);
+            $effect = reset($style['effects']);
+          }
+
           // The first effect is a manual crop effect.
           $hascrop[$name] = $effect;
         }
