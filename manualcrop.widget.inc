@@ -41,9 +41,9 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
 
   // Generate and set the settings for each style effect.
   $settings = array();
-  foreach (manualcrop_get_styles_with_crop() as $name => $data) {
-    $settings[$data['isid']] = array(
-      'name' => $data['name'],
+  foreach (manualcrop_get_styles_with_crop() as $style_name => $data) {
+    $settings[$style_name] = array(
+      'effect' => $data['name'],
       'data' => $data['data']
     );
   }
@@ -71,7 +71,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
   if ($element['#file'] && isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
     $hascrop = manualcrop_get_styles_with_crop();
 
-    if (sizeof($hascrop) > 0) {
+    if (!empty($hascrop)) {
       // Override the theming function.
       $element['#theme'] = 'manualcrop_widget';
 
@@ -92,7 +92,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         $selections = manualcrop_load_crop_selection($element['#file']->uri);
 
         foreach ($selections as $data) {
-          $item['manualcrop_selection'][$data->isid] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
+          $item['manualcrop_selection'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
         }
       }
 
@@ -115,20 +115,20 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
       );
 
       // Image style options.
-      $options = array('-1' => t('Select a style to crop'));
+      $options = array('' => t('Select a style to crop'));
 
       // Hidden fields to save the crop selection, one for each image style.
-      foreach ($hascrop as $name => $data) {
-        $element['manualcrop_selection'][$data['isid']] = array(
+      foreach ($hascrop as $style_name => $data) {
+        $element['manualcrop_selection'][$style_name] = array(
           '#type' => 'hidden',
-          '#value' => (isset($item['manualcrop_selection'][$data['isid']]) ? $item['manualcrop_selection'][$data['isid']] : ''),
+          '#value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
           '#attributes' => array(
-            'id' => 'manualcrop-area-' . $item['fid'] . '-' . $data['isid'],
+            'id' => 'manualcrop-area-' . $item['fid'] . '-' . $style_name,
             'class' => array('manualcrop-overlay'),
           ),
         );
 
-        $options[$data['isid']] = $name;
+        $options[$style_name] = $style_name;
       }
 
       // Selection list for opening the overlay.

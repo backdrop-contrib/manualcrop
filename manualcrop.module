@@ -151,8 +151,8 @@ function manualcrop_image_effect_form_submit($form, &$form_state) {
   $style = $form_state['image_style'];
   $effect = $form_state['image_effect'];
 
-  // Set style id so the effect can use it.
-  $form_state['values']['data']['isid'] = $style['isid'];
+  // Set style name so the effect can use it.
+  $form_state['values']['data']['style_name'] = $style['name'];
 
   if (count($style['effects']) == 0) {
     // First effect, so weight is 0.
@@ -205,6 +205,9 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
     // Reorder effects on submit.
     $form['#submit'][] = 'manualcrop_force_effect_order';
 
+    // Update style name in effect data.
+    $form['#submit'][] = 'manualcrop_update_style_name';
+
     // Filter all manual crop effects out of the form if there's already a manual crop effect.
     if (isset($form['effects']['new']['new'])) {
       foreach ($style['effects'] as $effect) {
@@ -227,10 +230,16 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
  */
 function manualcrop_force_effect_order($form, &$form_state) {
   // In both forms (style and effect) we find the style in the same key.
+  $style = $form_state['image_style'];
+
+  // If it's the style form, check if the style name was updated.
+  if ($form['#form_id'] == 'image_style_form' && isset($form_state['values']['name']) && $style['name'] != $form_state['values']['name']) {
+    $style['name'] = $form_state['values']['name'];
+  }
+
   // The style array is received trough the loader to make sure the function
   // works with the latest version.
-  $style = $form_state['image_style'];
-  $style = image_style_load(NULL, $style['isid']);
+  $style = image_style_load($style['name']);
 
   if (!empty($style['effects'])) {
     foreach ($style['effects'] as $eid => $effect) {
@@ -250,11 +259,34 @@ function manualcrop_force_effect_order($form, &$form_state) {
 }
 
 /**
+ * Style form submit handler; Update the style name in the effect data.
+ *
+ * @param $form
+ *   Style form array.
+ * @param $form_state
+ *   Form state array.
+ */
+function manualcrop_update_style_name($form, &$form_state) {
+  $style = $form_state['image_style'];
+
+  // Check if the style name should be updated.
+  if (!empty($style['effects']) && isset($form_state['values']['name']) && $style['name'] != $form_state['values']['name']) {
+    $effect = reset($style['effects']);
+
+    if ($effect['module'] == 'manualcrop') {
+        // Change the style name in the effect data and save the effect.
+        $effect["data"]["style_name"] = $form_state['values']['name'];
+        image_effect_save($effect);
+    }
+  }
+}
+
+/**
  * Implements hook_image_style_delete().
  */
 function manualcrop_image_style_delete($style) {
   db_delete('manualcrop')
-    ->condition('isid', $style['isid'])
+    ->condition('style_name', $style['name'])
     ->execute();
 }
 
@@ -300,7 +332,7 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
       );
       $first = TRUE;
 
-      foreach ($value['manualcrop_selection'] as $isid => $selection) {
+      foreach ($value['manualcrop_selection'] as $style_name => $selection) {
         if (!empty($selection)) {
           if (preg_match('/^([0-9]+\|){3}[0-9]+$/', $selection)) {
             $selection = array_map('intval', explode('|', $selection));
@@ -309,7 +341,7 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
             if ($selection[0] >= 0 && $selection[1] >= 0 && $selection[2] > 0 && $selection[3] > 0) {
               // Check if the selections fits on the image.
               if (($selection[0] + $selection[2]) <= $image['width'] && ($selection[1] + $selection[3]) <= $image['height']) {
-                $save[$value['fid']]['styles'][$isid] = array(
+                $save[$value['fid']]['styles'][$style_name] = array(
                   'x' => $selection[0],
                   'y' => $selection[1],
                   'width' => $selection[2],
@@ -320,17 +352,15 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
             }
           }
 
-          $style = image_style_load(NULL, $isid);
-
           if ($first) {
             $key = implode('][', $image['parents']) . '][manualcrop_style';
           }
           else {
-            $key = implode('][', $image['parents']) . '][manualcrop_selection][' . $isid;
+            $key = implode('][', $image['parents']) . '][manualcrop_selection][' . $style_name;
           }
 
           form_set_error($key, t('The crop selection for %filename (@style image style) is invalid, please clear it or reselect.', array(
-            '@style' => $style['name'],
+            '@style' => $style_name,
             '%filename' => $image['filename']
           )));
 
@@ -360,12 +390,12 @@ function manualcrop_save_crop_selection($form, &$form_state) {
         ->condition('fid', $fid)
         ->execute();
 
-      foreach ($data['styles'] as $isid => $selection) {
+      foreach ($data['styles'] as $style_name => $selection) {
         db_insert('manualcrop')
           ->fields(array_merge($selection, array(
             'fid' => $fid,
-            'isid' => $isid,)
-          ))
+            'style_name' => $style_name
+          )))
           ->execute();
       }
 
@@ -387,27 +417,28 @@ function manualcrop_file_delete($file) {
  *
  * @param $file
  *   Path to an image file.
- * @param $isid
- *   Image style id, or 0 for all styles.
+ * @param $style_name
+ *   Image style machine name, or empty for all styles.
  * @return
  *   An object defining the cropping area with following items:
+ *   - "style_name": The machine name of the image style this cropping area applies on.
  *   - "x": An integer representing the top left corner's x-position in pixels.
  *   - "y": An integer representing the top left corner's y-position in pixels.
  *   - "width": An integer representing the width in pixels.
  *   - "height": An integer representing the height in pixels.
- *   If $isid was 0 an object with all the styles is returned.
+ *   If the style machine name was empty an object with all the styles is returned.
  */
-function manualcrop_load_crop_selection($file, $isid = 0) {
-  if ($isid == 0) {
-    $result = db_query('SELECT c.isid, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
+function manualcrop_load_crop_selection($file, $style_name = NULL) {
+  if (empty($style_name)) {
+    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
       ':uri' => $file,
     ));
 
     return $result;
   }
   else {
-    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.isid = :isid AND f.uri = :uri', array(
-      ':isid' => $isid,
+    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.style_name = :name AND f.uri = :uri', array(
+      ':name' => $style_name,
       ':uri' => $file,
     ));
 
@@ -430,22 +461,14 @@ function manualcrop_load_crop_selection($file, $isid = 0) {
 function manualcrop_get_styles_with_crop() {
   $hascrop = &drupal_static(__FUNCTION__, array());
 
-  if(empty($hascrop)) {
-    $styles = image_styles();
-
-    foreach ($styles as $name => $style) {
+  if (empty($hascrop)) {
+    foreach (image_styles() as $style_name => $style) {
       if (!empty($style['effects'])) {
+        // Check if the first effect is a manual crop effect.
         $effect = reset($style['effects']);
 
         if ($effect['module'] == 'manualcrop') {
-          if (!isset($style['isid'])) {
-            // Image style is not yet overridden, save it to db so we have an id.
-            $style = image_default_style_save($style);
-            $effect = reset($style['effects']);
-          }
-
-          // The first effect is a manual crop effect.
-          $hascrop[$name] = $effect;
+          $hascrop[$style_name] = $effect;
         }
       }
     }

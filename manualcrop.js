@@ -36,7 +36,7 @@ ManualCrop.showOverlay = function(select, fid) {
     var maxWidth = $(window).width() - parseInt(image.css('margin-left')) - parseInt(image.css('margin-right'));
     var newHeight = height;
     var maxHeight = $(window).height() - parseInt(image.css('margin-top')) - parseInt(image.css('margin-bottom'));
- 
+
     if(newWidth > maxWidth) {
       newHeight = Math.floor((newHeight * maxWidth) / newWidth);
       newWidth = maxWidth;
@@ -63,7 +63,7 @@ ManualCrop.showOverlay = function(select, fid) {
 
     // Additional options based upon the effect.
     if (settings) {
-      switch (settings.name) {
+      switch (settings.effect) {
         // Manual crop and scale effect.
         case 'manualcrop_crop_and_scale':
           options.aspectRatio = settings.data.width + ':' + settings.data.height;

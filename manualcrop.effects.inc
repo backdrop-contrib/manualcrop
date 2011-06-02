@@ -38,6 +38,7 @@ function manualcrop_image_effect_info() {
  *   - "height": An integer representing the desired height in pixels.
  *   - "upscale": A Boolean indicating that the image should be upscalled if
  *     the dimensions are larger than the original image.
+ *   - "style_name": The style's machine name.
  * @return
  *   TRUE on success. FALSE on failure to crop and scale image.
  * @see image_crop_effect()
@@ -46,7 +47,7 @@ function manualcrop_image_effect_info() {
 function manualcrop_crop_and_scale_effect(&$image, $data) {
   // The width and height will be possibly overwritten for the cropping, so copy the data array for later.
   $scale_data = $data;
-  $crop = manualcrop_load_crop_selection($image->source, $data["isid"]);
+  $crop = manualcrop_load_crop_selection($image->source, $data["style_name"]);
 
   if ($crop) {
     // Only crop if a crop was applied.
@@ -74,12 +75,13 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  *   - "height": An integer representing the desired height in pixels.
  *   - "upscale": A Boolean indicating that the image should be upscalled if
  *     the dimensions are larger than the original image.
+ *   - "style_name": The style's machine name.
  * @return
  *   TRUE on success. FALSE on failure to crop image.
  * @see image_crop_effect()
  */
 function manualcrop_crop_effect(&$image, $data) {
-  $crop = manualcrop_load_crop_selection($image->source, $data["isid"]);
+  $crop = manualcrop_load_crop_selection($image->source, $data["style_name"]);
 
   if ($crop) {
     $data["width"] = $crop->width;
