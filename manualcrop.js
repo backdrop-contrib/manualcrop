@@ -56,7 +56,7 @@ ManualCrop.showOverlay = function(select, fid) {
       instance: true,
       keys: true,
       parent: image.parent(),
-      imagewidth: width,
+      imageWidth: width,
       imageHeight: height,
       onSelectChange: ManualCrop.updateSelection
     };
