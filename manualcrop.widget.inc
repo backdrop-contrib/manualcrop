@@ -124,7 +124,8 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
           '#value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
           '#attributes' => array(
             'id' => 'manualcrop-area-' . $item['fid'] . '-' . $style_name,
-            'class' => array('manualcrop-overlay'),
+            'class' => array('manualcrop-cropdata'),
+            'onchange' => 'ManualCrop.fieldUpdated(this, ' . $item['fid'] . ', \'' . $style_name . '\');',
           ),
         );
 
@@ -140,6 +141,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         '#multiple' => FALSE,
         '#weight' => $element['title']['#weight'],
         '#attributes' => array(
+          'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $item['fid']),
           'onchange' => 'ManualCrop.showOverlay(this, ' . $item['fid'] . ');',
         ),
         '#attached' => array(

@@ -3,6 +3,14 @@ var ManualCrop = {"overlay": null, "oldSelection": null, "widget": null, "output
 (function ($) {
 
 /**
+ * Trigger the onchange event of all hidden fields that hold crop data,
+ * this way all css classes in the selection lists will be updated.
+ */
+$(document).ready(function () {
+  $('.manualcrop-cropdata').trigger('change');
+});
+
+/**
  * Open the cropping overlay for an image.
  *
  * @param select
@@ -111,11 +119,14 @@ ManualCrop.showOverlay = function(select, fid) {
  */
 ManualCrop.closeOverlay = function() {
   if (ManualCrop.overlay) {
+    ManualCrop.output.trigger('change');
+
     ManualCrop.widget.setOptions({remove: true});
     ManualCrop.overlay.remove();
     ManualCrop.overlay = null;
     ManualCrop.oldSelection = null;
     ManualCrop.widget = null;
+    ManualCrop.output = null;
   }
 }
 
@@ -201,6 +212,39 @@ ManualCrop.parseStringSelection = function(txtSelection) {
   }
 
   return null;
+}
+
+/**
+ * A new cropping area was saved to the hidden field, find the corresponding
+ * select option and append a css class to indicate the crop status.
+ *
+ * This is a seperate function so it can be triggered after loading.
+ *
+ * @param element
+ *   The hidden field that stores the selection.
+ * @param fid
+ *   The file id.
+ * @param styleName
+ *
+ */
+ManualCrop.fieldUpdated = function(element, fid, styleName) {
+  var select = $('.manualcrop-style-select-' + fid);
+  var option = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "']");
+
+  // Check if the style has been cropped.
+  if ($(element).val()) {
+    option.addClass('manualcrop-style-option-cropped');
+
+    if ($('option', select).not('.manualcrop-style-option-cropped').length == 1) {
+      // All styles have been cropped.
+      select.addClass('manualcrop-style-select-cropped');
+    }
+  }
+  else {
+    // Style not cropped.
+    option.removeClass('manualcrop-style-option-cropped');
+    select.removeClass('manualcrop-style-select-cropped');
+  }
 }
 
 })(jQuery);
