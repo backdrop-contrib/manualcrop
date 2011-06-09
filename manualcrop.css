@@ -58,6 +58,9 @@ img.manualcrop-image {
   background-color: #000000;
   border: 1px solid #545454;
 }
+.manualcrop-reset {
+  display: none;
+}
 .manualcrop-button:hover {
   color: #000000;
   background-color: #FFFFFF;

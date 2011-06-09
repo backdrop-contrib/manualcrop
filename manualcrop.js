@@ -134,16 +134,14 @@ ManualCrop.closeOverlay = function() {
  * Reset the selection to the previous state.
  */
 ManualCrop.resetSelection = function() {
-  if (ManualCrop.overlay) {
-    if (ManualCrop.oldSelection) {
-      ManualCrop.widget.setSelection(ManualCrop.oldSelection.x1, ManualCrop.oldSelection.y1, ManualCrop.oldSelection.x2, ManualCrop.oldSelection.y2);
-      ManualCrop.widget.setOptions({hide: false, show: true});
-      ManualCrop.widget.update();
-      ManualCrop.updateSelection(null, ManualCrop.oldSelection);
-    }
-    else {
-      ManualCrop.clearSelection();
-    }
+  if (ManualCrop.overlay && ManualCrop.oldSelection) {
+    ManualCrop.widget.setSelection(ManualCrop.oldSelection.x1, ManualCrop.oldSelection.y1, ManualCrop.oldSelection.x2, ManualCrop.oldSelection.y2);
+    ManualCrop.widget.setOptions({hide: false, show: true});
+    ManualCrop.widget.update();
+    ManualCrop.updateSelection(null, ManualCrop.oldSelection);
+
+    // Hide reset button.
+    $(".manualcrop-reset", ManualCrop.overlay).hide();
   }
 }
 
@@ -183,6 +181,11 @@ ManualCrop.updateSelection = function(image, selection) {
       $('.manualcrop-selection-y', ManualCrop.overlay).text('-');
       $('.manualcrop-selection-width', ManualCrop.overlay).text('-');
       $('.manualcrop-selection-height', ManualCrop.overlay).text('-');
+    }
+
+    if (ManualCrop.oldSelection) {
+      // Show reset button.
+      $(".manualcrop-reset", ManualCrop.overlay).show();
     }
   }
 }
