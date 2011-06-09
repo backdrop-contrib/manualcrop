@@ -77,7 +77,10 @@ function manualcrop_update_7100(&$sandbox) {
 
   foreach ($styles as $style) {
     // Set the style name for each used style.
-    db_query('UPDATE {manualcrop} SET style_name = :name WHERE isid = :isid', (array) $style);
+    db_query('UPDATE {manualcrop} SET style_name = :name WHERE isid = :isid', array(
+      ':name' => $style->name,
+      ':isid' => $style->isid,
+    ));
   }
 
   // Create the new PK.
