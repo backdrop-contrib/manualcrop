@@ -3,10 +3,14 @@ var ManualCrop = {"overlay": null, "oldSelection": null, "widget": null, "output
 (function ($) {
 
 /**
- * Trigger the onchange event of all hidden fields that hold crop data,
- * this way all css classes in the selection lists will be updated.
+ * Mark required image styles and trigger the onchange event of all hidden fields
+ * that hold crop data, this way all css classes in the selection lists will be updated.
  */
 $(document).ready(function () {
+  for (var key in Drupal.settings.manualCrop.required) {
+    $('.manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[key] + '"]').addClass("manualcrop-style-option-required");
+  }
+
   $('.manualcrop-cropdata').trigger('change');
 });
 
@@ -21,7 +25,7 @@ $(document).ready(function () {
 ManualCrop.showOverlay = function(select, fid) {
   if (!ManualCrop.overlay) {
     var styleSelect = $(select);
-    var settings = Drupal.settings.manualCrop[styleSelect.val()] || {};
+    var settings = Drupal.settings.manualCrop.styles[styleSelect.val()] || {};
 
     // Get the destination field and the current selection.
     ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleSelect.val());
@@ -230,7 +234,7 @@ ManualCrop.parseStringSelection = function(txtSelection) {
  * @param styleName
  *
  */
-ManualCrop.fieldUpdated = function(element, fid, styleName) {
+ManualCrop.selectionStored = function(element, fid, styleName) {
   var select = $('.manualcrop-style-select-' + fid);
   var option = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "']");
 
@@ -247,6 +251,13 @@ ManualCrop.fieldUpdated = function(element, fid, styleName) {
     // Style not cropped.
     option.removeClass('manualcrop-style-option-cropped');
     select.removeClass('manualcrop-style-select-cropped');
+  }
+
+  // Uncropped required styles in the select?
+  if ($("option.manualcrop-style-option-required", select).not('.manualcrop-style-option-cropped').length > 0) {
+    select.addClass('manualcrop-style-select-required');
+  } else {
+    select.removeClass('manualcrop-style-select-required');
   }
 }
 

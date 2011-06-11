@@ -28,8 +28,21 @@ function manualcrop_field_widget_info() {
  * Implements hook_field_widget_settings_form().
  */
 function manualcrop_field_widget_settings_form($field, $instance) {
+  $settings = $instance['widget']['settings'];
+
   // Use the image field settings form.
-  return image_field_widget_settings_form($field, $instance);
+  $form = image_field_widget_settings_form($field, $instance);
+
+  $form['require_cropping'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Required croppings'),
+    '#description' => t('Check all styles that must have a crop selection.'),
+    '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
+    '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
+    '#weight' => 16,
+  );
+
+  return $form;
 }
 
 /**
@@ -39,6 +52,10 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
   // Use the image field widget form.
   $elements = image_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
 
+  // Get the widget settings.
+  $instance = field_widget_instance($element, $form_state);
+  $widget_settings = $instance['widget']['settings'];
+
   // Generate and set the settings for each style effect.
   $settings = array();
   foreach (manualcrop_get_styles_with_crop() as $style_name => $data) {
@@ -47,9 +64,13 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
       'data' => $data['data']
     );
   }
-  $form['#attached']['js'][] = array('data' => array('manualCrop' => $settings), 'type' => 'setting');
 
-  // Add our process function to the elements.
+  $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
+    'styles' => $settings,
+    'required' => array_values((isset($widget_settings['require_cropping']) ? $widget_settings['require_cropping'] : array())),
+  )), 'type' => 'setting');
+
+  // Add a process function to the elements.
   foreach ($elements as $key => $child) {
     if (isset($child['#process']) && is_array($child['#process']) && in_array('image_field_widget_process', $child['#process'])) {
 	  $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
@@ -75,16 +96,21 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
       // Override the theming function.
       $element['#theme'] = 'manualcrop_widget';
 
+      // Get the widget settings.
+      $instance = field_widget_instance($element, $form_state);
+      $widget_settings = $instance['widget']['settings'];
+
       // Get image info, width and height are used by the cropping widget.
       $image = image_get_info($element['#file']->uri);
 
       // Save some images data to improve processing.
       $form_state['manualcrop_widget_data']['images'][$item['fid']] = array(
-        'parents' => $element['#array_parents'],
         'uri' => $element['#file']->uri,
         'filename' => $element['#file']->filename,
         'width' => $image['width'],
         'height' => $image['height'],
+        'element_parents' => $element['#array_parents'],
+        'required_styles' => array_values((isset($widget_settings['require_cropping']) ? $widget_settings['require_cropping'] : array())), // Required croppings
       );
 
       // Get the saved selections for this file.
@@ -121,11 +147,11 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
       foreach ($hascrop as $style_name => $data) {
         $element['manualcrop_selection'][$style_name] = array(
           '#type' => 'hidden',
-          '#value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
+          '#default_value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
           '#attributes' => array(
             'id' => 'manualcrop-area-' . $item['fid'] . '-' . $style_name,
             'class' => array('manualcrop-cropdata'),
-            'onchange' => 'ManualCrop.fieldUpdated(this, ' . $item['fid'] . ', \'' . $style_name . '\');',
+            'onchange' => 'ManualCrop.selectionStored(this, ' . $item['fid'] . ', \'' . $style_name . '\');',
           ),
         );
 
@@ -162,6 +188,43 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
   }
 
   return $element;
+}
+
+/**
+ * Update required crop selections for all Manual Crop field widgets.
+ *
+ * @param $style_name
+ *   Current image style name.
+ * @param $new_style_name
+ *   New image style name if renamed, a NULL value will remove the style from the required array.
+ */
+function manualcrop_field_widget_update_required_croppings($style_name, $new_style_name = null) {
+  foreach (field_info_fields() as $field) {
+    if ($field['module'] == 'image') {
+      foreach ($field['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle) {
+          // Check each instance for processing.
+          $instance = field_info_instance($entity_type, $field['field_name'], $bundle);
+
+          if ($instance['widget']['module'] == 'manualcrop' && isset($instance['widget']['settings']['require_cropping'])) {
+            $require = &$instance['widget']['settings']['require_cropping'];
+
+            if (isset($require[$style_name])) {
+              unset($require[$style_name]);
+
+              if (!is_null($new_style_name)) {
+                $require[$new_style_name] = $new_style_name;
+              } elseif (empty($require)) {
+                unset($field['widget']['settings']['require_cropping']);
+              }
+
+              field_update_instance($instance);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 /**

@@ -65,6 +65,9 @@ img.manualcrop-image {
   color: #000000;
   background-color: #FFFFFF;
 }
+.manualcrop-style-option-required, .manualcrop-style-select-required {
+  color: #FF0000;
+}
 .manualcrop-style-option-cropped, .manualcrop-style-select-cropped {
-  background-color: #B9E246;
+  color: #96CB00;
 }
