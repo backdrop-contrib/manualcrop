@@ -9,11 +9,11 @@
   height: 100%;
   position: absolute;
   z-index: 10001;
-  opacity: 0.75; /* Standard: FF gt 1.5, Opera, Safari */
-  filter: alpha(opacity=75); /* IE lt 8 */
-  -ms-filter: "alpha(opacity=75)"; /* IE 8 */
-  -khtml-opacity: 0.75; /* Safari 1.x */
-  -moz-opacity: 0.75; /* FF lt 1.5, Netscape */
+  opacity: 0.90; /* Standard: FF gt 1.5, Opera, Safari */
+  filter: alpha(opacity=90); /* IE lt 8 */
+  -ms-filter: "alpha(opacity=90)"; /* IE 8 */
+  -khtml-opacity: 0.90; /* Safari 1.x */
+  -moz-opacity: 0.90; /* FF lt 1.5, Netscape */
   background-color: #000000;
 }
 .manualcrop-image-holder {

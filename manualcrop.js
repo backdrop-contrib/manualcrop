@@ -24,6 +24,14 @@ $(document).ready(function () {
  */
 ManualCrop.showOverlay = function(select, fid) {
   if (!ManualCrop.overlay) {
+    $(document).keyup(function(e) {
+      // Close the overlay when someone presses escape
+      if(e.keyCode == 27) { ManualCrop.closeOverlay(); }
+    });
+
+    var browserWidth = $(window).width();
+    var browserHeight = $(window).height();
+
     var styleSelect = $(select);
     var settings = Drupal.settings.manualCrop.styles[styleSelect.val()] || {};
 
@@ -35,30 +43,34 @@ ManualCrop.showOverlay = function(select, fid) {
     ManualCrop.overlay = $('#manualcrop-overlay-' + fid).clone();
     ManualCrop.overlay.removeAttr('id');
     ManualCrop.overlay.removeClass('element-invisible');
-    ManualCrop.overlay.css('width', $(window).width() + 'px');
-    ManualCrop.overlay.css('height', $(window).height() + 'px');
+    ManualCrop.overlay.css('width', browserWidth + 'px');
+    ManualCrop.overlay.css('height', browserHeight + 'px');
 
     // Get the image and the dimensions.
-    var image = $('img.manualcrop-image', ManualCrop.overlay);
-    var width = parseInt(image.attr('width'));
-    var height = parseInt(image.attr('height'));
+    // We have to use this, instead of the ManualCrop.overlay cloned one to get the CSS in Chrome
+    var image = $('img.manualcrop-image'); //, ManualCrop.overlay);
+    //image.load(); // here's why http://stackoverflow.com/questions/318630/get-real-image-width-and-height-with-javascript-in-safari-chrome
+    var width = parseInt(image.attr('width')) || 0;
+    var height = parseInt(image.attr('height')) || 0;
 
     // Scale the image to fit the maximum width and height (the visible part of the page).
     var newWidth = width;
-    var maxWidth = $(window).width() - parseInt(image.css('margin-left')) - parseInt(image.css('margin-right'));
+    var maxWidth = browserWidth - (parseInt(image.css('marginLeft')) || 0) - (parseInt(image.css('marginRight')) || 0);
     var newHeight = height;
-    var maxHeight = $(window).height() - parseInt(image.css('margin-top')) - parseInt(image.css('margin-bottom'));
+    var maxHeight = browserHeight - (parseInt(image.css('marginTop')) || 0) - (parseInt(image.css('marginBottom')) || 0);
 
     if(newWidth > maxWidth) {
       newHeight = Math.floor((newHeight * maxWidth) / newWidth);
       newWidth = maxWidth;
-	}
+	  }
 
-	if(newHeight > maxHeight) {
-	  newWidth = Math.floor((newWidth * maxHeight) / newHeight);
-	  newHeight = maxHeight;
-	}
+	  if(newHeight > maxHeight) {
+	    newWidth = Math.floor((newWidth * maxHeight) / newHeight);
+	    newHeight = maxHeight;
+	  }
 
+    //alert("bWidth: " + browserWidth + ", nWidth: " + newWidth + ", mWidth: " + maxWidth + ", bHeight: " + browserHeight + ", nHeight: " + newHeight + ", mHeight: " + maxHeight);
+    image = $('img.manualcrop-image', ManualCrop.overlay);
     image.css('width', newWidth + 'px');
     image.css('height', newHeight + 'px');
 
@@ -206,10 +218,10 @@ ManualCrop.parseStringSelection = function(txtSelection) {
   if (txtSelection) {
     var parts = txtSelection.split('|');
     var selection = {
-      x1: parseInt(parts[0]),
-      y1: parseInt(parts[1]),
-      width: parseInt(parts[2]),
-      height: parseInt(parts[3])
+      x1: parseInt(parts[0]) || 0,
+      y1: parseInt(parts[1]) || 0,
+      width: parseInt(parts[2]) || 0,
+      height: parseInt(parts[3]) || 0
     };
 
     selection.x2 = selection.x1 + selection.width;

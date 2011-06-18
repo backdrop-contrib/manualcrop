@@ -173,11 +173,11 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-            drupal_get_path('module', 'manualcrop') . '/imgAreaSelect/imgareaselect-animated.css',
+            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
           ),
           'js' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-            drupal_get_path('module', 'manualcrop') . '/imgAreaSelect/jquery.imgareaselect.pack.js',
+            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
           ),
         ),
       );
