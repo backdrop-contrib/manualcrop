@@ -301,18 +301,6 @@ function manualcrop_image_style_delete($style) {
 }
 
 /**
- * Implements hook_form_BASE_FORM_ID_alter().
- */
-function manualcrop_form_node_form_alter(&$form, &$form_state, $form_id) {
-  $form['#validate'][] = 'manualcrop_validate_crop_selection';
-  $form['#submit'][] = 'manualcrop_save_crop_selection';
-
-  if (!isset($form_state['manualcrop_widget_data'])) {
-    $form_state['manualcrop_widget_data'] = array('images' => array());
-  }
-}
-
-/**
  * Node form validation handler; Check the cropping selections.
  *
  * @param $form

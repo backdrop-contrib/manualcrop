@@ -65,6 +65,7 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
     );
   }
 
+  // Add the JavaScript settings.
   $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
     'styles' => $settings,
     'required' => array_values((isset($widget_settings['require_cropping']) ? $widget_settings['require_cropping'] : array())),
@@ -75,6 +76,14 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
     if (isset($child['#process']) && is_array($child['#process']) && in_array('image_field_widget_process', $child['#process'])) {
 	  $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
     }
+  }
+
+  // Validation and submit function.
+  $form['#validate'][] = 'manualcrop_validate_crop_selection';
+  $form['#submit'][] = 'manualcrop_save_crop_selection';
+
+  if (!isset($form_state['manualcrop_widget_data'])) {
+    $form_state['manualcrop_widget_data'] = array('images' => array());
   }
 
   return $elements;
