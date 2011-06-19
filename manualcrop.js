@@ -24,11 +24,6 @@ $(document).ready(function () {
  */
 ManualCrop.showOverlay = function(select, fid) {
   if (!ManualCrop.overlay) {
-    $(document).keyup(function(e) {
-      // Close the overlay when someone presses escape
-      if(e.keyCode == 27) { ManualCrop.closeOverlay(); }
-    });
-
     var browserWidth = $(window).width();
     var browserHeight = $(window).height();
 
@@ -46,12 +41,10 @@ ManualCrop.showOverlay = function(select, fid) {
     ManualCrop.overlay.css('width', browserWidth + 'px');
     ManualCrop.overlay.css('height', browserHeight + 'px');
 
-    // Get the image and the dimensions.
-    // We have to use this, instead of the ManualCrop.overlay cloned one to get the CSS in Chrome
-    var image = $('img.manualcrop-image'); //, ManualCrop.overlay);
-    //image.load(); // here's why http://stackoverflow.com/questions/318630/get-real-image-width-and-height-with-javascript-in-safari-chrome
-    var width = parseInt(image.attr('width')) || 0;
-    var height = parseInt(image.attr('height')) || 0;
+    // Get the image and the dimensions, don't use the ManualCrop.overlay cloned one to get the CSS in Webkit.
+    var image = $('img.manualcrop-image');
+    var width = (parseInt(image.attr('width')) || 0);
+    var height = (parseInt(image.attr('height')) || 0);
 
     // Scale the image to fit the maximum width and height (the visible part of the page).
     var newWidth = width;
@@ -62,19 +55,19 @@ ManualCrop.showOverlay = function(select, fid) {
     if(newWidth > maxWidth) {
       newHeight = Math.floor((newHeight * maxWidth) / newWidth);
       newWidth = maxWidth;
-	  }
+	}
 
-	  if(newHeight > maxHeight) {
-	    newWidth = Math.floor((newWidth * maxHeight) / newHeight);
-	    newHeight = maxHeight;
-	  }
+    if(newHeight > maxHeight) {
+      newWidth = Math.floor((newWidth * maxHeight) / newHeight);
+      newHeight = maxHeight;
+    }
 
-    //alert("bWidth: " + browserWidth + ", nWidth: " + newWidth + ", mWidth: " + maxWidth + ", bHeight: " + browserHeight + ", nHeight: " + newHeight + ", mHeight: " + maxHeight);
+    // Set the new width and height to the cloned image.
     image = $('img.manualcrop-image', ManualCrop.overlay);
     image.css('width', newWidth + 'px');
     image.css('height', newHeight + 'px');
 
-    // Basic options.
+    // Basic imgAreaSelect options.
     var options = {
       handles: true,
       instance: true,
@@ -114,7 +107,7 @@ ManualCrop.showOverlay = function(select, fid) {
     $('.manualcrop-image-style', ManualCrop.overlay).text($('option:selected', styleSelect).text());
 
     // Reset the image style selection list.
-    styleSelect.val(-1);
+    styleSelect.val('');
     styleSelect.blur();
 
     // Append the cropping area (last, to prevent that '_11' is undefinded).
@@ -127,6 +120,9 @@ ManualCrop.showOverlay = function(select, fid) {
     if (ManualCrop.oldSelection) {
       ManualCrop.resetSelection();
     }
+
+    // Handle keyboard shortcuts.
+    $(document).keyup(ManualCrop.handleKeyboard);
   }
 }
 
@@ -143,6 +139,8 @@ ManualCrop.closeOverlay = function() {
     ManualCrop.oldSelection = null;
     ManualCrop.widget = null;
     ManualCrop.output = null;
+
+    $(document).unbind('keyup', ManualCrop.handleKeyboard);
   }
 }
 
@@ -270,6 +268,20 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
     select.addClass('manualcrop-style-select-required');
   } else {
     select.removeClass('manualcrop-style-select-required');
+  }
+}
+
+/**
+ * Keyboard shortcuts handler.
+ *
+ * @param e
+ *    The event object.
+ */
+ManualCrop.handleKeyboard = function(e) {
+  if (ManualCrop.overlay) {
+    if(e.keyCode == 27) {
+      ManualCrop.closeOverlay();
+    }
   }
 }
 
