@@ -277,7 +277,10 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
   // Check if the style has been cropped.
   if ($(element).val()) {
     option.addClass('manualcrop-style-option-cropped');
-    option.html(option.html() + '<span> ' + Drupal.t('(cropped)') + '</span>');
+
+    if (option.has("span").length == 0) {
+      option.html(option.html() + '<span> ' + Drupal.t('(cropped)') + '</span>');
+    }
 
     if ($('option', select).not('.manualcrop-style-option-cropped').length == 1) {
       // All styles have been cropped.
