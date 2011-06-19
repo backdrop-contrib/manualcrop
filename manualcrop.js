@@ -42,15 +42,15 @@ ManualCrop.showOverlay = function(select, fid) {
     ManualCrop.overlay.css('height', browserHeight + 'px');
 
     // Get the image and the dimensions, don't use the ManualCrop.overlay cloned one to get the CSS in Webkit.
-    var image = $('img.manualcrop-image');
-    var width = (parseInt(image.attr('width')) || 0);
-    var height = (parseInt(image.attr('height')) || 0);
+    var image = $('#manualcrop-overlay-' + fid + ' img.manualcrop-image');
+    var width = ManualCrop.parseInt(image.attr('width'));
+    var height = ManualCrop.parseInt(image.attr('height'));
 
     // Scale the image to fit the maximum width and height (the visible part of the page).
     var newWidth = width;
-    var maxWidth = browserWidth - (parseInt(image.css('marginLeft')) || 0) - (parseInt(image.css('marginRight')) || 0);
+    var maxWidth = browserWidth - ManualCrop.parseInt(image.css('marginLeft')) - ManualCrop.parseInt(image.css('marginRight'));
     var newHeight = height;
-    var maxHeight = browserHeight - (parseInt(image.css('marginTop')) || 0) - (parseInt(image.css('marginBottom')) || 0);
+    var maxHeight = browserHeight - ManualCrop.parseInt(image.css('marginTop')) - ManualCrop.parseInt(image.css('marginBottom'));
 
     if(newWidth > maxWidth) {
       newHeight = Math.floor((newHeight * maxWidth) / newWidth);
@@ -205,6 +205,20 @@ ManualCrop.updateSelection = function(image, selection) {
 }
 
 /**
+ * Keyboard shortcuts handler.
+ *
+ * @param e
+ *    The event object.
+ */
+ManualCrop.handleKeyboard = function(e) {
+  if (ManualCrop.overlay) {
+    if(e.keyCode == 27) {
+      ManualCrop.closeOverlay();
+    }
+  }
+}
+
+/**
  * Parse a string defining the selection to an object.
  *
  * @param txtSelection
@@ -216,10 +230,10 @@ ManualCrop.parseStringSelection = function(txtSelection) {
   if (txtSelection) {
     var parts = txtSelection.split('|');
     var selection = {
-      x1: parseInt(parts[0]) || 0,
-      y1: parseInt(parts[1]) || 0,
-      width: parseInt(parts[2]) || 0,
-      height: parseInt(parts[3]) || 0
+      x1: ManualCrop.parseInt(parts[0]),
+      y1: ManualCrop.parseInt(parts[1]),
+      width: ManualCrop.parseInt(parts[2]),
+      height: ManualCrop.parseInt(parts[3])
     };
 
     selection.x2 = selection.x1 + selection.width;
@@ -229,6 +243,18 @@ ManualCrop.parseStringSelection = function(txtSelection) {
   }
 
   return null;
+}
+
+/**
+ * Parse a textual number to an integer.
+ *
+ * @param integer
+ *   The textual integer.
+ * @return
+ *   The integer
+ */
+ManualCrop.parseInt = function(integer) {
+  return (parseInt(integer) || 0)
 }
 
 /**
@@ -268,20 +294,6 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
     select.addClass('manualcrop-style-select-required');
   } else {
     select.removeClass('manualcrop-style-select-required');
-  }
-}
-
-/**
- * Keyboard shortcuts handler.
- *
- * @param e
- *    The event object.
- */
-ManualCrop.handleKeyboard = function(e) {
-  if (ManualCrop.overlay) {
-    if(e.keyCode == 27) {
-      ManualCrop.closeOverlay();
-    }
   }
 }
 
