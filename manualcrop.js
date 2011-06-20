@@ -11,6 +11,7 @@ $(document).ready(function () {
     $('.manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[key] + '"]').addClass("manualcrop-style-option-required");
   }
 
+  $('.manualcrop-style-select option[value="').addClass("manualcrop-style-option-empty");
   $('.manualcrop-cropdata').trigger('change');
 });
 
