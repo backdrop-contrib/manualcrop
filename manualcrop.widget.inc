@@ -34,11 +34,12 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   $form = image_field_widget_settings_form($field, $instance);
 
   $form['require_cropping'] = array(
-    '#type' => 'checkboxes',
+    '#type' => 'select',
     '#title' => t('Required croppings'),
     '#description' => t('Check all styles that must have a crop selection.'),
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
+    '#multiple' => TRUE,
     '#weight' => 16,
   );
 
