@@ -140,7 +140,7 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Effect form submit handler; Sets the image style id and weight of the effect.
+ * Effect form submit handler; Sets the image style name and weight of the effect.
  *
  * @param $form
  *   Effect form array.
@@ -278,7 +278,12 @@ function manualcrop_update_style_name($form, &$form_state) {
       $effect["data"]["style_name"] = $form_state['values']['name'];
       image_effect_save($effect);
 
-      manualcrop_field_widget_update_required_croppings($style['name'], $form_state['values']['name']);
+      manualcrop_field_widget_update_names_in_settings($style['name'], $form_state['values']['name']);
+
+      db_update('manualcrop')
+        ->fields(array('style_name' => $form_state['values']['name']))
+        ->condition('style_name', $style['name'])
+        ->execute();
     }
   }
 }
@@ -295,7 +300,7 @@ function manualcrop_image_style_delete($style) {
         ->condition('style_name', $style['name'])
         ->execute();
 
-      manualcrop_field_widget_update_required_croppings($style['name']);
+      manualcrop_field_widget_update_names_in_settings($style['name']);
     }
   }
 }
