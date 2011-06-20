@@ -8,10 +8,9 @@ var ManualCrop = {"overlay": null, "oldSelection": null, "widget": null, "output
  */
 $(document).ready(function () {
   for (var key in Drupal.settings.manualCrop.required) {
-    $('.manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[key] + '"]').addClass("manualcrop-style-option-required");
+    $('.manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[key] + '"]').addClass("manualcrop-style-required");
   }
 
-  $('.manualcrop-style-select option[value="').addClass("manualcrop-style-option-empty");
   $('.manualcrop-cropdata').trigger('change');
 });
 
@@ -275,30 +274,17 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
   var select = $('.manualcrop-style-select-' + fid);
   var option = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "']");
 
-  // Check if the style has been cropped.
   if ($(element).val()) {
-    option.addClass('manualcrop-style-option-cropped');
+    // Style has been cropped.
+    option.addClass('manualcrop-style-cropped');
 
     if (option.has("span").length == 0) {
       option.html(option.html() + '<span> ' + Drupal.t('(cropped)') + '</span>');
     }
-
-    if ($('option', select).not('.manualcrop-style-option-cropped').length == 1) {
-      // All styles have been cropped.
-      select.addClass('manualcrop-style-select-cropped');
-    }
   } else {
     // Style not cropped.
     $('span', option).remove();
-    option.removeClass('manualcrop-style-option-cropped');
-    select.removeClass('manualcrop-style-select-cropped');
-  }
-
-  // Uncropped required styles in the select?
-  if ($("option.manualcrop-style-option-required", select).not('.manualcrop-style-option-cropped').length > 0) {
-    select.addClass('manualcrop-style-select-required');
-  } else {
-    select.removeClass('manualcrop-style-select-required');
+    option.removeClass('manualcrop-style-cropped');
   }
 }
 

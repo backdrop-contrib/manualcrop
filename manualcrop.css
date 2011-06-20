@@ -65,9 +65,9 @@
   color: #000000;
   background-color: #FFFFFF;
 }
-.manualcrop-style-option-required, .manualcrop-style-select-required option.manualcrop-style-option-empty {
+.manualcrop-style-required {
   color: #FF0000;
 }
-.manualcrop-style-option-cropped, .manualcrop-style-select-cropped option.manualcrop-style-option-empty {
+.manualcrop-style-cropped {
   color: #96CB00;
 }

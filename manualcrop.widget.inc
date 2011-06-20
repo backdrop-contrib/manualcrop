@@ -33,14 +33,24 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   // Use the image field settings form.
   $form = image_field_widget_settings_form($field, $instance);
 
+  $form['hidden_styles'] = array(
+    '#type' => 'select',
+    '#title' => t('Hidden styles'),
+    '#description' => t('Select all styles that shouldn\'t be visible in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
+    '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
+    '#default_value' => (isset($settings['hidden_styles']) ? $settings['hidden_styles'] : array()),
+    '#multiple' => TRUE,
+    '#weight' => 16,
+  );
+
   $form['require_cropping'] = array(
     '#type' => 'select',
     '#title' => t('Required croppings'),
-    '#description' => t('Check all styles that must have a crop selection.'),
+    '#description' => t('Select all styles that must have a crop selection.'),
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 16,
+    '#weight' => 17,
   );
 
   return $form;
@@ -66,10 +76,16 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
     );
   }
 
+  // Required and hidden styles.
+  $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
+  if (isset($widget_settings['hidden_styles'])) {
+    $required = array_diff($required, array_values($widget_settings['hidden_styles']));
+  }
+
   // Add the JavaScript settings.
   $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
     'styles' => $settings,
-    'required' => array_values((isset($widget_settings['require_cropping']) ? $widget_settings['require_cropping'] : array())),
+    'required' => $required,
   )), 'type' => 'setting');
 
   // Add a process function to the elements.
@@ -103,97 +119,106 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
     $hascrop = manualcrop_get_styles_with_crop();
 
     if (!empty($hascrop)) {
-      // Override the theming function.
-      $element['#theme'] = 'manualcrop_widget';
-
       // Get the widget settings.
       $instance = field_widget_instance($element, $form_state);
       $widget_settings = $instance['widget']['settings'];
 
-      // Get image info, width and height are used by the cropping widget.
-      $image = image_get_info($element['#file']->uri);
+      // Required and hidden styles.
+      $hidden = (isset($widget_settings['hidden_styles']) ? array_values($widget_settings['hidden_styles']) : array());
+      $required = (isset($widget_settings['require_cropping']) ? array_diff(array_values($widget_settings['require_cropping']), $hidden) : array());
 
-      // Save some images data to improve processing.
-      $form_state['manualcrop_widget_data']['images'][$item['fid']] = array(
-        'uri' => $element['#file']->uri,
-        'filename' => $element['#file']->filename,
-        'width' => $image['width'],
-        'height' => $image['height'],
-        'element_parents' => $element['#array_parents'],
-        'required_styles' => array_values((isset($widget_settings['require_cropping']) ? $widget_settings['require_cropping'] : array())), // Required croppings
-      );
+      // Filter hidden styles.
+      $hascrop = array_diff_key($hascrop, array_flip($hidden));
 
-      // Get the saved selections for this file.
-      if (!$form_state['submitted']) {
-        $selections = manualcrop_load_crop_selection($element['#file']->uri);
+      if (!empty($hascrop)) {
+        // Override the theming function.
+        $element['#theme'] = 'manualcrop_widget';
 
-        foreach ($selections as $data) {
-          $item['manualcrop_selection'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
+        // Get image info, width and height are used by the cropping widget.
+        $image = image_get_info($element['#file']->uri);
+
+        // Save some images data to improve processing.
+        $form_state['manualcrop_widget_data']['images'][$item['fid']] = array(
+          'uri' => $element['#file']->uri,
+          'filename' => $element['#file']->filename,
+          'width' => $image['width'],
+          'height' => $image['height'],
+          'element_parents' => $element['#array_parents'],
+          'required_styles' => $required,
+        );
+
+        // Get the saved selections for this file.
+        if (!$form_state['submitted']) {
+          $selections = manualcrop_load_crop_selection($element['#file']->uri);
+
+          foreach ($selections as $data) {
+            $item['manualcrop_selection'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
+          }
         }
-      }
 
-      // Overlay with the original image for cropping.
-      $element['manualcrop_overlay'] = array(
-        '#type' => 'markup',
-        '#markup' => theme('manualcrop_overlay', array(
-          'attributes' => array(
-            'id' => array('manualcrop-overlay-' . $item['fid']),
-            'class' => array('manualcrop-overlay', 'element-invisible'),
-          ),
-          'image' => array(
-            'path' => $element['#file']->uri,
-            'alt' => t('Manual crop'),
-            'width' => $image['width'],
-            'height' => $image['height'],
-            'attributes' => array('class' => 'manualcrop-image'),
-          )
-        )),
-      );
+        // Overlay with the original image for cropping.
+        $element['manualcrop_overlay'] = array(
+          '#type' => 'markup',
+          '#markup' => theme('manualcrop_overlay', array(
+            'attributes' => array(
+              'id' => array('manualcrop-overlay-' . $item['fid']),
+              'class' => array('manualcrop-overlay', 'element-invisible'),
+            ),
+            'image' => array(
+              'path' => $element['#file']->uri,
+              'alt' => t('Manual crop'),
+              'width' => $image['width'],
+              'height' => $image['height'],
+              'attributes' => array('class' => 'manualcrop-image'),
+            )
+          )),
+        );
 
-      // Image style options.
-      $options = array('' => t('Select a style to crop'));
+        // Image style options.
+        $options = array('' => t('Select a style to crop'));
 
-      // Hidden fields to save the crop selection, one for each image style.
-      foreach ($hascrop as $style_name => $data) {
-        $element['manualcrop_selection'][$style_name] = array(
-          '#type' => 'hidden',
-          '#default_value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
+        // Hidden fields to save the crop selection, one for each image style.
+        foreach ($hascrop as $style_name => $data) {
+          $element['manualcrop_selection'][$style_name] = array(
+            '#type' => 'hidden',
+            '#default_value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
+            '#attributes' => array(
+              'id' => 'manualcrop-area-' . $item['fid'] . '-' . $style_name,
+              'class' => array('manualcrop-cropdata'),
+              'onchange' => 'ManualCrop.selectionStored(this, ' . $item['fid'] . ', \'' . $style_name . '\');',
+            ),
+          );
+
+          $options[$style_name] = $style_name;
+        }
+
+        // Selection list for opening the overlay.
+        $element['manualcrop_style'] = array(
+          '#type' => 'select',
+          '#title' => t('Manual crop'),
+          '#description' => t('Select a style to crop the image for that style, an overlay will open that you can close after cropping.'),
+          '#options' => $options,
+          '#multiple' => FALSE,
+          '#weight' => $element['title']['#weight'],
           '#attributes' => array(
-            'id' => 'manualcrop-area-' . $item['fid'] . '-' . $style_name,
-            'class' => array('manualcrop-cropdata'),
-            'onchange' => 'ManualCrop.selectionStored(this, ' . $item['fid'] . ', \'' . $style_name . '\');',
+            'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $item['fid']),
+            'onchange' => 'ManualCrop.showOverlay(this, ' . $item['fid'] . ');',
+          ),
+          '#attached' => array(
+            'css' => array(
+              drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
+              drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
+            ),
+            'js' => array(
+              drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
+              drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
+            ),
           ),
         );
 
-        $options[$style_name] = $style_name;
+        $element['alt']['#weight']--;
+        $element['title']['#weight']--;
       }
-
-      // Selection list for opening the overlay.
-      $element['manualcrop_style'] = array(
-        '#type' => 'select',
-        '#title' => t('Manual crop'),
-        '#description' => t('Select a style to crop the image for that style, an overlay will open that you can close after cropping.'),
-        '#options' => $options,
-        '#multiple' => FALSE,
-        '#weight' => $element['title']['#weight'],
-        '#attributes' => array(
-          'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $item['fid']),
-          'onchange' => 'ManualCrop.showOverlay(this, ' . $item['fid'] . ');',
-        ),
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
-          ),
-          'js' => array(
-            drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
-          ),
-        ),
-      );
-
-      $element['alt']['#weight']--;
-      $element['title']['#weight']--;
     }
   }
 
@@ -216,18 +241,36 @@ function manualcrop_field_widget_update_required_croppings($style_name, $new_sty
           // Check each instance for processing.
           $instance = field_info_instance($entity_type, $field['field_name'], $bundle);
 
-          if ($instance['widget']['module'] == 'manualcrop' && isset($instance['widget']['settings']['require_cropping'])) {
-            $require = &$instance['widget']['settings']['require_cropping'];
+          if ($instance['widget']['module'] == 'manualcrop' && (isset($instance['widget']['settings']['require_cropping']) || isset($instance['widget']['settings']['hidden_styles']))) {
+            $list = array();
 
-            if (isset($require[$style_name])) {
-              unset($require[$style_name]);
+            // Add all existing settings to the list.
+            if (isset($instance['widget']['settings']['require_cropping'])) {
+              $list['require_cropping'] = &$instance['widget']['settings']['require_cropping'];
+            }
 
-              if (!is_null($new_style_name)) {
-                $require[$new_style_name] = $new_style_name;
-              } elseif (empty($require)) {
-                unset($field['widget']['settings']['require_cropping']);
+            if (isset($instance['widget']['settings']['hidden_styles'])) {
+              $list['hidden_styles'] = &$instance['widget']['settings']['hidden_styles'];
+            }
+
+            // Process all settings.
+            foreach ($list as $key => &$item) {
+              if (isset($item[$style_name])) {
+                unset($item[$style_name]);
+
+                if (!is_null($new_style_name)) {
+                  $item[$new_style_name] = $new_style_name;
+                } elseif (empty($require)) {
+                  unset($field['widget']['settings'][$key]);
+                }
+              } else {
+                // Not processed, so remove it from the list.
+                unset($list[$key]);
               }
+            }
 
+            if (!empty($list)) {
+              // Settings where updated, save the instance.
               field_update_instance($instance);
             }
           }
