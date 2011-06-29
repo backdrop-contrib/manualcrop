@@ -33,14 +33,25 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   // Use the image field settings form.
   $form = image_field_widget_settings_form($field, $instance);
 
-  $form['hidden_styles'] = array(
-    '#type' => 'select',
-    '#title' => t('Hidden styles'),
-    '#description' => t('Select all styles that shouldn\'t be visible in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
-    '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
-    '#default_value' => (isset($settings['hidden_styles']) ? $settings['hidden_styles'] : array()),
-    '#multiple' => TRUE,
+  $form['styles_mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('Styles list mode'),
+    '#options' => array(
+      'exclude' => t('Exclude selected styles'),
+      'include' => t('Include selected styles'),
+    ),
+    '#default_value' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
     '#weight' => 16,
+  );
+
+  $form['styles_list'] = array(
+    '#type' => 'select',
+    '#title' => t('Styles list'),
+    '#description' => t('Select all styles that should be shown or hidden (as selected above) in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
+    '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
+    '#default_value' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
+    '#multiple' => TRUE,
+    '#weight' => 17,
   );
 
   $form['require_cropping'] = array(
@@ -50,7 +61,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 17,
+    '#weight' => 18,
   );
 
   return $form;
@@ -76,10 +87,14 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
     );
   }
 
-  // Required and hidden styles.
+  // Required and included/excluded styles.
   $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
-  if (isset($widget_settings['hidden_styles'])) {
-    $required = array_diff($required, array_values($widget_settings['hidden_styles']));
+  if (isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
+    if ($widget_settings['styles_mode'] == 'include') {
+      $required = array_intersect($required, array_values($widget_settings['styles_list']));
+    } else {
+      $required = array_diff($required, array_values($widget_settings['styles_list']));
+    }
   }
 
   // Add the JavaScript settings.
@@ -123,12 +138,22 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
       $instance = field_widget_instance($element, $form_state);
       $widget_settings = $instance['widget']['settings'];
 
-      // Required and hidden styles.
-      $hidden = (isset($widget_settings['hidden_styles']) ? array_values($widget_settings['hidden_styles']) : array());
-      $required = (isset($widget_settings['require_cropping']) ? array_diff(array_values($widget_settings['require_cropping']), $hidden) : array());
+      // Required image styles.
+      $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
 
-      // Filter hidden styles.
-      $hascrop = array_diff_key($hascrop, array_flip($hidden));
+      // Exclude or include styles.
+      if (isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
+        $list = (isset($widget_settings['styles_list']) ? array_values($widget_settings['styles_list']) : array());
+
+        // Filter hidden styles.
+        if ($widget_settings['styles_mode'] == 'include') {
+          $required = array_intersect($required, $list);
+          $hascrop = array_intersect_key($hascrop, array_flip($list));
+        } else {
+          $required = array_diff($required, $list);
+          $hascrop = array_diff_key($hascrop, array_flip($list));
+        }
+      }
 
       if (!empty($hascrop)) {
         // Override the theming function.
@@ -241,7 +266,7 @@ function manualcrop_field_widget_update_names_in_settings($style_name, $new_styl
           // Check each instance for processing.
           $instance = field_info_instance($entity_type, $field['field_name'], $bundle);
 
-          if ($instance['widget']['module'] == 'manualcrop' && (isset($instance['widget']['settings']['require_cropping']) || isset($instance['widget']['settings']['hidden_styles']))) {
+          if ($instance['widget']['module'] == 'manualcrop' && (isset($instance['widget']['settings']['require_cropping']) || isset($instance['widget']['settings']['styles_list']))) {
             $list = array();
 
             // Add all existing settings to the list.
@@ -249,8 +274,8 @@ function manualcrop_field_widget_update_names_in_settings($style_name, $new_styl
               $list['require_cropping'] = &$instance['widget']['settings']['require_cropping'];
             }
 
-            if (isset($instance['widget']['settings']['hidden_styles'])) {
-              $list['hidden_styles'] = &$instance['widget']['settings']['hidden_styles'];
+            if (isset($instance['widget']['settings']['styles_list'])) {
+              $list['styles_list'] = &$instance['widget']['settings']['styles_list'];
             }
 
             // Process all settings.
