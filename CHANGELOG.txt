@@ -1,0 +1,14 @@
+Manual Crop 7.x-1.1, 2011-06-29
+-------------------------------
+- Added the ability to exclude or include items in the image style list.
+- Added support for other entity types than nodes.
+- Improved Webkit and IE support, thanks to j0rd.
+- Added the ability to require styles to be cropped.
+- Changed the button labels and hide the restore button if restoring isn't possible.
+- Improved visual feedback when styles are cropped or need to be cropped.
+- Fixed the ratio-respecting crop selection for images that are to width.
+- Changed from using style id's to style names.
+
+Manual Crop 7.x-1.0, 2011-04-15
+-------------------------------
+- Initial release.
