@@ -481,3 +481,14 @@ function manualcrop_get_styles_with_crop() {
 
   return $hascrop;
 }
+
+/**
+ * Implements hook__filefield_sources_widgets().
+ *
+ * Integration with the Filefield Sources module.
+ *
+ * @see http://drupal.org/project/filefield_sources
+ */
+function manualcrop_filefield_sources_widgets() {
+  return array('manualcrop_image');
+}
