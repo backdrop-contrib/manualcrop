@@ -390,8 +390,6 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
  */
 function manualcrop_save_crop_selection($form, &$form_state) {
   if (!empty($form_state['manualcrop_widget_data']['selections'])) {
-
-
     // Loop trough the selections to save them. $styles can by an empty array, but we loop trough
     // the whole array to delete old selections.
     foreach ($form_state['manualcrop_widget_data']['selections'] as $fid => $data) {

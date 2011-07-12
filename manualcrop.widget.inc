@@ -116,6 +116,9 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
 
   if (!isset($form_state['manualcrop_widget_data'])) {
     $form_state['manualcrop_widget_data'] = array('images' => array());
+  } else {
+    // Reset the images array.
+    $form_state['manualcrop_widget_data']['images'] = array();
   }
 
   return $elements;
