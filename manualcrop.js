@@ -41,7 +41,7 @@ ManualCrop.showOverlay = function(select, fid) {
     ManualCrop.overlay.css('width', browserWidth + 'px');
     ManualCrop.overlay.css('height', browserHeight + 'px');
 
-    // Get the image and the dimensions, don't use the ManualCrop.overlay cloned one to get the CSS in Webkit.
+    // Get the image and its dimensions, the ManualCrop.overlay clone is not used because loading css of it doesn't work in Webkit browsers.
     var image = $('#manualcrop-overlay-' + fid + ' img.manualcrop-image');
     var width = ManualCrop.parseInt(image.attr('width'));
     var height = ManualCrop.parseInt(image.attr('height'));
@@ -148,14 +148,18 @@ ManualCrop.closeOverlay = function() {
  * Reset the selection to the previous state.
  */
 ManualCrop.resetSelection = function() {
-  if (ManualCrop.overlay && ManualCrop.oldSelection) {
-    ManualCrop.widget.setSelection(ManualCrop.oldSelection.x1, ManualCrop.oldSelection.y1, ManualCrop.oldSelection.x2, ManualCrop.oldSelection.y2);
-    ManualCrop.widget.setOptions({hide: false, show: true});
-    ManualCrop.widget.update();
-    ManualCrop.updateSelection(null, ManualCrop.oldSelection);
+  if (ManualCrop.overlay) {
+    if (ManualCrop.oldSelection) {
+      ManualCrop.widget.setSelection(ManualCrop.oldSelection.x1, ManualCrop.oldSelection.y1, ManualCrop.oldSelection.x2, ManualCrop.oldSelection.y2);
+      ManualCrop.widget.setOptions({hide: false, show: true});
+      ManualCrop.widget.update();
+      ManualCrop.updateSelection(null, ManualCrop.oldSelection);
 
-    // Hide reset button.
-    $(".manualcrop-reset", ManualCrop.overlay).hide();
+      // Hide reset button.
+      $(".manualcrop-reset", ManualCrop.overlay).hide();
+    } else {
+      ManualCrop.clearSelection();
+    }
   }
 }
 
@@ -212,7 +216,10 @@ ManualCrop.updateSelection = function(image, selection) {
  */
 ManualCrop.handleKeyboard = function(e) {
   if (ManualCrop.overlay) {
-    if(e.keyCode == 27) {
+    if(e.keyCode == 13) { // Enter
+      ManualCrop.closeOverlay();
+    } else if(e.keyCode == 27) { // Escape
+      ManualCrop.resetSelection();
       ManualCrop.closeOverlay();
     }
   }
