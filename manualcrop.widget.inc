@@ -76,7 +76,6 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
 
   // Get the widget settings.
   $instance = field_widget_instance($element, $form_state);
-  $widget_settings = $instance['widget']['settings'];
 
   // Generate and set the settings for each style effect.
   $settings = array();
@@ -87,20 +86,10 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
     );
   }
 
-  // Required and included/excluded styles.
-  $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
-  if (isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
-    if ($widget_settings['styles_mode'] == 'include') {
-      $required = array_intersect($required, array_values($widget_settings['styles_list']));
-    } else {
-      $required = array_diff($required, array_values($widget_settings['styles_list']));
-    }
-  }
-
-  // Add the JavaScript settings.
+  // Add the JavaScript settings (required styles).
   $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
     'styles' => $settings,
-    'required' => $required,
+    'required' => array(drupal_clean_css_identifier($instance['field_name']) => manualcrop_instance_required_styles($instance)),
   )), 'type' => 'setting');
 
   // Add a process function to the elements.
@@ -142,7 +131,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
       $widget_settings = $instance['widget']['settings'];
 
       // Required image styles.
-      $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
+      $required = manualcrop_instance_required_styles($instance);
 
       // Exclude or include styles.
       if (isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
@@ -150,10 +139,8 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
 
         // Filter hidden styles.
         if ($widget_settings['styles_mode'] == 'include') {
-          $required = array_intersect($required, $list);
           $hascrop = array_intersect_key($hascrop, array_flip($list));
         } else {
-          $required = array_diff($required, $list);
           $hascrop = array_diff_key($hascrop, array_flip($list));
         }
       }
@@ -220,37 +207,86 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
           $options[$style_name] = $style_name;
         }
 
-        // Selection list for opening the overlay.
-        $element['manualcrop_style'] = array(
-          '#type' => 'select',
-          '#title' => t('Manual crop'),
-          '#description' => t('Select a style to crop the image for that style, an overlay will open that you can close after cropping.'),
-          '#options' => $options,
-          '#multiple' => FALSE,
-          '#weight' => $element['title']['#weight'],
-          '#attributes' => array(
-            'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $item['fid']),
-            'onchange' => 'ManualCrop.showOverlay(this, ' . $item['fid'] . ');',
-          ),
-          '#attached' => array(
-            'css' => array(
-              drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-              drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
+        $props = array(
+          '#weight' => (isset($element['title']['#weight']) ? $element['title']['#weight'] : 1),
+            '#attached' => array(
+              'css' => array(
+                drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
+                drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
+              ),
+              'js' => array(
+                drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
+                drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
+              ),
             ),
-            'js' => array(
-              drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-              drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
-            ),
-          ),
         );
 
-        $element['alt']['#weight']--;
-        $element['title']['#weight']--;
+        if (sizeof($options) == 2) {
+          $style_name = end($options);
+
+          // Link for opening the overlay.
+          $element['manualcrop_style'] = array_merge($props, array(
+            '#type' => 'button',
+            '#value' => t('Crop @stylename', array('@stylename' => $style_name)),
+            '#attributes' => array(
+              'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $item['fid']), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
+              'onclick' => "ManualCrop.showOverlay('" . $style_name . "', " . $item["fid"] . "); return false;",
+            ),
+            '#prefix' => '<div class="manualcrop-style-button-holder">',
+            '#suffix' => '</div>',
+          ));
+        } else {
+          // Selection list for opening the overlay.
+          $element['manualcrop_style'] = array_merge($props, array(
+            '#type' => 'select',
+            '#title' => t('Manual crop'),
+            '#description' => t('Select the image style to crop, the corresponding cropping overlay will open.'),
+            '#options' => $options,
+            '#multiple' => FALSE,
+            '#attributes' => array(
+              'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $item['fid']),
+              'onchange' => 'ManualCrop.showOverlay(this, ' . $item['fid'] . ');',
+            ),
+          ));
+        }
+
+        if ($element['alt']) {
+          $element['alt']['#weight']--;
+        }
+
+        if ($element['title']) {
+          $element['title']['#weight']--;
+        }
       }
     }
   }
 
   return $element;
+}
+
+/**
+ * Get the list of required image styles for a field instance.
+ *
+ * @param $instance
+ *   The field instance.
+ */
+function manualcrop_instance_required_styles($instance) {
+  // Get the widget settings.
+  $widget_settings = $instance['widget']['settings'];
+
+  // Array of required styles.
+  $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
+
+  // Make sure to exclude unavailable styles.
+  if (!empty($required) && isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
+    if ($widget_settings['styles_mode'] == 'include') {
+      $required = array_intersect($required, array_values($widget_settings['styles_list']));
+    } else {
+      $required = array_diff($required, array_values($widget_settings['styles_list']));
+    }
+  }
+
+  return $required;
 }
 
 /**
@@ -309,7 +345,7 @@ function manualcrop_field_widget_update_names_in_settings($style_name, $new_styl
 }
 
 /**
- * Returns HTML for an manual crop image field widget.
+ * Returns HTML for a Manual Crop image field widget.
  *
  * @param $variables
  *   An associative array containing:

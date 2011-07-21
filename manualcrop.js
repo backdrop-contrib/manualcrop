@@ -7,8 +7,10 @@ var ManualCrop = {"overlay": null, "oldSelection": null, "widget": null, "output
  * that hold crop data, this way all css classes in the selection lists will be updated.
  */
 $(document).ready(function () {
-  for (var key in Drupal.settings.manualCrop.required) {
-    $('.manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[key] + '"]').addClass("manualcrop-style-required");
+  for (var cssClass in Drupal.settings.manualCrop.required) {
+    for (var k in Drupal.settings.manualCrop.required[cssClass]) {
+      $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[cssClass][k] + '"]').addClass("manualcrop-style-required");
+    }
   }
 
   $('.manualcrop-cropdata').trigger('change');
@@ -17,21 +19,27 @@ $(document).ready(function () {
 /**
  * Open the cropping overlay for an image.
  *
- * @param select
- *   The image styles selection list, triggering this event.
+ * @param style
+ *   The image style name or selection list triggering this event.
  * @param fid
  *   The file id of the image the user is about to crop.
  */
-ManualCrop.showOverlay = function(select, fid) {
+ManualCrop.showOverlay = function(style, fid) {
   if (!ManualCrop.overlay) {
     var browserWidth = $(window).width();
     var browserHeight = $(window).height();
 
-    var styleSelect = $(select);
-    var settings = Drupal.settings.manualCrop.styles[styleSelect.val()] || {};
+    var styleName;
+    if (typeof style == "string") {
+      styleName = style
+    } else {
+      var styleSelect = $(style);
+      styleName = styleSelect.val();
+      var settings = Drupal.settings.manualCrop.styles[styleName] || {};
+    }
 
     // Get the destination field and the current selection.
-    ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleSelect.val());
+    ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
     ManualCrop.oldSelection = ManualCrop.parseStringSelection(ManualCrop.output.val());
 
     // Create the overlay.
@@ -104,11 +112,13 @@ ManualCrop.showOverlay = function(select, fid) {
     }
 
     // Set the image style name.
-    $('.manualcrop-image-style', ManualCrop.overlay).text($('option:selected', styleSelect).text());
+    $('.manualcrop-image-style', ManualCrop.overlay).text(styleName);
 
-    // Reset the image style selection list.
-    styleSelect.val('');
-    styleSelect.blur();
+    if (typeof styleSelect != 'undefined') {
+      // Reset the image style selection list.
+      styleSelect.val('');
+      styleSelect.blur();
+    }
 
     // Append the cropping area (last, to prevent that '_11' is undefinded).
     $("body").append(ManualCrop.overlay);
@@ -266,7 +276,7 @@ ManualCrop.parseInt = function(integer) {
 
 /**
  * A new cropping area was saved to the hidden field, find the corresponding
- * select option and append a css class to indicate the crop status.
+ * select option or link and append a css class and text to indicate the crop status.
  *
  * This is a seperate function so it can be triggered after loading.
  *
@@ -275,23 +285,33 @@ ManualCrop.parseInt = function(integer) {
  * @param fid
  *   The file id.
  * @param styleName
- *
+ *   The image style name.
  */
 ManualCrop.selectionStored = function(element, fid, styleName) {
-  var select = $('.manualcrop-style-select-' + fid);
-  var option = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "']");
+  var holder = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid);
+  var hasClass = holder.hasClass('manualcrop-style-cropped');
 
   if ($(element).val()) {
-    // Style has been cropped.
-    option.addClass('manualcrop-style-cropped');
+    if (!hasClass) {
+      // Style has been cropped.
+      holder.addClass('manualcrop-style-cropped');
 
-    if (option.has("span").length == 0) {
-      option.html(option.html() + '<span> ' + Drupal.t('(cropped)') + '</span>');
+      if (holder.is("input")) {
+        holder.val(holder.val() + ' ' + Drupal.t('(cropped)'));
+      } else {
+        holder.text(holder.text() + ' ' + Drupal.t('(cropped)'));
+      }
+
     }
-  } else {
+  } else if (hasClass) {
     // Style not cropped.
-    $('span', option).remove();
-    option.removeClass('manualcrop-style-cropped');
+    holder.removeClass('manualcrop-style-cropped');
+
+    if (holder.is("input")) {
+      holder.val(holder.val().substr(0, (holder.val().length - Drupal.t('(cropped)').length - 1)));
+    } else {
+      holder.text(holder.text().substr(0, (holder.text().length - Drupal.t('(cropped)').length - 1)));
+    }
   }
 }
 

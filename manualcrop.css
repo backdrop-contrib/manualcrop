@@ -65,6 +65,9 @@
   color: #000000;
   background-color: #FFFFFF;
 }
+.manualcrop-style-button-holder {
+  padding-top: 1em;
+}
 .manualcrop-style-required {
   color: #FF0000;
 }
