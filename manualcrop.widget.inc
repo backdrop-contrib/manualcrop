@@ -204,7 +204,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             ),
           );
 
-          $options[$style_name] = $style_name;
+          $options[$style_name] = ucwords(str_replace('_', ' ', $style_name));
         }
 
         $props = array(
@@ -222,12 +222,13 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         );
 
         if (sizeof($options) == 2) {
-          $style_name = end($options);
+          $style_name_clean = end($options);
+          $style_name = key($options);
 
           // Link for opening the overlay.
           $element['manualcrop_style'] = array_merge($props, array(
             '#type' => 'button',
-            '#value' => t('Crop @stylename', array('@stylename' => $style_name)),
+            '#value' => t('Crop @stylename', array('@stylename' => $style_name_clean)),
             '#attributes' => array(
               'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $item['fid']), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
               'onclick' => "ManualCrop.showOverlay('" . $style_name . "', " . $item["fid"] . "); return false;",
