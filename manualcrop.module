@@ -368,7 +368,8 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
           )));
 
           $first = FALSE;
-        } elseif (in_array($style_name, $image['required_styles'], TRUE)) {
+        }
+        elseif (in_array($style_name, $image['required_styles'], TRUE)) {
           // Uncropped required style.
           form_set_error($element_key, t('%filename must have a cropping selection for the @style image style.', array(
             '@style' => $style_name,

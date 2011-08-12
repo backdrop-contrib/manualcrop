@@ -105,7 +105,8 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
 
   if (!isset($form_state['manualcrop_widget_data'])) {
     $form_state['manualcrop_widget_data'] = array('images' => array());
-  } else {
+  }
+  else {
     // Reset the images array.
     $form_state['manualcrop_widget_data']['images'] = array();
   }
@@ -140,7 +141,8 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         // Filter hidden styles.
         if ($widget_settings['styles_mode'] == 'include') {
           $hascrop = array_intersect_key($hascrop, array_flip($list));
-        } else {
+        }
+        else {
           $hascrop = array_diff_key($hascrop, array_flip($list));
         }
       }
@@ -236,7 +238,8 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             '#prefix' => '<div class="manualcrop-style-button-holder">',
             '#suffix' => '</div>',
           ));
-        } else {
+        }
+		else {
           // Selection list for opening the overlay.
           $element['manualcrop_style'] = array_merge($props, array(
             '#type' => 'select',
@@ -282,7 +285,8 @@ function manualcrop_instance_required_styles($instance) {
   if (!empty($required) && isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
     if ($widget_settings['styles_mode'] == 'include') {
       $required = array_intersect($required, array_values($widget_settings['styles_list']));
-    } else {
+    }
+    else {
       $required = array_diff($required, array_values($widget_settings['styles_list']));
     }
   }
@@ -325,10 +329,12 @@ function manualcrop_field_widget_update_names_in_settings($style_name, $new_styl
 
                 if (!is_null($new_style_name)) {
                   $item[$new_style_name] = $new_style_name;
-                } elseif (empty($require)) {
+                }
+                elseif (empty($require)) {
                   unset($field['widget']['settings'][$key]);
                 }
-              } else {
+              }
+              else {
                 // Not processed, so remove it from the list.
                 unset($list[$key]);
               }

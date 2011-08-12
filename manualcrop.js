@@ -32,7 +32,8 @@ ManualCrop.showOverlay = function(style, fid) {
     var styleName;
     if (typeof style == "string") {
       styleName = style
-    } else {
+    }
+    else {
       var styleSelect = $(style);
       styleName = styleSelect.val();
       var settings = Drupal.settings.manualCrop.styles[styleName] || {};
@@ -167,7 +168,8 @@ ManualCrop.resetSelection = function() {
 
       // Hide reset button.
       $(".manualcrop-reset", ManualCrop.overlay).hide();
-    } else {
+    }
+    else {
       ManualCrop.clearSelection();
     }
   }
@@ -228,7 +230,8 @@ ManualCrop.handleKeyboard = function(e) {
   if (ManualCrop.overlay) {
     if(e.keyCode == 13) { // Enter
       ManualCrop.closeOverlay();
-    } else if(e.keyCode == 27) { // Escape
+    }
+    else if(e.keyCode == 27) { // Escape
       ManualCrop.resetSelection();
       ManualCrop.closeOverlay();
     }
@@ -298,10 +301,10 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
 
       if (holder.is("input")) {
         holder.val(holder.val() + ' ' + Drupal.t('(cropped)'));
-      } else {
+      }
+      else {
         holder.text(holder.text() + ' ' + Drupal.t('(cropped)'));
       }
-
     }
   } else if (hasClass) {
     // Style not cropped.
@@ -309,7 +312,8 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
 
     if (holder.is("input")) {
       holder.val(holder.val().substr(0, (holder.val().length - Drupal.t('(cropped)').length - 1)));
-    } else {
+    }
+    else {
       holder.text(holder.text().substr(0, (holder.text().length - Drupal.t('(cropped)').length - 1)));
     }
   }
