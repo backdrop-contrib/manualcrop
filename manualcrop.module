@@ -484,7 +484,36 @@ function manualcrop_get_styles_with_crop() {
 }
 
 /**
- * Implements hook__filefield_sources_widgets().
+ * Preprocessing for theme_image(); force reloading of an image after re-cropping.
+ *
+ * @param $variables
+ *   Image template variables.
+ */
+function manualcrop_preprocess_image(&$variables) {
+  // Check if this image style has a Manual Crop effect.
+  if (isset($variables['style_name']) && array_key_exists($variables['style_name'], manualcrop_get_styles_with_crop())) {
+    // Get the image path.
+    $match = '/styles/' . $variables['style_name'] . '/';
+    $path = substr($variables['path'], (strrpos($variables['path'], $match) + drupal_strlen($match)));
+    $path = explode('/', $path);
+
+    // Build the image URI.
+    $scheme = array_shift($path);
+    $target = implode('/', $path);
+    $image_uri = $scheme . '://' . urldecode($target);
+
+    // Load the cropping area.
+    $crop = manualcrop_load_crop_selection($image_uri, $variables['style_name']);
+
+    if ($crop) {
+      // Add a cache-controller to the image path.
+      $variables['path'] .= '?c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+    }
+  }
+}
+
+/**
+ * Implements hook_filefield_sources_widgets().
  *
  * Integration with the Filefield Sources module.
  *

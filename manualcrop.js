@@ -1,4 +1,4 @@
-var ManualCrop = {"overlay": null, "oldSelection": null, "widget": null, "output": null};
+var ManualCrop = {'overlay': null, 'oldSelection': null, 'widget': null, 'output': null};
 
 (function ($) {
 
