@@ -96,12 +96,9 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
   foreach ($elements as $key => $child) {
     if (isset($child['#process']) && is_array($child['#process']) && in_array('image_field_widget_process', $child['#process'])) {
 	  $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
+      $elements[$key]['#element_validate'][] = 'manualcrop_validate_crop_selection';
     }
   }
-
-  // Validation and submit function.
-  $form['#validate'][] = 'manualcrop_validate_crop_selection';
-  $form['#submit'][] = 'manualcrop_save_crop_selection';
 
   if (!isset($form_state['manualcrop_widget_data'])) {
     $form_state['manualcrop_widget_data'] = array('images' => array());
