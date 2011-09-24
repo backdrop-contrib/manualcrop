@@ -411,8 +411,10 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
       // Clear the cached versions of this image.
       image_path_flush($data['path']);
 
-      // Clear the cached image paths.
-      cache_clear_all('manualcrop', 'cache', TRUE);
+      if (variable_get('manualcrop_cache_control', TRUE)) {
+        // Clear the cached image paths.
+        cache_clear_all('manualcrop', 'cache', TRUE);
+      }
     }
   }
 }
