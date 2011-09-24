@@ -5,6 +5,20 @@
  */
 
 /**
+ * Implements hook_install().
+ */
+function manualcrop_install() {
+  variable_set('manualcrop_cache_control', TRUE);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function manualcrop_uninstall() {
+  variable_del('manualcrop_cache_control');
+}
+
+/**
  * Implements hook_schema().
  */
 function manualcrop_schema() {
@@ -93,7 +107,7 @@ function manualcrop_update_7100(&$sandbox) {
   foreach (image_styles() as $style_name => $style) {
     // Only styles that have an id should be updated.
     if (isset($style['isid']) && !empty($style['effects'])) {
-      // Check if the first effect is a manual crop effect.
+      // Check if the first effect is a Manual Crop effect.
       $effect = reset($style['effects']);
 
       if ($effect['module'] == 'manualcrop') {

@@ -90,7 +90,7 @@ ManualCrop.showOverlay = function(style, fid) {
     // Additional options based upon the effect.
     if (settings) {
       switch (settings.effect) {
-        // Manual crop and scale effect.
+        // Manual Crop and scale effect.
         case 'manualcrop_crop_and_scale':
           options.aspectRatio = settings.data.width + ':' + settings.data.height;
 
@@ -101,7 +101,7 @@ ManualCrop.showOverlay = function(style, fid) {
           }
           break;
 
-        // Manual crop effect
+        // Manual Crop effect
         case 'manualcrop_crop':
           if (settings.data.width) {
             options.minWidth = settings.data.width;
