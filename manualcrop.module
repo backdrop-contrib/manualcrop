@@ -408,6 +408,9 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
 
       // Clear the cached versions of this image.
       image_path_flush($data['path']);
+
+      // Clear the cached image paths.
+      cache_clear_all('manualcrop', 'cache', TRUE);
     }
   }
 }
@@ -491,22 +494,31 @@ function manualcrop_get_styles_with_crop() {
 function manualcrop_preprocess_image(&$variables) {
   // Check if this image style has a Manual Crop effect.
   if (isset($variables['style_name']) && array_key_exists($variables['style_name'], manualcrop_get_styles_with_crop())) {
-    // Get the image path.
-    $match = '/styles/' . $variables['style_name'] . '/';
-    $path = substr($variables['path'], (strrpos($variables['path'], $match) + drupal_strlen($match)));
-    $path = explode('/', $path);
+    // Attempt to load HTTP cache-controller from database cache
+    $original_path = $variables['path'];
 
-    // Build the image URI.
-    $scheme = array_shift($path);
-    $target = implode('/', $path);
-    $image_uri = $scheme . '://' . urldecode($target);
+    if ($cached_path = cache_get('manualcrop|' . $original_path)) {
+      $variables['path'] = $cached_path->data;
+    }
+    else {
+      // No HTTP cache-controller in database cache, get the image path.
+      $match = '/styles/' . $variables['style_name'] . '/';
+      $path = substr($variables['path'], (strrpos($variables['path'], $match) + drupal_strlen($match)));
+      $path = explode('/', $path);
 
-    // Load the cropping area.
-    $crop = manualcrop_load_crop_selection($image_uri, $variables['style_name']);
+      // Build the image URI.
+      $scheme = array_shift($path);
+      $target = implode('/', $path);
+      $image_uri = $scheme . '://' . urldecode($target);
 
-    if ($crop) {
-      // Add a cache-controller to the image path.
-      $variables['path'] .= '?c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+      // Load the cropping area.
+      if ($crop = manualcrop_load_crop_selection($image_uri, $variables['style_name'])) {
+        // Add a HTTP cache-controller to the image path.
+        $variables['path'] .= '?c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+
+        // Cache the the updated image path.
+        cache_set('manualcrop|' . $original_path, $variables['path']);
+      }
     }
   }
 }
