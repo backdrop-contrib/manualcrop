@@ -36,8 +36,10 @@ ManualCrop.showOverlay = function(style, fid) {
     else {
       var styleSelect = $(style);
       styleName = styleSelect.val();
-      var settings = Drupal.settings.manualCrop.styles[styleName] || {};
     }
+
+    // Get the crop settings.
+    var settings = Drupal.settings.manualCrop.styles[styleName] || {};
 
     // Get the destination field and the current selection.
     ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
