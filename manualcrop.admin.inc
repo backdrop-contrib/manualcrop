@@ -302,9 +302,16 @@ function manualcrop_field_widget_settings_form($field, $instance) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_system_performance_settings_alter(&$form, &$form_state) {
-  $form['bandwidth_optimization']['manualcrop_cache_control'] = array(
+  $form['manualcrop'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Manual Crop'),
+    '#collapsible' => FALSE,
+    '#tree' => TRUE,
+  );
+
+  $form['manualcrop']['cache_control'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Manual Crop cache-control'),
+    '#title' => t('Reload cache-control'),
     '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image, this way the visitor his/her browser will reload the image.'),
     '#default_value' => variable_get('manualcrop_cache_control', TRUE),
   );
@@ -323,7 +330,7 @@ function manualcrop_form_system_performance_settings_alter(&$form, &$form_state)
  *   Form state array.
  */
 function manualcrop_form_system_performance_settings_submit($form, &$form_state) {
-  $cache_control = (bool) $form_state['values']['manualcrop_cache_control'];
+  $cache_control = (bool) $form_state['values']['manualcrop']['cache_control'];
 
   variable_set('manualcrop_cache_control', $cache_control);
 
