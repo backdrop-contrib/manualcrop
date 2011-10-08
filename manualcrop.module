@@ -322,7 +322,7 @@ function theme_manualcrop_overlay($variables) {
  *   Form state array.
  */
 function manualcrop_validate_crop_selection($form, &$form_state) {
-  if (!empty($form_state['manualcrop_widget_data']['images'])) {
+  if (!empty($form_state['manualcrop_widget_data']['images']) && !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove')))) {
     // Create a new key in the data array, this is to store processed selections.
     $form_state['manualcrop_widget_data']['selections'] = array();
     $save = &$form_state['manualcrop_widget_data']['selections'];
@@ -398,8 +398,8 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
  */
 function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
   if (!empty($form_state['manualcrop_widget_data']['selections'])) {
-    // Loop trough the selections to save them. $styles can by an empty array, but we loop trough
-    // the whole array to delete old selections.
+    // Loop trough the selections to save them. $data['styles'] can by an empty array,
+    // but we loop trough the whole array to delete old selections.
     foreach ($form_state['manualcrop_widget_data']['selections'] as $fid => $data) {
       db_delete('manualcrop')
         ->condition('fid', $fid)

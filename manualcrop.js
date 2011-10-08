@@ -3,10 +3,11 @@ var ManualCrop = {'overlay': null, 'oldSelection': null, 'widget': null, 'output
 (function ($) {
 
 /**
- * Mark required image styles and trigger the onchange event of all hidden fields
- * that hold crop data, this way all css classes in the selection lists will be updated.
+ * Mark required image styles and trigger the onchange event of all (hidden) fields that store
+ * crop data. This way all css classes for the crop lists/buttons will be updated and the image
+ * preview will be changed to the cropped image.
  */
-$(document).ready(function () {
+ManualCrop.init = function() {
   for (var cssClass in Drupal.settings.manualCrop.required) {
     for (var k in Drupal.settings.manualCrop.required[cssClass]) {
       $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[cssClass][k] + '"]').addClass("manualcrop-style-required");
@@ -14,7 +15,7 @@ $(document).ready(function () {
   }
 
   $('.manualcrop-cropdata').trigger('change');
-});
+}
 
 /**
  * Open the cropping overlay for an image.
@@ -385,5 +386,13 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
     }
   }
 }
+
+// Execute the init function after loading the document.
+$(document).ready(function() {
+  ManualCrop.init();
+});
+
+// Execute the init function after each ajax call.
+$('body').ajaxComplete(ManualCrop.init);
 
 })(jQuery);
