@@ -138,6 +138,12 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         // Override the theming function.
         $element['#theme'] = 'manualcrop_widget';
 
+        // Add a prefix and suffix to the preview.
+        if (isset($element['preview'])) {
+          $element['preview']['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $item['fid'] . '"><div class="manualcrop-preview-cropped"></div>';
+          $element['preview']['#suffix'] = '</div>';
+        }
+
         // Get image info, width and height are used by the cropping widget.
         $image = image_get_info($element['#file']->uri);
 
@@ -418,7 +424,6 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
     }
   }
 }
-
 
 /**
  * Implements hook_image_effect_info().

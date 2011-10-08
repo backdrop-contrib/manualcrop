@@ -280,8 +280,9 @@ ManualCrop.parseInt = function(integer) {
 }
 
 /**
- * A new cropping area was saved to the hidden field, find the corresponding
- * select option or link and append a css class and text to indicate the crop status.
+ * A new cropping area was saved to the hidden field, update the image preview and find
+ * the corresponding select option or button and append a css class and text to indicate
+ * the crop status.
  *
  * This is a seperate function so it can be triggered after loading.
  *
@@ -293,30 +294,94 @@ ManualCrop.parseInt = function(integer) {
  *   The image style name.
  */
 ManualCrop.selectionStored = function(element, fid, styleName) {
-  var holder = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid);
-  var hasClass = holder.hasClass('manualcrop-style-cropped');
+  var selection = $(element).val();
 
-  if ($(element).val()) {
+  var previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
+  var defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
+
+  var overlayOpener = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid);
+  var hasClass = overlayOpener.hasClass('manualcrop-style-cropped');
+
+  if (previewHolder.length && previewHolder.children().length) {
+    previewHolder.css({
+      width: '0px',
+      height: '0px'
+    }).html('');
+    defaultPreview.css('display', 'block');
+  }
+
+  if (selection) {
+    if (previewHolder.length) {
+      // Get the dimensions of the original preview image and hide it again.
+      var maxWidth = defaultPreview.width();
+      var maxHeight = defaultPreview.height();
+
+      if (maxWidth > 0) {
+        defaultPreview.css('display', 'none');
+
+        // Get the selected crop area.
+        selection = ManualCrop.parseStringSelection(selection);
+        var newWidth = selection.width;
+        var newHeight = selection.height;
+
+        // Calculate the new width and height.
+        if(newWidth > maxWidth) {
+          newHeight = Math.floor((newHeight * maxWidth) / newWidth);
+          newWidth = maxWidth;
+        }
+
+        if(newHeight > maxHeight) {
+          newWidth = Math.floor((newWidth * maxHeight) / newHeight);
+          newHeight = maxHeight;
+        }
+
+        // Set the new width and height to the cropped preview holder.
+        previewHolder.css({
+          width: newWidth + 'px',
+          height: newHeight + 'px'
+        });
+
+        // Calculate the resize scale.
+        var scaleX = newWidth / selection.width;
+        var scaleY = newHeight / selection.height;
+
+        // Get the original image.
+        var originalImage = $('#manualcrop-overlay-' + fid + ' img.manualcrop-image');
+
+        // Calculate the new width and height of the full image.
+        newWidth = Math.round(scaleX * ManualCrop.parseInt(originalImage.attr('width')));
+        newHeight = Math.round(scaleY * ManualCrop.parseInt(originalImage.attr('height')));
+
+        // Create and insert the cropped preview.
+        previewHolder.append(originalImage.clone().removeClass().css({
+          width: newWidth + 'px',
+          height: newHeight + 'px',
+          marginLeft: '-' + Math.round(scaleX * selection.x1) + 'px',
+          marginTop: '-' + Math.round(scaleY * selection.y1) + 'px'
+        }));
+      }
+    }
+
     if (!hasClass) {
       // Style has been cropped.
-      holder.addClass('manualcrop-style-cropped');
+      overlayOpener.addClass('manualcrop-style-cropped');
 
-      if (holder.is("input")) {
-        holder.val(holder.val() + ' ' + Drupal.t('(cropped)'));
+      if (overlayOpener.is("input")) {
+        overlayOpener.val(overlayOpener.val() + ' ' + Drupal.t('(cropped)'));
       }
       else {
-        holder.text(holder.text() + ' ' + Drupal.t('(cropped)'));
+        overlayOpener.text(overlayOpener.text() + ' ' + Drupal.t('(cropped)'));
       }
     }
   } else if (hasClass) {
     // Style not cropped.
-    holder.removeClass('manualcrop-style-cropped');
+    overlayOpener.removeClass('manualcrop-style-cropped');
 
-    if (holder.is("input")) {
-      holder.val(holder.val().substr(0, (holder.val().length - Drupal.t('(cropped)').length - 1)));
+    if (overlayOpener.is("input")) {
+      overlayOpener.val(overlayOpener.val().substr(0, (overlayOpener.val().length - Drupal.t('(cropped)').length - 1)));
     }
     else {
-      holder.text(holder.text().substr(0, (holder.text().length - Drupal.t('(cropped)').length - 1)));
+      overlayOpener.text(overlayOpener.text().substr(0, (overlayOpener.text().length - Drupal.t('(cropped)').length - 1)));
     }
   }
 }
