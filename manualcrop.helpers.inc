@@ -149,3 +149,15 @@ function manualcrop_field_widget_update_names_in_settings($style_name, $new_styl
     }
   }
 }
+
+/**
+ * Transform a style name into a more readable variant.
+ *
+ * @param $style_name
+ *   Image style name.
+ * @return
+ *   Cleaned-up image style name.
+ */
+function _manualcrop_image_style_name($style_name) {
+  return ucwords(str_replace('_', ' ', $style_name));
+}

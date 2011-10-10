@@ -199,7 +199,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             ),
           );
 
-          $options[$style_name] = ucwords(str_replace('_', ' ', $style_name));
+          $options[$style_name] = _manualcrop_image_style_name($style_name);
         }
 
         $props = array(
@@ -342,6 +342,8 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
         $first = TRUE;
 
         foreach ($value['manualcrop_selection'] as $style_name => $selection) {
+          $clean_style_name = _manualcrop_image_style_name($style_name);
+
           if ($first) {
             $element_key = implode('][', $image['element_parents']) . '][manualcrop_style';
           }
@@ -369,7 +371,7 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
             }
 
             form_set_error($element_key, t('The crop selection for %filename (@style image style) is invalid, please clear it or reselect.', array(
-              '@style' => $style_name,
+              '@style' => $clean_style_name,
               '%filename' => $image['filename']
             )));
 
@@ -378,7 +380,7 @@ function manualcrop_validate_crop_selection($form, &$form_state) {
           elseif (in_array($style_name, $image['required_styles'], TRUE)) {
             // Uncropped required style.
             form_set_error($element_key, t('%filename must have a cropping selection for the @style image style.', array(
-              '@style' => $style_name,
+              '@style' => $clean_style_name,
               '%filename' => $image['filename']
             )));
           }
