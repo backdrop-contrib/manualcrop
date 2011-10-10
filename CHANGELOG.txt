@@ -1,3 +1,14 @@
+Manual Crop 7.x-1.2, 2011-10-10
+-------------------------------
+- Fixed the crop selection validation, removed images should be skipped during validation.
+- Added support for the FileField Sources module (thanks to Fidelix).
+- Show a crop button instead of a selection list when only one selection can be cropped.
+- Present the user a cleaner image style name.
+- Added the "enter" shortcut and changed the "esc" shortcut effect.
+- Added the option to add a HTTP cache controller variable to the image path, so the image will be reloaded after re-cropping (thanks to mstrelan).
+- Fixed support for images in a field collection (thanks to mstrelan).
+- Updated the preview image to show the latest crop selection if one was made.
+
 Manual Crop 7.x-1.1, 2011-06-29
 -------------------------------
 - Added the ability to exclude or include items in the image style list.
