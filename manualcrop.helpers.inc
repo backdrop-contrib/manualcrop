@@ -101,7 +101,7 @@ function manualcrop_instance_required_styles($instance) {
  * @param $new_style_name
  *   New image style name if renamed, a NULL value will remove the style from the settings.
  */
-function manualcrop_field_widget_update_names_in_settings($style_name, $new_style_name = null) {
+function _manualcrop_field_widget_update_names_in_settings($style_name, $new_style_name = null) {
   foreach (field_info_fields() as $field) {
     if ($field['module'] == 'image') {
       foreach ($field['bundles'] as $entity_type => $bundles) {

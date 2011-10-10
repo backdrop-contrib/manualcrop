@@ -245,7 +245,7 @@ function manualcrop_update_style_name($form, &$form_state) {
       $effect["data"]["style_name"] = $form_state['values']['name'];
       image_effect_save($effect);
 
-      manualcrop_field_widget_update_names_in_settings($style['name'], $form_state['values']['name']);
+      _manualcrop_field_widget_update_names_in_settings($style['name'], $form_state['values']['name']);
 
       db_update('manualcrop')
         ->fields(array('style_name' => $form_state['values']['name']))

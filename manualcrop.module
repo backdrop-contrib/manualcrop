@@ -572,7 +572,7 @@ function manualcrop_image_style_delete($style) {
         ->condition('style_name', $style['name'])
         ->execute();
 
-      manualcrop_field_widget_update_names_in_settings($style['name']);
+      _manualcrop_field_widget_update_names_in_settings($style['name']);
     }
   }
 }
