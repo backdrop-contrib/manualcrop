@@ -5,7 +5,7 @@ Manual Crop 7.x-1.2, 2011-10-10
 - Show a crop button instead of a selection list when only one selection can be cropped.
 - Present the user a cleaner image style name.
 - Added the "enter" shortcut and changed the "esc" shortcut effect.
-- Added the option to add a HTTP cache controller variable to the image path, so the image will be reloaded after re-cropping (thanks to mstrelan).
+- Added an option, at the performance page, to enable an HTTP cache controller variable that will force image reloading after re-cropping (thanks to mstrelan, who improved this with additional caching).
 - Fixed support for images in a field collection (thanks to mstrelan).
 - Updated the preview image to show the latest crop selection if one was made.
 
