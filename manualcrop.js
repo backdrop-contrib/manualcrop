@@ -330,10 +330,17 @@ ManualCrop.parseInt = function(integer) {
 ManualCrop.selectionStored = function(element, fid, styleName) {
   var selection = $(element).val();
 
-  var previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
-  var defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
+  var previewHolder = $('.manualcrop-preview-' + fid + '-' + styleName + ' .manualcrop-preview-cropped');
+  if (!previewHolder.length) {
+    previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
+  }
 
-  var toolOpener = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid);
+  var defaultPreview = $('.manualcrop-preview-' + fid + '-' + styleName + ' > img');
+  if (!defaultPreview.length) {
+    defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
+  }
+
+  var toolOpener = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid + ', .manualcrop-style-thumb-' + fid + '-' + styleName + ' .manualcrop-style-thumb-label');
   var hasClass = toolOpener.hasClass('manualcrop-style-cropped');
 
   if (previewHolder.length && previewHolder.children().length) {

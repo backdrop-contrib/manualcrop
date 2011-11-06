@@ -76,7 +76,7 @@ img.manualcrop-image {
   padding: 0.1em 0.3em 0.1em 0.3em;
   display: block;
 }
-.manualcrop-overlay .manualcrop-button, .manualcrop-overlay .manualcrop-button:hover {
+.manualcrop-overlay .manualcrop-button, .manualcrop-overlay .manualcrop-button:hover, .manualcrop-overlay .manualcrop-button:focus {
   margin-right: 0.8em;
   color: #FFFFFF;
   text-align: center;
@@ -104,8 +104,40 @@ img.manualcrop-image {
 }
 /* Crop preview */
 .manualcrop-preview-cropped {
+  display: block;
   overflow: hidden;
 }
 .manualcrop-preview .manualcrop-preview-cropped img {
   margin: 0px;
+  display: block;
+}
+/* Thumbnail list */
+.manualcrop-thumblist {
+  margin-top: 0.5em;
+  padding-bottom: 0.2em;
+  overflow: scroll;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+.manualcrop-style-thumb, .manualcrop-style-thumb:hover, .manualcrop-style-thumb:focus {
+  margin-right: 1.5em;
+  float: left;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+}
+.manualcrop-style-thumb strong {
+  margin-bottom: 0.2em;
+  max-width: 100px;
+  display: block;
+}
+.manualcrop-style-thumb .manualcrop-preview img {
+  margin: 0em;
+  max-width: 100px;
+  max-height: 100px;
+}
+.manualcrop-style-thumb .manualcrop-preview-cropped img {
+  max-width: none;
+  max-height: none;
 }

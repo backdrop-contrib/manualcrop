@@ -28,11 +28,17 @@ function manualcrop_theme() {
     'manualcrop_crop_summary' => array(
       'variables' => array('data' => NULL),
     ),
-    'manualcrop_overlay' => array(
+    'manualcrop_croptool_overlay' => array(
       'variables' => array('attributes' => NULL, 'image' => NULL),
     ),
-    'manualcrop_inline' => array(
+    'manualcrop_croptool_inline' => array(
       'variables' => array('attributes' => NULL, 'image' => NULL),
+    ),
+    'manualcrop_thumblist' => array(
+      'variables' => array('attributes' => NULL, 'images' => NULL),
+    ),
+    'manualcrop_thumblist_image' => array(
+      'variables' => array('attributes' => NULL, 'image' => NULL, 'style' => NULL),
     ),
     'manualcrop_widget' => array(
       'render element' => 'element',
@@ -141,14 +147,11 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
         // Override the theming function.
         $element['#theme'] = 'manualcrop_widget';
 
-        // Thumbnail list.
-        if (isset($widget_settings['thumbs_list']) && $widget_settings['thumbs_list']) {
-          // No preview image.
+        if (isset($widget_settings['thumblist']) && $widget_settings['thumblist']) {
+          // Thumbnail list, no preview image.
           unset($element['preview']);
         }
         else {
-          $widget_settings['thumbs_list'] = FALSE;
-
           // Add a prefix and suffix to the preview.
           if (isset($element['preview'])) {
             $element['preview']['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $item['fid'] . '"><div class="manualcrop-preview-cropped"></div>';
@@ -180,19 +183,19 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
 
         // Overlay or inline cropping.
         if (!isset($widget_settings['inline_crop']) || !$widget_settings['inline_crop']) {
-          $type = 'overlay';
+          $crop_type = 'overlay';
         }
         else {
-          $type = 'inline';
+          $crop_type = 'inline';
         }
 
         // Original image for cropping.
-        $element['manualcrop_' . $type] = array(
+        $element['manualcrop_' . $crop_type] = array(
           '#type' => 'markup',
-          '#markup' => theme('manualcrop_' . $type, array(
+          '#markup' => theme('manualcrop_croptool_' . $crop_type, array(
             'attributes' => array(
-              'id' => array('manualcrop-' . $type . '-' . $item['fid']),
-              'class' => array('manualcrop-' . $type, 'element-invisible'),
+              'id' => array('manualcrop-' . $crop_type . '-' . $item['fid']),
+              'class' => array('manualcrop-' . $crop_type, 'element-invisible'),
             ),
             'image' => array(
               'path' => $element['#file']->uri,
@@ -200,7 +203,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
               'width' => $image['width'],
               'height' => $image['height'],
               'attributes' => array('class' => 'manualcrop-image'),
-            )
+            ),
           )),
         );
 
@@ -222,6 +225,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
           $options[$style_name] = _manualcrop_image_style_name($style_name);
         }
 
+        // Default form element options.
         $props = array(
           '#weight' => (isset($element['title']['#weight']) ? $element['title']['#weight'] : 1),
             '#attached' => array(
@@ -236,28 +240,65 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             ),
         );
 
-        if (sizeof($options) == 2) {
+        // Element to open the croptool.
+        if (isset($widget_settings['thumblist']) && $widget_settings['thumblist']) {
+          // Thumbnail list.
+          array_shift($options);
+          foreach ($options as $style_name => $style_clean_name) {
+            $prefix = '<span class="manualcrop-preview manualcrop-preview-' . $item['fid'] . ' manualcrop-preview-' . $item['fid'] . '-' . $style_name . '"><span class="manualcrop-preview-cropped"></span>';
+            $suffix = '</span>';
+
+            $options[$style_name] = theme('manualcrop_thumblist_image', array(
+              'style' => $style_clean_name,
+              'image' => $prefix . theme('image_style', array(
+                'path' => $element['#file']->uri,
+                'alt' => t('Manual Crop'),
+                'width' => $image['width'],
+                'height' => $image['height'],
+                'style_name' => $style_name,
+              )) . $suffix,
+              'attributes' => array(
+                'class' => array_merge(
+                  array('manualcrop-style-thumb', 'manualcrop-style-thumb-' . $item['fid'], 'manualcrop-style-thumb-' . $item['fid'] . '-' . $style_name, 'manualcrop-style-preview-' . $item['fid'], 'manualcrop-style-preview-' . $item['fid'] . '-' . $style_name),
+                  (in_array($style_name, $required) ? array('manualcrop-style-required') : array())
+                ),
+                'href' => 'javascript:void(0);',
+                'onclick' => "ManualCrop.showCroptool('" . $style_name . "', " . $item['fid'] . ");",
+              ),
+            ));
+          }
+
+          $element['manualcrop_style'] = array_merge($props, array(
+            '#markup' => theme('manualcrop_thumblist', array(
+              'attributes' => array(
+                'class' => array('manualcrop-thumblist', 'manualcrop-thumblist-' . $item['fid']),
+              ),
+              'images' => $options,
+            )),
+          ));
+        }
+        else if (sizeof($options) == 2) {
+          // Button.
           $style_name_clean = end($options);
           $style_name = key($options);
 
-          // Link for opening the overlay.
           $element['manualcrop_style'] = array_merge($props, array(
             '#type' => 'button',
             '#value' => t('Crop @stylename', array('@stylename' => $style_name_clean)),
             '#attributes' => array(
               'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $item['fid']), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
-              'onclick' => "ManualCrop.showCroptool('" . $style_name . "', " . $item["fid"] . "); return false;",
+              'onclick' => "ManualCrop.showCroptool('" . $style_name . "', " . $item['fid'] . "); return false;",
             ),
             '#prefix' => '<div class="manualcrop-style-button-holder">',
             '#suffix' => '</div>',
           ));
         }
-		else {
-          // Selection list for opening the overlay.
+        else {
+          // Selection list.
           $element['manualcrop_style'] = array_merge($props, array(
             '#type' => 'select',
             '#title' => t('Manual Crop'),
-            '#description' => t('Select the image style to crop, the corresponding cropping overlay will open.'),
+            '#description' => t('Select the image style to crop, the corresponding cropping tool will open.'),
             '#options' => $options,
             '#multiple' => FALSE,
             '#attributes' => array(
@@ -305,8 +346,8 @@ function theme_manualcrop_widget($variables) {
  *
  * @ingroup themeable
  */
-function theme_manualcrop_overlay($variables) {
-  $output = '<div ' . drupal_attributes($variables["attributes"]) . '>';
+function theme_manualcrop_croptool_overlay($variables) {
+  $output = '<div ' . drupal_attributes($variables['attributes']) . '>';
 
   $output .= '<div class="manualcrop-overlay-bg"></div>';
 
@@ -343,8 +384,8 @@ function theme_manualcrop_overlay($variables) {
  *
  * @ingroup themeable
  */
-function theme_manualcrop_inline($variables) {
-  $output = '<div ' . drupal_attributes($variables["attributes"]) . '>';
+function theme_manualcrop_croptool_inline($variables) {
+  $output = '<div ' . drupal_attributes($variables['attributes']) . '>';
 
   $output .= '<div class="manualcrop-image-holder">';
   $output .= theme('image', $variables["image"]);
@@ -369,6 +410,46 @@ function theme_manualcrop_inline($variables) {
   $output .= '</div>';
 
   $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Returns HTML for thumbnail list.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - "attributes": An array of attributes.
+ *   - "images": Array of images html, themed by the "manualcrop_thumblist_image" function an keyed by style name.
+ *
+ * @ingroup themeable
+ */
+function theme_manualcrop_thumblist($variables) {
+  $output = '<div ' . drupal_attributes($variables['attributes']) . '>';
+  $output .= '<div class="clearfix">';
+  $output .= implode('', $variables['images']);
+  $output .= '</div>';
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Returns HTML for a single image in the thumbnail list.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - "attributes": An array of attributes.
+ *   - "image": Rendered image tag html.
+ *   - "style": Clean style name.
+ *
+ * @ingroup themeable
+ */
+function theme_manualcrop_thumblist_image($variables) {
+  $output = '<a ' . drupal_attributes($variables['attributes']) . '>';
+  $output .= '<strong class="manualcrop-style-thumb-label">' . check_plain($variables['style']) . '</strong>';
+  $output .= $variables['image'];
+  $output .= '</a>';
 
   return $output;
 }

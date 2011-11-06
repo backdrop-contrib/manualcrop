@@ -272,11 +272,11 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#weight' => 16,
   );
 
-  $form['thumbs_list'] = array(
+  $form['thumblist'] = array(
     '#type' => 'checkbox',
     '#title' => t('List thumbs'),
     '#description' => t('Instead showing a button or selection list, show all thumbails (this will disable the preview thumbnail).'),
-    '#default_value' => (isset($settings['thumbs_list']) ? $settings['thumbs_list'] : FALSE),
+    '#default_value' => (isset($settings['thumblist']) ? $settings['thumblist'] : FALSE),
     '#weight' => 17,
   );
 
