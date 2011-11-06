@@ -264,6 +264,22 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   // Use the image field settings form.
   $form = image_field_widget_settings_form($field, $instance);
 
+  $form['inline_crop'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Inline cropping'),
+    '#description' => t('Instead of opening an overlay, use inline cropping.'),
+    '#default_value' => (isset($settings['inline_crop']) ? $settings['inline_crop'] : FALSE),
+    '#weight' => 16,
+  );
+
+  $form['thumbs_list'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('List thumbs'),
+    '#description' => t('Instead showing a button or selection list, show all thumbails (this will disable the preview thumbnail).'),
+    '#default_value' => (isset($settings['thumbs_list']) ? $settings['thumbs_list'] : FALSE),
+    '#weight' => 17,
+  );
+
   $form['styles_mode'] = array(
     '#type' => 'radios',
     '#title' => t('Styles list mode'),
@@ -272,7 +288,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
       'include' => t('Include selected styles'),
     ),
     '#default_value' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
-    '#weight' => 16,
+    '#weight' => 18,
   );
 
   $form['styles_list'] = array(
@@ -282,7 +298,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 17,
+    '#weight' => 19,
   );
 
   $form['require_cropping'] = array(
@@ -292,7 +308,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 18,
+    '#weight' => 20,
   );
 
   return $form;
