@@ -159,5 +159,21 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
  *   Cleaned-up image style name.
  */
 function _manualcrop_image_style_name($style_name) {
-  return ucwords(str_replace('_', ' ', $style_name));
+  global $language;
+  static $custom_strings;
+
+  $langcode = (isset($language->language) ? $language->language : 'en');
+
+  // Load custom string for overriding.
+  if (!isset($custom_strings[$langcode])) {
+    $custom_strings[$langcode] = variable_get('locale_custom_strings_' . $langcode, array());
+  }
+
+  // Get the human readable name from the custom strings or make it ourself.
+  if (isset($custom_strings[$langcode]['']['image-style-' . $style_name])) {
+    return $custom_strings[$langcode]['']['image-style-' . $style_name];
+  }
+  else {
+    return ucwords(str_replace('_', ' ', $style_name));
+  }
 }
