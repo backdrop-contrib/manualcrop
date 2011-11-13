@@ -257,13 +257,27 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             $prefix = '<span class="manualcrop-preview manualcrop-preview-' . $item['fid'] . ' manualcrop-preview-' . $item['fid'] . '-' . $style_name . '"><span class="manualcrop-preview-cropped"></span>';
             $suffix = '</span>';
 
+            $width = $image['width'];
+            $height = $image['height'];
+
+            // Calculate thumbnial width and height.
+            if($width > 100) {
+              $height = round($height * 100) / $width;
+              $width = 100;
+            }
+
+            if($height > $height) {
+              $width = round($width * 100) / $height;
+              $height = 100;
+            }
+
             $options[$style_name] = theme('manualcrop_thumblist_image', array(
               'style' => $style_clean_name,
               'image' => $prefix . theme('image_style', array(
                 'path' => $element['#file']->uri,
                 'alt' => t('Manual Crop'),
-                'width' => $image['width'],
-                'height' => $image['height'],
+                'width' => $width,
+                'height' => $height,
                 'style_name' => $style_name,
               )) . $suffix,
               'attributes' => array(

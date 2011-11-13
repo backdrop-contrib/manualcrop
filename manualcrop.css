@@ -129,15 +129,9 @@ img.manualcrop-image {
 }
 .manualcrop-style-thumb strong {
   margin-bottom: 0.2em;
-  max-width: 100px;
+  width: 100px;
   display: block;
 }
 .manualcrop-style-thumb .manualcrop-preview img {
   margin: 0em;
-  max-width: 100px;
-  max-height: 100px;
-}
-.manualcrop-style-thumb .manualcrop-preview-cropped img {
-  max-width: none;
-  max-height: none;
 }
