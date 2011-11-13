@@ -172,9 +172,18 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
           'required_styles' => $required,
         );
 
-        // Get the saved selections for this file.
-        if (!$form_state['submitted']) {
+        // Get the crop selections for this file.
+        if (!$form_state['submitted'] && !isset($item['manualcrop_selection'])) {
           $selections = manualcrop_load_crop_selection($element['#file']->uri);
+
+          // Use (if possible and enabled) Smart Crop for a default crop selection.
+          if (empty($selections) && isset($widget_settings['use_smartcrop']) && $widget_settings['use_smartcrop']) {
+            foreach ($hascrop as $style_name => $data) {
+              if ($data = _manualcrop_get_smartcrop_selection($element['#file']->uri, $style_name)) {
+                $selections[] = $data;
+              }
+            }
+          }
 
           foreach ($selections as $data) {
             $item['manualcrop_selection'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
