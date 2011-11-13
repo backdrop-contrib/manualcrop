@@ -208,7 +208,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             ),
             'image' => array(
               'path' => $element['#file']->uri,
-              'alt' => t('Manual Crop'),
+              'alt' => $element['#file']->filename,
               'width' => $image['width'],
               'height' => $image['height'],
               'attributes' => array('class' => 'manualcrop-image'),
@@ -257,27 +257,13 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             $prefix = '<span class="manualcrop-preview manualcrop-preview-' . $item['fid'] . ' manualcrop-preview-' . $item['fid'] . '-' . $style_name . '"><span class="manualcrop-preview-cropped"></span>';
             $suffix = '</span>';
 
-            $width = $image['width'];
-            $height = $image['height'];
-
-            // Calculate thumbnial width and height.
-            if($width > 100) {
-              $height = round($height * 100) / $width;
-              $width = 100;
-            }
-
-            if($height > $height) {
-              $width = round($width * 100) / $height;
-              $height = 100;
-            }
-
             $options[$style_name] = theme('manualcrop_thumblist_image', array(
               'style' => $style_clean_name,
               'image' => $prefix . theme('image_style', array(
                 'path' => $element['#file']->uri,
-                'alt' => t('Manual Crop'),
-                'width' => $width,
-                'height' => $height,
+                'alt' => $element['#file']->filename,
+                'width' => $image['width'],
+                'height' => $image['height'],
                 'style_name' => $style_name,
               )) . $suffix,
               'attributes' => array(
@@ -427,7 +413,7 @@ function theme_manualcrop_croptool_inline($variables) {
   $output .= '<div class="manualcrop-buttons">';
   $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Restore selection') . '</a>';
   $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Remove selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-close clearfix" href="javascript:void(0);" onclick="ManualCrop.closeCroptool(); this.blur();">' . t('Save selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-close" href="javascript:void(0);" onclick="ManualCrop.closeCroptool(); this.blur();">' . t('Save selection') . '</a>';
   $output .= '</div>';
 
   $output .= '</div>';
