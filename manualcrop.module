@@ -94,8 +94,9 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
   // Add a process function to the elements.
   foreach ($elements as $key => $child) {
     if (isset($child['#process']) && is_array($child['#process']) && in_array('image_field_widget_process', $child['#process'])) {
-	  $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
+      $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
       $elements[$key]['#element_validate'][] = 'manualcrop_validate_crop_selection';
+      $elements[$key]['#element_validate'][] = 'file_managed_file_validate';
     }
   }
 
