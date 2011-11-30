@@ -647,8 +647,6 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  *   following items:
  *   - "width": An integer representing the desired width in pixels.
  *   - "height": An integer representing the desired height in pixels.
- *   - "upscale": A Boolean indicating that the image should be upscalled if
- *     the dimensions are larger than the original image.
  *   - "style_name": The style's machine name.
  * @return
  *   TRUE on success. FALSE on failure to crop image.
