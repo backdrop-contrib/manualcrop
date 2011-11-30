@@ -176,7 +176,6 @@ function _manualcrop_image_style_name($style_name) {
   }
 }
 
-
 /**
  * Get a default crop selection using Smart Crop.
  *
@@ -214,6 +213,14 @@ function _manualcrop_get_smartcrop_selection($file, $style_name) {
     if (isset($effect[$style_name])) {
       $effect = $effect[$style_name];
       $image = image_load($file);
+
+      if (empty($effect['data']['width'])) {
+        $effect['data']['width'] = $image->info['width'];
+      }
+
+      if (empty($effect['data']['height'])) {
+        $effect['data']['height'] = $image->info['height'];
+      }
 
       // Calculate the cropping ratio.
       $ratio = max($effect['data']['width'] / $image->info['width'], $effect['data']['height'] / $image->info['height']);

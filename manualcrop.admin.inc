@@ -20,7 +20,14 @@ function manualcrop_crop_and_scale_form($data) {
     '#type' => 'checkbox',
     '#title' => t('Respect minimum'),
     '#description' => t("Make sure the selected crop area is at least as big as the destination size. This doesn't enforce minimum image dimensions."),
-    '#default_value' => (isset($data['respectminimum']) ? TRUE : FALSE),
+    '#default_value' => (isset($data['respectminimum']) ? $data['respectminimum'] : FALSE),
+  );
+
+  $form['onlyscaleifcrop'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Only scale if cropped'),
+    '#description' => t("Only scale the image if it was manually cropped."),
+    '#default_value' => (isset($data['onlyscaleifcrop']) ? $data['onlyscaleifcrop'] : FALSE),
   );
 
   return $form;
