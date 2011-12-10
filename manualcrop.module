@@ -374,9 +374,9 @@ function theme_manualcrop_croptool_overlay($variables) {
   $output .= '</div>';
 
   $output .= '<div class="manualcrop-buttons">';
-  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Restore selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Remove selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-close" href="javascript:void(0);" onclick="ManualCrop.closeCroptool(); this.blur();">' . t('Save selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Restore') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Discard') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-close" href="javascript:void(0);" onclick="ManualCrop.closeCroptool(); this.blur();">' . t('Apply') . '</a>';
   $output .= '</div>';
 
   $output .= '</div>';
@@ -412,9 +412,9 @@ function theme_manualcrop_croptool_inline($variables) {
   $output .= '</div>';
 
   $output .= '<div class="manualcrop-buttons">';
-  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Restore selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Remove selection') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-close" href="javascript:void(0);" onclick="ManualCrop.closeCroptool(); this.blur();">' . t('Save selection') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onclick="ManualCrop.resetSelection(); this.blur();">' . t('Restore') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onclick="ManualCrop.clearSelection(); this.blur();">' . t('Discard') . '</a>';
+  $output .= '<a class="manualcrop-button manualcrop-close" href="javascript:void(0);" onclick="ManualCrop.closeCroptool(); this.blur();">' . t('Apply') . '</a>';
   $output .= '</div>';
 
   $output .= '</div>';
