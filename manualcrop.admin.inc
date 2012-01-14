@@ -271,20 +271,55 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   // Use the image field settings form.
   $form = image_field_widget_settings_form($field, $instance);
 
-  $form['inline_crop'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Inline cropping'),
-    '#description' => t('Instead of opening an overlay, use inline cropping.'),
-    '#default_value' => (isset($settings['inline_crop']) ? $settings['inline_crop'] : FALSE),
-    '#weight' => 16,
+  $form['preview_image_style']['#states'] = array(
+    'invisible' => array(
+      'input[name="instance[widget][settings][inline_crop]"]' => array('checked' => TRUE),
+    ),
   );
 
   $form['thumblist'] = array(
     '#type' => 'checkbox',
     '#title' => t('List thumbs'),
     '#description' => t('Instead showing a button or selection list, show all thumbails (this will disable the preview thumbnail).'),
-    '#default_value' => (isset($settings['thumblist']) ? $settings['thumblist'] : FALSE),
+    '#default_value' => !empty($settings['thumblist']),
+    '#weight' => 16,
+  );
+
+  $form['inline_crop'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Inline cropping'),
+    '#description' => t('Instead of opening an overlay, use inline cropping.'),
+    '#default_value' => !empty($settings['inline_crop']),
     '#weight' => 17,
+  );
+
+  $form['crop_info'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show crop info'),
+    '#description' => t('Show the crop selection details.'),
+    '#default_value' => (isset($settings['crop_info']) ? $settings['crop_info'] : TRUE),
+    '#weight' => 18,
+  );
+
+  $form['instant_preview'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Instant preview'),
+    '#description' => t('Show an instant preview of the crop selection (only for inline crop).'),
+    '#default_value' => !empty($settings['instant_preview']),
+    '#states' => array(
+      'visible' => array(
+        'input[name="instance[widget][settings][inline_crop]"]' => array('checked' => TRUE),
+      ),
+    ),
+    '#weight' => 19,
+  );
+
+  $form['instant_crop'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Crop after upload'),
+    '#description' => t('Open the cropping tool direct after the file upload. Note that this will only work if you <strong>enable only one image style</strong>.'),
+    '#default_value' => !empty($settings['instant_crop']),
+    '#weight' => 20,
   );
 
   $form['styles_mode'] = array(
@@ -295,7 +330,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
       'include' => t('Include selected styles'),
     ),
     '#default_value' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
-    '#weight' => 18,
+    '#weight' => 21,
   );
 
   $form['styles_list'] = array(
@@ -305,7 +340,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 19,
+    '#weight' => 22,
   );
 
   $form['require_cropping'] = array(
@@ -315,7 +350,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 20,
+    '#weight' => 23,
   );
 
   if (module_exists('smartcrop')) {
@@ -323,8 +358,8 @@ function manualcrop_field_widget_settings_form($field, $instance) {
       '#type' => 'checkbox',
       '#title' => t('Use Smart Crop'),
       '#description' => t('Use Smart Crop to determine a default cropping after uploading. This might fail on big images due to a limited PHP execution time.'),
-      '#default_value' => (isset($settings['use_smartcrop']) ? $settings['use_smartcrop'] : FALSE),
-      '#weight' => 21,
+      '#default_value' => !empty($settings['use_smartcrop']),
+      '#weight' => 24,
     );
   }
 

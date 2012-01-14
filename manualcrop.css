@@ -52,7 +52,7 @@ img.manualcrop-image {
 }
 .manualcrop-inline .manualcrop-details {
   padding-bottom: 1em;
-  width: 70%;
+  width: 33%;
   float: left;
 }
 .manualcrop-details-value {
@@ -68,7 +68,7 @@ img.manualcrop-image {
 }
 .manualcrop-inline .manualcrop-buttons {
   padding-bottom: 1em;
-  width: 30%;
+  width: 33%;
   float: left;
   font-weight: bold;
 }

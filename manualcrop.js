@@ -8,9 +8,17 @@ var ManualCrop = {'croptool': null, 'oldSelection': null, 'widget': null, 'outpu
  * preview will be changed to the cropped image.
  */
 ManualCrop.init = function() {
-  for (var cssClass in Drupal.settings.manualCrop.required) {
-    for (var k in Drupal.settings.manualCrop.required[cssClass]) {
-      $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.required[cssClass][k] + '"]').addClass("manualcrop-style-required");
+  for (var cssClass in Drupal.settings.manualCrop.fields) {
+    for (var k in Drupal.settings.manualCrop.fields[cssClass].required) {
+      $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.fields[cssClass].required[k] + '"]').addClass('manualcrop-style-required');
+    }
+
+    if (Drupal.settings.manualCrop.fields[cssClass].instantCrop) {
+      var context = $('#edit-' + cssClass + ' .ajax-new-content');
+
+      if ($('.manualcrop-cropdata', context).length == 1) {
+        $('.manualcrop-style-button, .manualcrop-style-thumb', context).trigger('click');
+      }
     }
   }
 
@@ -20,12 +28,16 @@ ManualCrop.init = function() {
 /**
  * Open the cropping tool for an image.
  *
+ * @param event
+ *   JavaScript event object.
  * @param style
  *   The image style name or selection list triggering this event.
  * @param fid
  *   The file id of the image the user is about to crop.
  */
-ManualCrop.showCroptool = function(style, fid) {
+ManualCrop.showCroptool = function(event, style, fid) {
+  event.preventDefault();
+
   if (ManualCrop.croptool) {
     // Close the current croptool.
     ManualCrop.closeCroptool();
@@ -427,12 +439,14 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
   }
 }
 
-// Execute the init function after loading the document.
 $(document).ready(function() {
+  // Execute the init function after loading the document.
   ManualCrop.init();
-});
 
-// Execute the init function after each ajax call.
-$('body').ajaxComplete(ManualCrop.init);
+  // Execute the init function after each ajax call.
+  $(document).ajaxSuccess(function() {
+    setTimeout('ManualCrop.init();', 500);
+  });
+});
 
 })(jQuery);
