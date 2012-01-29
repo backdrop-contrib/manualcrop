@@ -91,11 +91,11 @@ function manualcrop_crop_form($data) {
     '#default_value' => (isset($data['keepproportions']) ? $data['keepproportions'] : FALSE),
     '#element_validate' => array('manualcrop_keepproportions_validate'),
     '#states' => array(
-      'unchecked' => array(
+      'disabled' => array(
         'input[name="data[width]"]' => array('empty' => TRUE),
         'input[name="data[height]"]' => array('empty' => TRUE),
       ),
-      'invisible' => array(
+      'unchecked' => array(
         'input[name="data[width]"]' => array('empty' => TRUE),
         'input[name="data[height]"]' => array('empty' => TRUE),
       ),
@@ -322,7 +322,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   $form = image_field_widget_settings_form($field, $instance);
 
   $form['preview_image_style']['#states'] = array(
-    'invisible' => array(
+    'disabled' => array(
       'input[name="instance[widget][settings][thumblist]"]' => array('checked' => TRUE),
     ),
   );
