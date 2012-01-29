@@ -39,6 +39,23 @@ img.manualcrop-image {
 .manualcrop-inline img.manualcrop-image {
   margin: 1em 0em 1em 0em;
 }
+/* Croptool instant preview */
+.manualcrop-instantpreview {
+  position: relative;
+  overflow: hidden;
+}
+.manualcrop-overlay .manualcrop-instantpreview {
+  width: 150px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 10002;
+}
+.manualcrop-inline .manualcrop-instantpreview {
+  margin-right: 1em;
+  width: 30%;
+  float: left;
+}
 /* Croptool: selection details */
 .manualcrop-details {
   font-weight: bold;
@@ -51,6 +68,7 @@ img.manualcrop-image {
   color: #FFFFFF;
 }
 .manualcrop-inline .manualcrop-details {
+  margin-right: 1em;
   padding-bottom: 1em;
   width: 33%;
   float: left;

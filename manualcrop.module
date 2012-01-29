@@ -372,6 +372,10 @@ function theme_manualcrop_croptool_overlay($variables) {
   $output .= theme('image', $variables["image"]);
   $output .= '</div>';
 
+  if ($variables['instant_preview']) {
+    $output .= '<div class="manualcrop-instantpreview"></div>';
+  }
+
   if ($variables['crop_info']) {
     $output .= '<div class="manualcrop-details">';
     $output .= t('Image style') . ': <span class="manualcrop-details-value manualcrop-image-style">&nbsp;</span>, ';
@@ -412,6 +416,10 @@ function theme_manualcrop_croptool_inline($variables) {
 
   $output .= '<div class="clearfix">';
 
+  if ($variables['instant_preview']) {
+    $output .= '<div class="manualcrop-instantpreview"></div>';
+  }
+
   if ($variables['crop_info']) {
     $output .= '<div class="manualcrop-details">';
     $output .= t('Image style') . ': <span class="manualcrop-details-value manualcrop-image-style">&nbsp;</span><br />';
@@ -420,10 +428,6 @@ function theme_manualcrop_croptool_inline($variables) {
     $output .= t('Selection width') . ': <span class="manualcrop-details-value manualcrop-selection-width">-</span><br />';
     $output .= t('Selection height') . ': <span class="manualcrop-details-value manualcrop-selection-height">-</span>';
     $output .= '</div>';
-  }
-
-  if ($variables['instant_preview']) {
-
   }
 
   $output .= '<div class="manualcrop-buttons">';

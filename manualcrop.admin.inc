@@ -273,7 +273,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
 
   $form['preview_image_style']['#states'] = array(
     'invisible' => array(
-      'input[name="instance[widget][settings][inline_crop]"]' => array('checked' => TRUE),
+      'input[name="instance[widget][settings][thumblist]"]' => array('checked' => TRUE),
     ),
   );
 
@@ -304,13 +304,8 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   $form['instant_preview'] = array(
     '#type' => 'checkbox',
     '#title' => t('Instant preview'),
-    '#description' => t('Show an instant preview of the crop selection (only for inline crop).'),
+    '#description' => t('Show an instant preview of the crop selection.'),
     '#default_value' => !empty($settings['instant_preview']),
-    '#states' => array(
-      'visible' => array(
-        'input[name="instance[widget][settings][inline_crop]"]' => array('checked' => TRUE),
-      ),
-    ),
     '#weight' => 19,
   );
 
