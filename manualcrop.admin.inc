@@ -26,7 +26,7 @@ function manualcrop_crop_and_scale_form($data) {
   $form['onlyscaleifcrop'] = array(
     '#type' => 'checkbox',
     '#title' => t('Only scale if cropped'),
-    '#description' => t("Only scale the image if it was manually cropped."),
+    '#description' => t('Only scale the image if it was manually cropped.'),
     '#default_value' => (isset($data['onlyscaleifcrop']) ? $data['onlyscaleifcrop'] : FALSE),
   );
 
@@ -46,10 +46,22 @@ function theme_manualcrop_crop_and_scale_summary($variables) {
   $data = $variables["data"];
   $str = check_plain($data['width']) . 'x' . check_plain($data['height']);
 
-  if ($data['upscale'] || $data['respectminimum']) {
+  if ($data['upscale'] || $data['respectminimum'] || !empty($data['respectminimum'])) {
     $str .= ' (' . ($data['upscale'] ? t('upscaling allowed') : '');
-    $str .= ($data['upscale'] && $data['respectminimum'] ? ' ' . t('and') . ' ' : '');
-    $str .= ($data['respectminimum'] ? t('crop minimum dimensions') : '') . ')';
+
+    if ($data['upscale'] && ($data['respectminimum'] || !empty($data['onlyscaleifcrop']))) {
+      $str .= ($data['respectminimum'] && !empty($data['onlyscaleifcrop']) ? ', ' : ' ' . t('and') . ' ');
+    }
+
+    if ($data['respectminimum']) {
+      $str .= t('crop minimum dimensions') . (!empty($data['onlyscaleifcrop']) ? ' ' . t('and') . ' ' : '');
+    }
+
+    if (!empty($data['onlyscaleifcrop'])) {
+      $str .= t('only scale if cropped');
+    }
+
+    $str .= ')';
   }
 
   return $str;
@@ -65,14 +77,44 @@ function manualcrop_crop_form($data) {
   $form = image_resize_form($data);
 
   $form['width']['#title'] = t('Minimum crop width');
-  $form['width']['#description'] = t("Only applied if a user tries to crop, this enforces no minimum image width!");
+  $form['width']['#description'] = t('Only applied if a user tries to crop, this enforces no minimum image width!');
   $form['width']['#required'] = FALSE;
 
   $form['height']['#title'] = t('Minimum crop height');
-  $form['height']['#description'] = t("Only applied if a user tries to crop, this enforces no minimum image height!");
+  $form['height']['#description'] = t('Only applied if a user tries to crop, this enforces no minimum image height!');
   $form['height']['#required'] = FALSE;
 
+  $form['keepproportions'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Maintain proportions'),
+    '#description' => t('Maintain the proportions while cropping. This requires seting a width and height.'),
+    '#default_value' => (isset($data['keepproportions']) ? $data['keepproportions'] : FALSE),
+    '#element_validate' => array('manualcrop_keepproportions_validate'),
+    '#states' => array(
+      'unchecked' => array(
+        'input[name="data[width]"]' => array('empty' => TRUE),
+        'input[name="data[height]"]' => array('empty' => TRUE),
+      ),
+      'invisible' => array(
+        'input[name="data[width]"]' => array('empty' => TRUE),
+        'input[name="data[height]"]' => array('empty' => TRUE),
+      ),
+    ),
+  );
+
   return $form;
+}
+
+/**
+ * Element validation handler; validates the keepproportions checkbox from the
+ * crop effect form.
+ */
+function manualcrop_keepproportions_validate($element, $form_state) {
+  $values = $form_state['values']['data'];
+
+  if ($values['keepproportions'] && (!$values['width'] || !$values['height'])) {
+    form_set_error('data][keepproportions', t('Set a width and height if proportions should be maintained.'));
+  }
 }
 
 /**
@@ -88,11 +130,19 @@ function theme_manualcrop_crop_summary($variables) {
   $data = $variables['data'];
 
   if ($data['width'] && $data['height']) {
-    return ' (' . t('minimum crop dimensions ') . ' ' . check_plain($data['width']) . 'x' . check_plain($data['height']) . ')';
+    $str = ' (' . t('minimum crop dimensions ') . ' ' . check_plain($data['width']) . 'x' . check_plain($data['height']);
+
+    if (!empty($data['keepproportions'])) {
+      $str .= ' ' . t('and') . ' ' . ($data['keepproportions'] ? t('maintain proportions') : '');
+    }
+
+    return $str . ')';
   }
   elseif ($data['width'] || $data['height']) {
     return ' (' . ($data['width']) ? t('minimum crop width @width', array('@width' => $data['width'])) : t('minimum crop height @height', array('@height' => $data['height'])) . ')';
   }
+
+
 }
 
 /**

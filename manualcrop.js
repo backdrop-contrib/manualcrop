@@ -141,8 +141,13 @@ ManualCrop.showCroptool = function(event, style, fid) {
         if (settings.data.width) {
           options.minWidth = settings.data.width;
         }
+
         if (settings.data.height) {
           options.minHeight = settings.data.height;
+        }
+
+        if (typeof settings.data.keepproportions != 'undefined' && settings.data.keepproportions) {
+          options.aspectRatio = settings.data.width + ':' + settings.data.height;
         }
     }
   }
@@ -156,7 +161,7 @@ ManualCrop.showCroptool = function(event, style, fid) {
     styleSelect.blur();
   }
 
-  // Append the cropping area (last, to prevent that '_11' is undefinded).
+  // Append the cropping area (last, to prevent that '_11' is undefined).
   if (cropType == 'overlay') {
     $('body').append(ManualCrop.croptool);
   }
@@ -507,14 +512,14 @@ ManualCrop.parseInt = function(integer) {
  */
 ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
   if (typeof width == 'object') {
-    if (typeof width.maxWidth == 'integer') {
+    if (typeof width.maxWidth != 'undefined' && width.maxWidth) {
       maxWidth = width.maxWidth;
     }
     else {
       maxWidth = 9999999;
     }
 
-    if (typeof width.maxHeight == 'integer') {
+    if (typeof width.maxHeight != 'undefined' && width.maxHeight) {
       maxHeight = width.maxHeight;
     }
     else {
