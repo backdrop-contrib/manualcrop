@@ -17,7 +17,9 @@ ManualCrop.init = function() {
       var context = $('#edit-' + cssClass + ' .ajax-new-content');
 
       if ($('.manualcrop-cropdata', context).length == 1) {
-        $('.manualcrop-style-button, .manualcrop-style-thumb', context).trigger('click');
+        // Crappy workaround because using .trigger('click') submits the form in Chrome.
+        var onclick = $('.manualcrop-style-button, .manualcrop-style-thumb', context).attr('onclick');
+        onclick();
       }
     }
   }
@@ -36,7 +38,9 @@ ManualCrop.init = function() {
  *   The file id of the image the user is about to crop.
  */
 ManualCrop.showCroptool = function(event, style, fid) {
-  event.preventDefault();
+  if (typeof event != 'undefined') {
+    event.preventDefault();
+  }
 
   if (ManualCrop.croptool) {
     // Close the current croptool.
