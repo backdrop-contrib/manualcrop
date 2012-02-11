@@ -498,7 +498,7 @@ function theme_manualcrop_thumblist_image($variables) {
  *   Form state array.
  */
 function manualcrop_validate_crop_selection($form, &$form_state) {
-  if (!empty($form_state['manualcrop_widget_data']['images']) && !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove')))) {
+  if (!empty($form_state['manualcrop_widget_data']['images']) && (!isset($form_state['clicked_button']) || !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove'))))) {
     // Create a new key in the data array, this is to store processed selections.
     $form_state['manualcrop_widget_data']['selections'] = array();
     $save = &$form_state['manualcrop_widget_data']['selections'];
