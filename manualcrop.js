@@ -10,16 +10,15 @@ var ManualCrop = {'croptool': null, 'oldSelection': null, 'widget': null, 'outpu
 ManualCrop.init = function() {
   for (var cssClass in Drupal.settings.manualCrop.fields) {
     for (var k in Drupal.settings.manualCrop.fields[cssClass].required) {
-      $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.fields[cssClass].required[k] + '"]').addClass('manualcrop-style-required');
+      $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.fields[cssClass].required[k] + '"]')
+        .addClass('manualcrop-style-required');
     }
 
     if (Drupal.settings.manualCrop.fields[cssClass].instantCrop) {
       var context = $('#edit-' + cssClass + ' .ajax-new-content');
 
       if ($('.manualcrop-cropdata', context).length == 1) {
-        // Crappy workaround because using .trigger('click') submits the form in Chrome.
-        var onclick = $('.manualcrop-style-button, .manualcrop-style-thumb', context).attr('onclick');
-        onclick();
+        $('.manualcrop-style-button, .manualcrop-style-thumb', context).trigger('mousedown');
       }
     }
   }
@@ -561,13 +560,16 @@ ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
 }
 
 $(document).ready(function() {
-  // Execute the init function after loading the document.
   ManualCrop.init();
 
-  // Execute the init function after each ajax call.
-  $(document).ajaxSuccess(function() {
-    setTimeout('ManualCrop.init();', 500);
-  });
+  Drupal.behaviors.manualCrop = {
+    attach: function(context, settings) {
+      // Not sure if this is the right way to fix it, but it works...
+      if (context.is('form')) {
+        ManualCrop.init();
+      }
+    }
+  };
 });
 
 })(jQuery);
