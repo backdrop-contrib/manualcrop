@@ -287,6 +287,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
                 ),
                 'href' => 'javascript:void(0);',
                 'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $item['fid'] . ");",
+                'onclick' => 'return false;',
               ),
             ));
           }
@@ -311,6 +312,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
             '#attributes' => array(
               'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $item['fid']), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
               'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $item['fid'] . ");",
+              'onclick' => 'return false;',
             ),
             '#prefix' => '<div class="manualcrop-style-button-holder">',
             '#suffix' => '</div>',

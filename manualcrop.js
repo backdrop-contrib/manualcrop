@@ -13,17 +13,27 @@ ManualCrop.init = function() {
       $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.fields[cssClass].required[k] + '"]')
         .addClass('manualcrop-style-required');
     }
+  }
 
+  $('.manualcrop-cropdata').trigger('change');
+}
+
+/**
+ * Callback triggerd after an image upload.
+ *
+ * @param context
+ *    Container of the uploaded image widget.
+ */
+ManualCrop.afterUpload = function(context) {
+  ManualCrop.init();
+
+  for (var cssClass in Drupal.settings.manualCrop.fields) {
     if (Drupal.settings.manualCrop.fields[cssClass].instantCrop) {
-      var context = $('#edit-' + cssClass + ' .ajax-new-content');
-
       if ($('.manualcrop-cropdata', context).length == 1) {
         $('.manualcrop-style-button, .manualcrop-style-thumb', context).trigger('mousedown');
       }
     }
   }
-
-  $('.manualcrop-cropdata').trigger('change');
 }
 
 /**
@@ -37,10 +47,6 @@ ManualCrop.init = function() {
  *   The file id of the image the user is about to crop.
  */
 ManualCrop.showCroptool = function(event, style, fid) {
-  if (typeof event != 'undefined') {
-    event.preventDefault();
-  }
-
   if (ManualCrop.croptool) {
     // Close the current croptool.
     ManualCrop.closeCroptool();
@@ -565,8 +571,11 @@ $(document).ready(function() {
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
       // Not sure if this is the right way to fix it, but it works...
-      if (context.is('form')) {
-        ManualCrop.init();
+      var element = $('.ajax-new-content', context);
+      if (element.length == 1) {
+        context.once(function() {
+          ManualCrop.afterUpload(context);
+        });
       }
     }
   };
