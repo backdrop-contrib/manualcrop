@@ -439,9 +439,9 @@ function theme_manualcrop_croptool_inline($variables) {
   }
 
   $output .= '<div class="manualcrop-buttons">';
-  $output .= '<a class="manualcrop-button manualcrop-reset" href="javascript:void(0);" onmousedown="ManualCrop.resetSelection(); this.blur();">' . t('Restore') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-clear" href="javascript:void(0);" onmousedown="ManualCrop.clearSelection(); this.blur();">' . t('Discard') . '</a>';
-  $output .= '<a class="manualcrop-button manualcrop-close" href="javascript:void(0);" onmousedown="ManualCrop.closeCroptool(); this.blur();">' . t('Apply') . '</a>';
+  $output .= '<input type="button" value="' . t('Restore') . '" class="manualcrop-button manualcrop-reset form-submit" onmousedown="ManualCrop.resetSelection(); this.blur();" />';
+  $output .= '<input type="button" value="' . t('Discard') . '" class="manualcrop-button manualcrop-clear form-submit" onmousedown="ManualCrop.clearSelection(); this.blur();" />';
+  $output .= '<input type="button" value="' . t('Apply') . '" class="manualcrop-button manualcrop-close form-submit" onmousedown="ManualCrop.closeCroptool(); this.blur();" />';
   $output .= '</div>';
 
   $output .= '</div>';

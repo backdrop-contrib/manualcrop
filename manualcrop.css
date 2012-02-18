@@ -90,12 +90,13 @@ img.manualcrop-image {
   float: left;
   font-weight: bold;
 }
-.manualcrop-button {
-  padding: 0.1em 0.3em 0.1em 0.3em;
-  display: block;
+.manualcrop-reset {
+  display: none;
 }
 .manualcrop-overlay .manualcrop-button, .manualcrop-overlay .manualcrop-button:hover, .manualcrop-overlay .manualcrop-button:focus {
   margin-right: 0.8em;
+  padding: 0.1em 0.3em 0.1em 0.3em;
+  display: block;
   color: #FFFFFF;
   text-align: center;
   text-decoration: none;
@@ -103,12 +104,12 @@ img.manualcrop-image {
   background-color: #000000;
   border: 1px solid #545454;
 }
-.manualcrop-reset {
-  display: none;
-}
 .manualcrop-overlay .manualcrop-button:hover {
   color: #000000;
   background-color: #FFFFFF;
+}
+.manualcrop-inline .manualcrop-button.form-submit {
+  margin-bottom: 0.5em;
 }
 /* Style selection list/button */
 .manualcrop-style-button-holder {
