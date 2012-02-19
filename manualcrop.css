@@ -31,6 +31,8 @@
   position: relative;
 }
 img.manualcrop-image {
+  max-width: none;
+  max-height: none;
   cursor: crosshair;
 }
 .manualcrop-overlay img.manualcrop-image {
