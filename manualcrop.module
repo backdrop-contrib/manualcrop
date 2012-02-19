@@ -217,7 +217,7 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
               'alt' => $element['#file']->filename,
               'width' => $image['width'],
               'height' => $image['height'],
-              'attributes' => array('class' => 'manualcrop-image'),
+              'attributes' => array('class' => array('manualcrop-image')),
             ),
             'crop_info' => (!isset($widget_settings['crop_info']) || $widget_settings['crop_info']),
             'instant_preview' => !empty($widget_settings['instant_preview']),
