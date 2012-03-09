@@ -71,6 +71,22 @@ function manualcrop_file_delete($file) {
 }
 
 /**
+ * Implements hook_element_info().
+ */
+function manualcrop_element_info() {
+  $types = array();
+
+  // Add an after build callback if the Insert module is installed.
+  if (module_exists('insert')) {
+    $types['managed_file'] = array(
+      '#after_build' => array('manualcrop_process_insert_widget')
+    );
+  }
+
+  return $types;
+}
+
+/**
  * Implements hook_field_widget_info().
  */
 function manualcrop_field_widget_info() {
@@ -136,29 +152,6 @@ function manualcrop_field_widget_process($element, &$form_state, $form) {
 function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
   manualcrop_croptool_submit($form, $form_state);
   unset($form_state['manualcrop_data']);
-}
-
-/**
- * Implements hook_filefield_sources_widgets().
- */
-function manualcrop_filefield_sources_widgets() {
-  return array('manualcrop_image');
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
-  if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
-    // Prepare the form.
-    manualcrop_croptool_prepare_form($form, $form_state);
-
-    // Add the croptool.
-    manualcrop_croptool_process($form, $form_state, $form['preview']['#file']);
-
-    // Add the submit handler
-    $form['#submit'][] = 'manualcrop_croptool_submit';
-  }
 }
 
 /**
@@ -907,4 +900,102 @@ function manualcrop_crop_effect(&$image, $data) {
   }
 
   return TRUE;
+}
+
+/**
+ * Implements hook_filefield_sources_widgets().
+ */
+function manualcrop_filefield_sources_widgets() {
+  return array('manualcrop_image');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
+  if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
+    // Prepare the form.
+    manualcrop_croptool_prepare_form($form, $form_state);
+
+    // Add the croptool.
+    manualcrop_croptool_process($form, $form_state, $form['preview']['#file']);
+
+    // Add the submit handler
+    $form['#submit'][] = 'manualcrop_croptool_submit';
+  }
+}
+
+/**
+ * Implements hook_insert_widgets().
+ */
+function manualcrop_insert_widgets() {
+  return array(
+    'manualcrop_image' => array(
+      'element_type' => 'managed_file',
+      'wrapper' => '.image-widget',
+      'fields' => array(
+        'alt' => 'input[name$="[alt]"], textarea[name$="[alt]"]',
+        'title' => 'input[name$="[title]"], textarea[name$="[title]"]',
+        'description' => 'input[name$="[description]"], textarea[name$="[description]"]',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_insert_styles().
+ */
+function manualcrop_insert_styles() {
+  $insert_styles = drupal_static(__FUNCTION__);
+
+  if (is_null($insert_styles)) {
+    $insert_styles = array();
+
+    foreach (manualcrop_get_styles_with_crop() as $style_name => $effect) {
+      $insert_styles['image_' . $style_name] = array(
+        'label' => _manualcrop_image_style_name($style_name),
+      );
+    }
+  }
+
+  return $insert_styles;
+}
+
+/**
+ * Implements hook_insert_styles_alter().
+ */
+function manualcrop_insert_styles_alter(&$types) {
+  foreach ($types as &$type) {
+    if ($type['module'] == 'manualcrop') {
+      $type['module'] = 'image';
+    }
+  }
+}
+
+/**
+ * Additional after build callback to modify the form elements added by the
+ * Insert module.
+ *
+ * @param $element
+ *    The element to process.
+ */
+function manualcrop_process_insert_widget($element) {
+  if (!empty($element['insert']['#options']) && !empty($element['manualcrop_selections'])) {
+    // Make a list of all styles that are visible in the widget.
+    $styles = array('image' => 1);
+    foreach (element_children($element['manualcrop_selections']) as $style) {
+      $styles['image_' . $style] = 1;
+    }
+
+    // Filter hidden styles from Insert.
+    $element['insert']['#options'] = array_intersect_key($element['insert']['#options'], $styles);
+
+    // Make sure the default value is allowed.
+    if (!array_key_exists($element['insert']['#default_value'], $element['insert']['#options'])) {
+      reset($element['insert']['#options']);
+      $element['insert']['#default_value'] = key($element['insert']['#options']);
+    }
+  }
+
+  return $element;
 }

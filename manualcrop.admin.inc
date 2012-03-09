@@ -316,6 +316,7 @@ function manualcrop_update_style_name($form, &$form_state) {
  * Implements hook_field_widget_settings_form().
  */
 function manualcrop_field_widget_settings_form($field, $instance) {
+  // Current widget settings.
   $settings = $instance['widget']['settings'];
 
   // Use the image field settings form.
@@ -409,6 +410,20 @@ function manualcrop_field_widget_settings_form($field, $instance) {
   }
 
   return $form;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  // The Insert lists should only contain Manual Crop styles.
+  if (module_exists('insert') && $form['#instance']['widget']['module'] == 'manualcrop') {
+    $insert = &$form['instance']['settings']['insert'];
+    $styles = array_merge(array('image' => 0), manualcrop_insert_styles());
+
+    $insert['insert_styles']['#options'] = array_intersect_key($insert['insert_styles']['#options'], $styles);
+    $insert['insert_default']['#options'] = array_intersect_key($insert['insert_default']['#options'], $styles);
+  }
 }
 
 /**

@@ -9,6 +9,9 @@
  */
 function manualcrop_install() {
   variable_set('manualcrop_cache_control', TRUE);
+
+  // Hooks have to run after the Insert module.
+  db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
 }
 
 /**
@@ -80,8 +83,6 @@ function manualcrop_schema() {
 }
 
 /**
- * Implements hook_update_N().
- *
  * Replace the style id with a style name column.
  */
 function manualcrop_update_7100(&$sandbox) {
@@ -120,4 +121,11 @@ function manualcrop_update_7100(&$sandbox) {
       }
     }
   }
+}
+
+/**
+ * Add a module weight so hooks are ran after the Insert module.
+ */
+function manualcrop_update_7101(&$sandbox) {
+  db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
 }
