@@ -8,17 +8,17 @@
  * Gets the crop area for an image.
  *
  * @param $file
- *   Path to an image file.
+ *    Path to an image file.
  * @param $style_name
- *   Image style machine name, or empty for all styles.
+ *    Image style machine name, or empty for all styles.
  * @return
- *   An object defining the cropping area with following items:
- *   - "style_name": The machine name of the image style this cropping area applies on.
- *   - "x": An integer representing the top left corner's x-position in pixels.
- *   - "y": An integer representing the top left corner's y-position in pixels.
- *   - "width": An integer representing the width in pixels.
- *   - "height": An integer representing the height in pixels.
- *   If the style machine name was empty an object with all the styles is returned.
+ *    An object defining the cropping area with following items:
+ *    - "style_name": The machine name of the image style this cropping area applies on.
+ *    - "x": An integer representing the top left corner's x-position in pixels.
+ *    - "y": An integer representing the top left corner's y-position in pixels.
+ *    - "width": An integer representing the width in pixels.
+ *    - "height": An integer representing the height in pixels.
+ *    If the style machine name was empty an object with all the styles is returned.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
   if (empty($style_name)) {
@@ -44,7 +44,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  * Returns the styles that have crop settings.
  *
  * @return
- *   An array of styles with the style name as key and the effect data as value.
+ *    An array of styles with the style name as key and the effect data as value.
  */
 function manualcrop_get_styles_with_crop() {
   $hascrop = &drupal_static(__FUNCTION__, array());
@@ -69,7 +69,7 @@ function manualcrop_get_styles_with_crop() {
  * Get the list of required image styles for a field instance.
  *
  * @param $instance
- *   The field instance.
+ *    The field instance.
  */
 function manualcrop_instance_required_styles($instance) {
   // Get the widget settings.
@@ -95,9 +95,9 @@ function manualcrop_instance_required_styles($instance) {
  * Update or remove a style name in all Manual Crop field widgets.
  *
  * @param $style_name
- *   Current image style name.
+ *    Current image style name.
  * @param $new_style_name
- *   New image style name if renamed, a NULL value will remove the style from the settings.
+ *    New image style name if renamed, a NULL value will remove the style from the settings.
  */
 function _manualcrop_field_widget_update_names_in_settings($style_name, $new_style_name = null) {
   foreach (field_info_fields() as $field) {
@@ -152,9 +152,9 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
  * Transform a style name into a more readable variant.
  *
  * @param $style_name
- *   Image style name.
+ *    Image style name.
  * @return
- *   Cleaned-up image style name.
+ *    Cleaned-up image style name.
  */
 function _manualcrop_image_style_name($style_name) {
   global $language;
@@ -180,16 +180,16 @@ function _manualcrop_image_style_name($style_name) {
  * Get a default crop selection using Smart Crop.
  *
  * @param $file
- *   Path to an image file.
+ *    Path to an image file.
  * @param $style_name
- *   Image style machine name.
+ *    Image style machine name.
  * @return
- *   An object defining the cropping area with following items:
- *   - "style_name": The machine name of the image style this cropping area applies on.
- *   - "x": An integer representing the top left corner's x-position in pixels.
- *   - "y": An integer representing the top left corner's y-position in pixels.
- *   - "width": An integer representing the width in pixels.
- *   - "height": An integer representing the height in pixels.
+ *    An object defining the cropping area with following items:
+ *    - "style_name": The machine name of the image style this cropping area applies on.
+ *    - "x": An integer representing the top left corner's x-position in pixels.
+ *    - "y": An integer representing the top left corner's y-position in pixels.
+ *    - "width": An integer representing the width in pixels.
+ *    - "height": An integer representing the height in pixels.
  *
  * @see image_gd_smartcrop_scale()
  * @see image_gd_smartcrop_crop()

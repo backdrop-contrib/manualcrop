@@ -100,313 +100,448 @@ function manualcrop_field_widget_form(&$form, &$form_state, $field, $instance, $
   // Get the widget instance.
   $instance = field_widget_instance($element, $form_state);
 
-  // Generate the settings for each image style effect.
-  $settings = array();
-  foreach (manualcrop_get_styles_with_crop() as $style_name => $data) {
-    $settings[$style_name] = array(
-      'effect' => $data['name'],
-      'data' => $data['data']
-    );
-  }
+  // Prepare the form.
+  manualcrop_croptool_prepare_form($form, $form_state, $instance);
 
-  // Add the JavaScript settings.
-  $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
-    'styles' => $settings,
-    'fields' => array(
-      drupal_clean_css_identifier($instance['field_name']) => array(
-        'required' => manualcrop_instance_required_styles($instance),
-        'instantCrop' => !empty($instance['widget']['settings']['instant_crop']),
-      ),
-    ),
-  )), 'type' => 'setting');
-
-  // Add a process function to the elements.
+  // Add a process function to all elements.
   foreach ($elements as $key => $child) {
     if (isset($child['#process']) && is_array($child['#process']) && in_array('image_field_widget_process', $child['#process'])) {
       $elements[$key]['#process'][] = 'manualcrop_field_widget_process';
-      $elements[$key]['#element_validate'][] = 'manualcrop_validate_crop_selection';
+      $elements[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
       $elements[$key]['#element_validate'][] = 'file_managed_file_validate';
     }
-  }
-
-  if (!isset($form_state['manualcrop_widget_data'])) {
-    $form_state['manualcrop_widget_data'] = array('images' => array());
-  }
-  else {
-    // Reset the images array.
-    $form_state['manualcrop_widget_data']['images'] = array();
   }
 
   return $elements;
 }
 
 /**
- * An element #process callback for the image_image field type.
- *
- * Expands the default image widget to allow cropping.
+ * Element #process callback to expand the default image widget to enable cropping.
  */
 function manualcrop_field_widget_process($element, &$form_state, $form) {
-  $item = $element['#value'];
-  $item['fid'] = $element['fid']['#value'];
+  if ($element['#file']) {
+    // Get the field instance.
+    $instance = field_widget_instance($element, $form_state);
 
-  if ($element['#file'] && isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
-    $hascrop = manualcrop_get_styles_with_crop();
-
-    if (!empty($hascrop)) {
-      // Get the widget settings.
-      $instance = field_widget_instance($element, $form_state);
-      $widget_settings = $instance['widget']['settings'];
-
-      // Required image styles.
-      $required = manualcrop_instance_required_styles($instance);
-
-      // Exclude or include styles.
-      if (isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
-        $list = (isset($widget_settings['styles_list']) ? array_values($widget_settings['styles_list']) : array());
-
-        // Filter hidden styles.
-        if ($widget_settings['styles_mode'] == 'include') {
-          $hascrop = array_intersect_key($hascrop, array_flip($list));
-        }
-        else {
-          $hascrop = array_diff_key($hascrop, array_flip($list));
-        }
-      }
-
-      if (!empty($hascrop)) {
-        // Override the theming function.
-        $element['#theme'] = 'manualcrop_widget';
-
-        if (isset($widget_settings['thumblist']) && $widget_settings['thumblist']) {
-          // Thumbnail list, no preview image.
-          unset($element['preview']);
-        }
-        else {
-          // Add a prefix and suffix to the preview.
-          if (isset($element['preview'])) {
-            $element['preview']['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $item['fid'] . '"><div class="manualcrop-preview-cropped"></div>';
-            $element['preview']['#suffix'] = '</div>';
-          }
-        }
-
-        // Get image info, width and height are used by the cropping widget.
-        $image = image_get_info($element['#file']->uri);
-
-        // Save some images data to improve processing.
-        $form_state['manualcrop_widget_data']['images'][$item['fid']] = array(
-          'uri' => $element['#file']->uri,
-          'filename' => $element['#file']->filename,
-          'width' => $image['width'],
-          'height' => $image['height'],
-          'element_parents' => $element['#array_parents'],
-          'required_styles' => $required,
-        );
-
-        // Get the crop selections for this file.
-        if (!$form_state['submitted'] && !isset($item['manualcrop_selection'])) {
-          $selections = manualcrop_load_crop_selection($element['#file']->uri);
-
-          // Use (if possible and enabled) Smart Crop for a default crop selection.
-          if (empty($selections) && !empty($widget_settings['use_smartcrop'])) {
-            foreach ($hascrop as $style_name => $data) {
-              if ($data = _manualcrop_get_smartcrop_selection($element['#file']->uri, $style_name)) {
-                $selections[] = $data;
-              }
-            }
-          }
-
-          foreach ($selections as $data) {
-            $item['manualcrop_selection'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
-          }
-        }
-
-        // Overlay or inline cropping.
-        if (!empty($widget_settings['inline_crop'])) {
-          $crop_type = 'inline';
-        }
-        else {
-          $crop_type = 'overlay';
-        }
-
-        // Original image for cropping.
-        $element['manualcrop_' . $crop_type] = array(
-          '#type' => 'markup',
-          '#markup' => theme('manualcrop_croptool_' . $crop_type, array(
-            'attributes' => array(
-              'id' => array('manualcrop-' . $crop_type . '-' . $item['fid']),
-              'class' => array('manualcrop-' . $crop_type, 'element-invisible'),
-            ),
-            'image' => array(
-              'path' => $element['#file']->uri,
-              'alt' => $element['#file']->filename,
-              'width' => $image['width'],
-              'height' => $image['height'],
-              'attributes' => array('class' => array('manualcrop-image')),
-            ),
-            'crop_info' => (!isset($widget_settings['crop_info']) || $widget_settings['crop_info']),
-            'instant_preview' => !empty($widget_settings['instant_preview']),
-          )),
-        );
-
-        // Image style options.
-        $options = array('' => t('Select a style to crop'));
-
-        // Hidden fields to save the crop selection, one for each image style.
-        foreach ($hascrop as $style_name => $data) {
-          $element['manualcrop_selection'][$style_name] = array(
-            '#type' => 'hidden',
-            '#default_value' => (isset($item['manualcrop_selection'][$style_name]) ? $item['manualcrop_selection'][$style_name] : ''),
-            '#attributes' => array(
-              'id' => 'manualcrop-area-' . $item['fid'] . '-' . $style_name,
-              'class' => array('manualcrop-cropdata'),
-              'onchange' => 'ManualCrop.selectionStored(this, ' . $item['fid'] . ', \'' . $style_name . '\');',
-            ),
-          );
-
-          $options[$style_name] = _manualcrop_image_style_name($style_name);
-        }
-
-        // Default form element options.
-        $props = array(
-          '#weight' => (isset($element['title']['#weight']) ? $element['title']['#weight'] : 1),
-          '#attached' => array(
-            'css' => array(
-              drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-              drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
-            ),
-            'js' => array(
-              drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-              drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
-            ),
-          ),
-        );
-
-        // Element to open the croptool.
-        if (!empty($widget_settings['thumblist'])) {
-          // Thumbnail list.
-          array_shift($options);
-          foreach ($options as $style_name => $style_clean_name) {
-            $prefix = '<span class="manualcrop-preview manualcrop-preview-' . $item['fid'] . ' manualcrop-preview-' . $item['fid'] . '-' . $style_name . '"><span class="manualcrop-preview-cropped"></span>';
-            $suffix = '</span>';
-
-            $options[$style_name] = theme('manualcrop_thumblist_image', array(
-              'style' => $style_clean_name,
-              'image' => $prefix . theme('image_style', array(
-                'path' => $element['#file']->uri,
-                'alt' => $element['#file']->filename,
-                'width' => $image['width'],
-                'height' => $image['height'],
-                'style_name' => $style_name,
-              )) . $suffix,
-              'attributes' => array(
-                'class' => array_merge(
-                  array(
-                    'manualcrop-style-thumb',
-                    'manualcrop-style-thumb-' . $item['fid'],
-                    'manualcrop-style-thumb-' . $item['fid'] . '-' . $style_name,
-                    'manualcrop-style-preview-' . $item['fid'],
-                    'manualcrop-style-preview-' . $item['fid'] . '-' . $style_name
-                  ),
-                  (in_array($style_name, $required) ? array('manualcrop-style-required') : array())
-                ),
-                'href' => 'javascript:void(0);',
-                'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $item['fid'] . ");",
-                'onclick' => 'return false;',
-              ),
-            ));
-          }
-
-          $element['manualcrop_style'] = array_merge($props, array(
-            '#markup' => theme('manualcrop_thumblist', array(
-              'attributes' => array(
-                'class' => array('manualcrop-thumblist', 'manualcrop-thumblist-' . $item['fid']),
-              ),
-              'images' => $options,
-            )),
-          ));
-        }
-        elseif (sizeof($options) == 2) {
-          // Button.
-          end($options);
-          $style_name = key($options);
-
-          $element['manualcrop_style'] = array_merge($props, array(
-            '#type' => 'button',
-            '#value' => t('Crop'),
-            '#attributes' => array(
-              'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $item['fid']), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
-              'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $item['fid'] . ");",
-              'onclick' => 'return false;',
-            ),
-            '#prefix' => '<div class="manualcrop-style-button-holder">',
-            '#suffix' => '</div>',
-          ));
-        }
-        else {
-          // Selection list.
-          $element['manualcrop_style'] = array_merge($props, array(
-            '#type' => 'select',
-            '#title' => t('Manual Crop'),
-            '#description' => t('Select the image style to crop, the corresponding cropping tool will open.'),
-            '#options' => $options,
-            '#multiple' => FALSE,
-            '#attributes' => array(
-              'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $item['fid']),
-              'onchange' => 'ManualCrop.showCroptool(event, this, ' . $item['fid'] . ');',
-            ),
-          ));
-        }
-
-        if (isset($element['alt'])) {
-          $element['alt']['#weight']--;
-        }
-
-        if (isset($element['title'])) {
-          $element['title']['#weight']--;
-        }
-      }
-    }
+    // Add the croptool.
+    manualcrop_croptool_process($element, $form_state, $element['#file'], $instance);
   }
 
   return $element;
 }
 
 /**
- * Field validation handler; Check the crop selections.
+ * Implements hook_field_attach_submit().
+ */
+function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
+  manualcrop_croptool_submit($form, $form_state);
+  unset($form_state['manualcrop_data']);
+}
+
+/**
+ * Implements hook_filefield_sources_widgets().
+ */
+function manualcrop_filefield_sources_widgets() {
+  return array('manualcrop_image');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
+  if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
+    // Prepare the form.
+    manualcrop_croptool_prepare_form($form, $form_state);
+
+    // Add the croptool.
+    manualcrop_croptool_process($form, $form_state, $form['preview']['#file']);
+
+    // Add the submit handler
+    $form['#submit'][] = 'manualcrop_croptool_submit';
+  }
+}
+
+/**
+ * Prepare the form that will hold the croptool.
  *
  * @param $form
- *   Node form array.
+ *    The form structure array.
  * @param $form_state
- *   Form state array.
+ *    The form state array.
+ * @param $instance
+ *    Field instance array.
  */
-function manualcrop_validate_crop_selection($element, &$form_state) {
-  if (!empty($form_state['manualcrop_widget_data']['images']) && (!isset($form_state['clicked_button']) || !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove'))))) {
+function manualcrop_croptool_prepare_form(&$form, &$form_state, $instance = NULL) {
+  $settings = &drupal_static(__FUNCTION__);
+  $fields = array();
+
+  if (!is_array($settings)) {
+    $settings = array();
+
+    // Generate image style settings.
+    foreach (manualcrop_get_styles_with_crop() as $style_name => $data) {
+      $settings[$style_name] = array(
+        'effect' => $data['name'],
+        'data' => $data['data']
+      );
+    }
+  }
+
+  if (is_array($instance)) {
+    // Include the field widget settings for FAPI fields.
+    $fields = array(
+      drupal_clean_css_identifier($instance['field_name']) => array(
+        'required' => manualcrop_instance_required_styles($instance),
+        'instantCrop' => !empty($field['widget']['settings']['instant_crop']),
+      ),
+    );
+  }
+
+  // Add the JavaScript settings.
+  $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
+    'styles' => $settings,
+    'fields' => $fields,
+  )), 'type' => 'setting');
+
+  // Reset the images array.
+  if (!isset($form_state['manualcrop_data'])) {
+    $form_state['manualcrop_data'] = array('images' => array());
+  }
+  else {
+    $form_state['manualcrop_data']['images'] = array();
+  }
+}
+
+/**
+ * Add a croptool to the form element. This extends the FAPI widget or simply adds
+ * a new form item to enable cropping in a regular form.
+ *
+ * @param $element
+ *    Form element to be processed. This should be the form array for none FAPI fields.
+ * @param $form_state
+ *    The form state array.
+ * @param $file
+ *    The file object.
+ * @param $instance
+ *    Field instance array.
+ * @param $preview
+ *    Name of the preview item, this will always be resetted for FAPI fields.
+ * @return
+ *    Returns TRUE if a croptool has been added, FALSE otherwise.
+ */
+function manualcrop_croptool_process(&$element, &$form_state, $file, $instance = NULL, $preview = NULL) {
+  if (isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
+    $styles = manualcrop_get_styles_with_crop();
+
+    if (!empty($styles)) {
+      // Default crop settings.
+      $required = array();
+      $use_smartcrop = FALSE;
+      $crop_type = 'overlay';
+      $crop_info = TRUE;
+      $instant_preview = FALSE;
+      $thumblist = FALSE;
+
+      if (is_array($instance)) {
+        // If a FAPI field instance has been passed, so $element is the container
+        // and $element['#value'] can be used for storing data.
+        $container = &$element;
+        $item = &$element['#value'];
+        $preview = 'preview';
+
+        // Get the widget settings.
+        $settings = $instance['widget']['settings'];
+
+        // Required image styles.
+        $required = manualcrop_instance_required_styles($instance);
+
+        // Overlay or inline cropping.
+        if (!empty($settings['inline_crop'])) {
+          $crop_type = 'inline';
+        }
+        else {
+          $crop_type = 'overlay';
+        }
+
+        // Other widget settings.
+        $use_smartcrop = !empty($settings['use_smartcrop']);
+        $crop_info = (!isset($settings['crop_info']) || $settings['crop_info']);
+        $instant_preview = !empty($settings['instant_preview']);
+        $thumblist = !empty($settings['thumblist']);
+
+        // Exclude or include styles.
+        if (isset($settings['styles_mode']) && isset($settings['styles_list'])) {
+          $list = (isset($settings['styles_list']) ? array_values($settings['styles_list']) : array());
+
+          // Filter hidden styles.
+          if ($settings['styles_mode'] == 'include') {
+            $styles = array_intersect_key($styles, array_flip($list));
+          }
+          else {
+            $styles = array_diff_key($styles, array_flip($list));
+          }
+
+          if (empty($styles)) {
+            // Leave if all styles where filtered.
+            return FALSE;
+          }
+        }
+
+        // Thumbnail list, so no preview image.
+        if ($thumblist && isset($element[$preview])) {
+          unset($element[$preview]);
+          $preview = NULL;
+        }
+
+        // Override the theme callback.
+        $element['#theme'] = 'manualcrop_widget';
+      }
+      else {
+        // The FAPI is not used, we'll create a global manualcrop container as
+        // parent for all manualcrop enabled files.
+        if (!isset($element['manualcrop'])) {
+          $element['manualcrop'] = array(
+            '#tree' => TRUE,
+          );
+        }
+
+        // Create a file specific container.
+        $element['manualcrop']['file_' . $file->fid] = array(
+          '#type' => 'value',
+          '#value' => array(),
+          '#element_validate' => array('manualcrop_croptool_validate'),
+          '#array_parents' => array('manualcrop', 'file_' . $file->fid),
+        );
+
+        // Link to the newly created container and.
+        $container = &$element['manualcrop']['file_' . $file->fid];
+        $item = &$container['#value'];
+      }
+
+      // Make sure we have a valid preview or no element.
+      if (!empty($preview) && !isset($element[$preview])) {
+        $preview = NULL;
+      }
+
+      // Add a prefix and suffix to the preview image.
+      if (!empty($preview)) {
+        $element[$preview]['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $file->fid . '"><div class="manualcrop-preview-cropped"></div>';
+        $element[$preview]['#suffix'] = '</div>';
+      }
+
+      // Get image info, width and height are used by the cropping widget.
+      $image = image_get_info($file->uri);
+
+      // Save some images data to improve processing.
+      $form_state['manualcrop_data']['images'][$file->fid] = array(
+        'uri' => $file->uri,
+        'filename' => $file->filename,
+        'width' => $image['width'],
+        'height' => $image['height'],
+        'element_parents' => $container['#array_parents'],
+        'required_styles' => $required,
+      );
+
+      // Get the crop selections for this file.
+      if (!$form_state['submitted'] && !isset($item['manualcrop_selections'])) {
+        $item['manualcrop_selections'] = array();
+        $selections = manualcrop_load_crop_selection($file->uri);
+
+        // Use (if possible and enabled) Smart Crop for a default crop selection.
+        if (empty($selections) && $use_smartcrop) {
+          foreach ($hascrop as $style_name => $data) {
+            if ($data = _manualcrop_get_smartcrop_selection($file->uri, $style_name)) {
+              $selections[] = $data;
+            }
+          }
+        }
+
+        foreach ($selections as $data) {
+          $item['manualcrop_selections'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
+        }
+      }
+
+      // Original image for cropping.
+      $container['manualcrop_' . $crop_type] = array(
+        '#type' => 'markup',
+        '#markup' => theme('manualcrop_croptool_' . $crop_type, array(
+          'attributes' => array(
+            'id' => array('manualcrop-' . $crop_type . '-' . $file->fid),
+            'class' => array('manualcrop-' . $crop_type, 'element-invisible'),
+          ),
+          'image' => array(
+            'path' => $file->uri,
+            'alt' => $file->filename,
+            'width' => $image['width'],
+            'height' => $image['height'],
+            'attributes' => array('class' => array('manualcrop-image')),
+          ),
+          'crop_info' => $crop_info,
+          'instant_preview' => $instant_preview,
+        )),
+      );
+
+      // Image style options.
+      $style_options = array('' => t('Select a style to crop'));
+
+      // Hidden fields to save the crop selection, one for each image style.
+      foreach ($styles as $style_name => $data) {
+        $container['manualcrop_selections'][$style_name] = array(
+          '#type' => 'hidden',
+          '#default_value' => (isset($item['manualcrop_selections'][$style_name]) ? $item['manualcrop_selections'][$style_name] : ''),
+          '#attributes' => array(
+            'id' => 'manualcrop-area-' . $file->fid . '-' . $style_name,
+            'class' => array('manualcrop-cropdata'),
+            'onchange' => 'ManualCrop.selectionStored(this, ' . $file->fid . ', \'' . $style_name . '\');',
+          ),
+        );
+
+        $style_options[$style_name] = _manualcrop_image_style_name($style_name);
+      }
+
+      // Default form element options.
+      $defaults = array(
+        '#weight' => (isset($container['title']['#weight']) ? $element['title']['#weight'] : 1),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
+            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
+          ),
+          'js' => array(
+            drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
+            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
+          ),
+        ),
+      );
+
+      // Element to open the croptool.
+      if (!empty($widget_settings['thumblist'])) {
+        // Thumbnail list, each image style is transformed in a clickable thumbnail.
+        array_shift($style_options);
+        foreach ($style_options as $style_name => $style_clean_name) {
+          $prefix = '<span class="manualcrop-preview manualcrop-preview-' . $file->fid . ' manualcrop-preview-' . $file->fid . '-' . $style_name . '"><span class="manualcrop-preview-cropped"></span>';
+          $suffix = '</span>';
+
+          $style_options[$style_name] = theme('manualcrop_thumblist_image', array(
+            'style' => $style_clean_name,
+            'image' => $prefix . theme('image_style', array(
+              'path' => $file->uri,
+              'alt' => $file->filename,
+              'width' => $image['width'],
+              'height' => $image['height'],
+              'style_name' => $style_name,
+            )) . $suffix,
+            'attributes' => array(
+              'class' => array_merge(
+                array(
+                  'manualcrop-style-thumb',
+                  'manualcrop-style-thumb-' . $file->fid,
+                  'manualcrop-style-thumb-' . $file->fid . '-' . $style_name,
+                  'manualcrop-style-preview-' . $file->fid,
+                  'manualcrop-style-preview-' . $file->fid . '-' . $style_name
+                ),
+                (in_array($style_name, $required) ? array('manualcrop-style-required') : array())
+              ),
+              'href' => 'javascript:void(0);',
+              'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $file->fid . ");",
+              'onclick' => 'return false;',
+            ),
+          ));
+        }
+
+        $container['manualcrop_style'] = array_merge($defaults, array(
+          '#markup' => theme('manualcrop_thumblist', array(
+            'attributes' => array(
+              'class' => array('manualcrop-thumblist', 'manualcrop-thumblist-' . $file->fid),
+            ),
+            'images' => $style_options,
+          )),
+        ));
+      }
+      elseif (count($style_options) == 2) {
+        // Only one style, display a button.
+        end($style_options);
+        $style_name = key($style_options);
+
+        $container['manualcrop_style'] = array_merge($defaults, array(
+          '#type' => 'button',
+          '#value' => t('Crop'),
+          '#attributes' => array(
+            'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $file->fid), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
+            'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $file->fid . ");",
+            'onclick' => 'return false;',
+          ),
+          '#prefix' => '<div class="manualcrop-style-button-holder">',
+          '#suffix' => '</div>',
+        ));
+      }
+      else {
+        // Style selection list.
+        $container['manualcrop_style'] = array_merge($defaults, array(
+          '#type' => 'select',
+          '#title' => t('Manual Crop'),
+          '#description' => t('Select the image style to crop, the corresponding cropping tool will open.'),
+          '#options' => $style_options,
+          '#multiple' => FALSE,
+          '#attributes' => array(
+            'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $file->fid),
+            'onchange' => 'ManualCrop.showCroptool(event, this, ' . $file->fid . ');',
+          ),
+        ));
+      }
+
+      // The FAPI widget can have a alt and title field, decrease their weight.
+      if (isset($container['alt'])) {
+        $container['alt']['#weight']--;
+      }
+
+      if (isset($container['title'])) {
+        $container['title']['#weight']--;
+      }
+
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Validation handler to validate each cropping selection.
+ *
+ * @param $element
+ *    The element array.
+ * @param $form_state
+ *    The form state array.
+ */
+function manualcrop_croptool_validate($element, &$form_state) {
+  if (!empty($form_state['manualcrop_data']['images']) && (!isset($form_state['clicked_button']) || !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove'))))) {
     // Create a new key in the data array, this is to store processed selections.
-    $form_state['manualcrop_widget_data']['selections'] = array();
-    $save = &$form_state['manualcrop_widget_data']['selections'];
+    $form_state['manualcrop_data']['selections'] = array();
+    $save = &$form_state['manualcrop_data']['selections'];
 
     // Loop trough the positions to get the manualcrop data.
-    foreach ($form_state['manualcrop_widget_data']['images'] as $image) {
+    foreach ($form_state['manualcrop_data']['images'] as $fid => $image) {
       $value = drupal_array_get_nested_value($form_state['values'], $image['element_parents']);
 
-      if (isset($value['fid']) && isset($value['manualcrop_selection'])) {
-        // Create a selections array for the current image, the first element is the path
-        // to the original image, needed for flushing the cache.
-        $save[$value['fid']] = array(
+      if (isset($value['manualcrop_selections'])) {
+        // Create a selections array for the current image, the first element is
+        // the path to the original image, needed for flushing the cache.
+        $save[$fid] = array(
           'path' => $image['uri'],
           'styles' => array(),
         );
 
         $first = TRUE;
 
-        foreach ($value['manualcrop_selection'] as $style_name => $selection) {
+        foreach ($value['manualcrop_selections'] as $style_name => $selection) {
           $clean_style_name = _manualcrop_image_style_name($style_name);
 
           if ($first) {
             $element_key = implode('][', $image['element_parents']) . '][manualcrop_style';
           }
           else {
-            $element_key = implode('][', $image['element_parents']) . '][manualcrop_selection][' . $style_name;
+            $element_key = implode('][', $image['element_parents']) . '][manualcrop_selections][' . $style_name;
           }
 
           if (!empty($selection)) {
@@ -417,7 +552,7 @@ function manualcrop_validate_crop_selection($element, &$form_state) {
               if ($selection[0] >= 0 && $selection[1] >= 0 && $selection[2] > 0 && $selection[3] > 0) {
                 // Check if the selections fits on the image.
                 if (($selection[0] + $selection[2]) <= $image['width'] && ($selection[1] + $selection[3]) <= $image['height']) {
-                  $save[$value['fid']]['styles'][$style_name] = array(
+                  $save[$fid]['styles'][$style_name] = array(
                     'x' => $selection[0],
                     'y' => $selection[1],
                     'width' => $selection[2],
@@ -449,13 +584,18 @@ function manualcrop_validate_crop_selection($element, &$form_state) {
 }
 
 /**
- * Implements hook_field_attach_submit().
+ * Submit handler to store each cropping selection.
+ *
+ * @param $form
+ *    The form structure array.
+ * @param $form_state
+ *    The form state array.
  */
-function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
-  if (!empty($form_state['manualcrop_widget_data']['selections'])) {
+function manualcrop_croptool_submit($form, &$form_state) {
+  if (!empty($form_state['manualcrop_data']['selections'])) {
     // Loop trough the selections to save them. $data['styles'] can by an empty array,
     // but we loop trough the whole array to delete old selections.
-    foreach ($form_state['manualcrop_widget_data']['selections'] as $fid => $data) {
+    foreach ($form_state['manualcrop_data']['selections'] as $fid => $data) {
       db_delete('manualcrop')
         ->condition('fid', $fid)
         ->execute();
@@ -477,21 +617,19 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
         cache_clear_all('manualcrop', 'cache', TRUE);
       }
     }
-  }
-}
 
-/**
- * Implements hook_filefield_sources_widgets().
- */
-function manualcrop_filefield_sources_widgets() {
-  return array('manualcrop_image');
+    // A success message is only shown when not using the FAPI.
+    if (!empty($form['manualcrop'])) {
+      drupal_set_message(t('The crop selections have been saved.'));
+    }
+  }
 }
 
 /**
  * Preprocessing for theme_image(); Force reloading of an image after re-cropping.
  *
  * @param $variables
- *   Image template variables.
+ *    Image template variables.
  */
 function manualcrop_preprocess_image(&$variables) {
   // Does the image style have a Manual Crop effect?
@@ -534,8 +672,8 @@ function manualcrop_preprocess_image(&$variables) {
  * Returns HTML for a Manual Crop image field widget.
  *
  * @param $variables
- *   An associative array containing:
- *   - "element": A render element representing the Manual Crop image field widget.
+ *    An associative array containing:
+ *    - "element": A render element representing the Manual Crop image field widget.
  *
  * @ingroup themeable
  */
@@ -548,9 +686,9 @@ function theme_manualcrop_widget($variables) {
  * Returns HTML for the overlay crop area of an image.
  *
  * @param $variables
- *   An associative array containing:
- *   - "attributes": An array of attributes.
- *   - "image": An array of variables for the image theming function.
+ *    An associative array containing:
+ *    - "attributes": An array of attributes.
+ *    - "image": An array of variables for the image theming function.
  *
  * @ingroup themeable
  */
@@ -592,9 +730,9 @@ function theme_manualcrop_croptool_overlay($variables) {
  * Returns HTML for the inline crop area of an image.
  *
  * @param $variables
- *   An associative array containing:
- *   - "attributes": An array of attributes.
- *   - "image": An array of variables for the image theming function.
+ *    An associative array containing:
+ *    - "attributes": An array of attributes.
+ *    - "image": An array of variables for the image theming function.
  *
  * @ingroup themeable
  */
@@ -638,9 +776,9 @@ function theme_manualcrop_croptool_inline($variables) {
  * Returns HTML for thumbnail list.
  *
  * @param $variables
- *   An associative array containing:
- *   - "attributes": An array of attributes.
- *   - "images": Array of images html, themed by the "manualcrop_thumblist_image" function an keyed by style name.
+ *    An associative array containing:
+ *    - "attributes": An array of attributes.
+ *    - "images": Array of images html, themed by the "manualcrop_thumblist_image" function an keyed by style name.
  *
  * @ingroup themeable
  */
@@ -658,10 +796,10 @@ function theme_manualcrop_thumblist($variables) {
  * Returns HTML for a single image in the thumbnail list.
  *
  * @param $variables
- *   An associative array containing:
- *   - "attributes": An array of attributes.
- *   - "image": Rendered image tag html.
- *   - "style": Clean style name.
+ *    An associative array containing:
+ *    - "attributes": An array of attributes.
+ *    - "image": Rendered image tag html.
+ *    - "style": Clean style name.
  *
  * @ingroup themeable
  */
@@ -702,19 +840,20 @@ function manualcrop_image_effect_info() {
  * Image effect callback; Crop and scale an image resource.
  *
  * @param $image
- *   An image object returned by image_load().
+ *    An image object returned by image_load().
  * @param $data
- *   An array of attributes to use when performing the Manual Crop and scale effect
- *   with the following items:
- *   - "width": An integer representing the desired width in pixels.
- *   - "height": An integer representing the desired height in pixels.
- *   - "upscale": A boolean indicating that the image should be upscalled if
- *     the dimensions are larger than the original image.
- *   - "onlyscaleifcrop": A boolean indicating that the image should only be scaled
- *     if it was cropped.
- *   - "style_name": The style's machine name.
+ *    An array of attributes to use when performing the Manual Crop and scale effect
+ *    with the following items:
+ *    - "width": An integer representing the desired width in pixels.
+ *    - "height": An integer representing the desired height in pixels.
+ *    - "upscale": A boolean indicating that the image should be upscalled if
+ *      the dimensions are larger than the original image.
+ *    - "onlyscaleifcrop": A boolean indicating that the image should only be scaled
+ *      if it was cropped.
+ *    - "style_name": The style's machine name.
  * @return
- *   TRUE on success. FALSE on failure to crop and scale image.
+ *    TRUE on success. FALSE on failure to crop and scale image.
+ *
  * @see image_crop_effect()
  * @see image_scale_effect()
  */
@@ -744,15 +883,16 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  * Image effect callback; Crop an image resource.
  *
  * @param $image
- *   An image object returned by image_load().
+ *    An image object returned by image_load().
  * @param $data
- *   An array of attributes to use when performing the Manual Crop effect with the
- *   following items:
- *   - "width": An integer representing the desired width in pixels.
- *   - "height": An integer representing the desired height in pixels.
- *   - "style_name": The style's machine name.
+ *    An array of attributes to use when performing the Manual Crop effect with the
+ *    following items:
+ *    - "width": An integer representing the desired width in pixels.
+ *    - "height": An integer representing the desired height in pixels.
+ *    - "style_name": The style's machine name.
  * @return
- *   TRUE on success. FALSE on failure to crop image.
+ *    TRUE on success. FALSE on failure to crop image.
+ *
  * @see image_crop_effect()
  */
 function manualcrop_crop_effect(&$image, $data) {
