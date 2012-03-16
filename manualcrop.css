@@ -92,9 +92,6 @@ img.manualcrop-image {
   float: left;
   font-weight: bold;
 }
-.manualcrop-reset {
-  display: none;
-}
 .manualcrop-overlay .manualcrop-button, .manualcrop-overlay .manualcrop-button:hover, .manualcrop-overlay .manualcrop-button:focus {
   margin-right: 0.8em;
   padding: 0.1em 0.3em 0.1em 0.3em;
@@ -109,6 +106,9 @@ img.manualcrop-image {
 .manualcrop-overlay .manualcrop-button:hover {
   color: #000000;
   background-color: #FFFFFF;
+}
+.manualcrop-buttons .manualcrop-button.manualcrop-clear, .manualcrop-buttons .manualcrop-button.manualcrop-reset {
+  display: none;
 }
 .manualcrop-inline .manualcrop-button.form-submit {
   margin-bottom: 0.5em;

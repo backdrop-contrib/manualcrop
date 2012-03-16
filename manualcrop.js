@@ -306,6 +306,9 @@ ManualCrop.clearSelection = function() {
     ManualCrop.widget.setOptions({hide: true, show: false});
     ManualCrop.widget.update();
     ManualCrop.updateSelection();
+
+    // Hide clear button.
+    $('.manualcrop-clear', ManualCrop.croptool).hide();
   }
 }
 
@@ -392,6 +395,9 @@ ManualCrop.updateSelection = function(image, selection) {
       // Show reset button.
       $('.manualcrop-reset', ManualCrop.croptool).show();
     }
+
+    // Hide clear button.
+    $('.manualcrop-clear', ManualCrop.croptool).show();
   }
 }
 
