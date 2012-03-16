@@ -8,9 +8,11 @@ var ManualCrop = {'croptool': null, 'oldSelection': null, 'widget': null, 'outpu
  * image preview will be changed to the cropped image.
  */
 ManualCrop.init = function() {
-  for (var cssClass in Drupal.settings.manualCrop.fields) {
-    for (var k in Drupal.settings.manualCrop.fields[cssClass].required) {
-      $('.field-widget-manualcrop-image.field-name-' + cssClass + ' .manualcrop-style-select option[value="' + Drupal.settings.manualCrop.fields[cssClass].required[k] + '"]')
+  var fields = Drupal.settings.manualCrop.fields;
+
+  for (var identifier in fields) {
+    for (var k in fields[identifier].required) {
+      $('.field-widget-manualcrop-image.field-name-' + identifier + ' .manualcrop-style-select option[value="' + fields[identifier].required[k] + '"]')
         .addClass('manualcrop-style-required');
     }
   }
@@ -27,8 +29,10 @@ ManualCrop.init = function() {
 ManualCrop.afterUpload = function(context) {
   ManualCrop.init();
 
-  for (var cssClass in Drupal.settings.manualCrop.fields) {
-    if (Drupal.settings.manualCrop.fields[cssClass].instantCrop) {
+  var fields = Drupal.settings.manualCrop.fields;
+
+  for (var identifier in fields) {
+    if (fields[identifier].instantCrop) {
       if ($('.manualcrop-cropdata', context).length == 1) {
         $('.manualcrop-style-button, .manualcrop-style-thumb', context).trigger('mousedown');
       }
@@ -41,18 +45,20 @@ ManualCrop.afterUpload = function(context) {
  *
  * @param event
  *   JavaScript event object.
+ * @param identifier
+ *    Unique field identifier.
  * @param style
  *   The image style name or selection list triggering this event.
  * @param fid
  *   The file id of the image the user is about to crop.
  */
-ManualCrop.showCroptool = function(event, style, fid) {
+ManualCrop.showCroptool = function(event, identifier, style, fid) {
+  var styleName, styleSelect, cropType, origContainer, conWidth, conHeight;
+
   if (ManualCrop.croptool) {
     // Close the current croptool.
     ManualCrop.closeCroptool();
   }
-
-  var styleName, styleSelect, cropType, origContainer, conWidth, conHeight;
 
   // Get the style name.
   if (typeof style == 'string') {
@@ -140,19 +146,19 @@ ManualCrop.showCroptool = function(event, style, fid) {
 
         if (settings.data.respectminimum) {
           // Crop at least the minimum.
-          options.minWidth = settings.data.width;
-          options.minHeight = settings.data.height;
+          options.minWidth = ManualCrop.parseInt(settings.data.width);
+          options.minHeight = ManualCrop.parseInt(settings.data.height);
         }
         break;
 
       // Manual Crop effect
       case 'manualcrop_crop':
         if (settings.data.width) {
-          options.minWidth = settings.data.width;
+          options.minWidth = ManualCrop.parseInt(settings.data.width);
         }
 
         if (settings.data.height) {
-          options.minHeight = settings.data.height;
+          options.minHeight = ManualCrop.parseInt(settings.data.height);
         }
 
         if (typeof settings.data.keepproportions != 'undefined' && settings.data.keepproportions) {
@@ -198,6 +204,51 @@ ManualCrop.showCroptool = function(event, style, fid) {
       .removeClass()
       .css('width', resized.width + 'px')
       .css('height', resized.height + 'px');
+  }
+
+  if (!ManualCrop.oldSelection) {
+    var fields = Drupal.settings.manualCrop.fields;
+
+    // Create a default crop area.
+    if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
+      var minWidth = (typeof options.minWidth != 'undefined' ? options.minWidth : 0);
+      var minHeight = (typeof options.minHeight != 'undefined' ? options.minHeight : 0)
+
+      // Set a width and height.
+      ManualCrop.oldSelection = {
+        width: (minWidth ? minWidth * 100 : (width / 2)),
+        height: (minHeight ? minHeight * 100 : (height / 2)),
+        maxWidth: (width / 2),
+        maxHeight: (height / 2)
+      };
+
+      // Resize the selection.
+      ManualCrop.oldSelection = ManualCrop.resizeDimensions(ManualCrop.oldSelection);
+
+      // Make sure we respect the minimum dimensions.
+      if (minWidth || minHeight) {
+        if (minWidth && ManualCrop.oldSelection.width < minWidth) {
+          ManualCrop.oldSelection.width = minWidth;
+
+          if (minHeight) {
+            ManualCrop.oldSelection.height = minHeight;
+          }
+        }
+        else if (minHeight && ManualCrop.oldSelection.height < minHeight) {
+          ManualCrop.oldSelection.height = minHeight;
+
+          if (minWidth) {
+            ManualCrop.oldSelection.width = minWidth;
+          }
+        }
+      }
+
+      // Center the selection.
+      ManualCrop.oldSelection.x1 = (width - ManualCrop.oldSelection.width) / 2;
+      ManualCrop.oldSelection.y1 = (height - ManualCrop.oldSelection.height) / 2;
+      ManualCrop.oldSelection.x2 = ManualCrop.oldSelection.x1 + ManualCrop.oldSelection.width;
+      ManualCrop.oldSelection.y2 = ManualCrop.oldSelection.y1 + ManualCrop.oldSelection.height;
+    }
   }
 
   // Set the initial selection.

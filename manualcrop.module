@@ -185,7 +185,8 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $instance = NULL
     $fields = array(
       drupal_clean_css_identifier($instance['field_name']) => array(
         'required' => manualcrop_instance_required_styles($instance),
-        'instantCrop' => !empty($field['widget']['settings']['instant_crop']),
+        'instantCrop' => !empty($instance['widget']['settings']['instant_crop']),
+        'defaultCropArea' => (!isset($instance['widget']['settings']['default_crop_area']) || $instance['widget']['settings']['default_crop_area']),
       ),
     );
   }
@@ -228,6 +229,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
 
     if (!empty($styles)) {
       // Default crop settings.
+      $identifier = 'manualcrop-file-' . $file->fid;
       $required = array();
       $use_smartcrop = FALSE;
       $crop_type = 'overlay';
@@ -240,6 +242,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         // and $element['#value'] can be used for storing data.
         $container = &$element;
         $item = &$element['#value'];
+        $identifier = drupal_clean_css_identifier($instance['field_name']);
         $preview = 'preview';
 
         // Get the widget settings.
@@ -436,7 +439,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
                 (in_array($style_name, $required) ? array('manualcrop-style-required') : array())
               ),
               'href' => 'javascript:void(0);',
-              'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $file->fid . ");",
+              'onmousedown' => "ManualCrop.showCroptool(event, '" . $identifier . "', '" . $style_name . "', " . $file->fid . ");",
               'onclick' => 'return false;',
             ),
           ));
@@ -461,7 +464,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           '#value' => t('Crop'),
           '#attributes' => array(
             'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $file->fid), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
-            'onmousedown' => "ManualCrop.showCroptool(event, '" . $style_name . "', " . $file->fid . ");",
+            'onmousedown' => "ManualCrop.showCroptool(event, '" . $identifier . "', '" . $style_name . "', " . $file->fid . ");",
             'onclick' => 'return false;',
           ),
           '#prefix' => '<div class="manualcrop-style-button-holder">',
@@ -478,7 +481,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           '#multiple' => FALSE,
           '#attributes' => array(
             'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $file->fid),
-            'onchange' => 'ManualCrop.showCroptool(event, this, ' . $file->fid . ');',
+            'onchange' => "ManualCrop.showCroptool(event, '" . $identifier . "', this, " . $file->fid . ");",
           ),
         ));
       }

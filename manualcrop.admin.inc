@@ -368,6 +368,14 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#weight' => 20,
   );
 
+  $form['default_crop_area'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Default crop area'),
+    '#description' => t('Create a default crop area when opening the croptool for uncropped images.'),
+    '#default_value' => (!isset($settings['default_crop_area']) || $settings['default_crop_area']),
+    '#weight' => 21,
+  );
+
   $form['styles_mode'] = array(
     '#type' => 'radios',
     '#title' => t('Styles list mode'),
@@ -376,7 +384,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
       'include' => t('Include selected styles'),
     ),
     '#default_value' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
-    '#weight' => 21,
+    '#weight' => 22,
   );
 
   $form['styles_list'] = array(
@@ -386,7 +394,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 22,
+    '#weight' => 23,
   );
 
   $form['require_cropping'] = array(
@@ -396,7 +404,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
     '#multiple' => TRUE,
-    '#weight' => 23,
+    '#weight' => 24,
   );
 
   if (module_exists('smartcrop')) {
@@ -405,7 +413,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
       '#title' => t('Use Smart Crop'),
       '#description' => t('Use Smart Crop to determine a default cropping after uploading. This might fail on big images due to a limited PHP execution time.'),
       '#default_value' => !empty($settings['use_smartcrop']),
-      '#weight' => 24,
+      '#weight' => 25,
     );
   }
 
