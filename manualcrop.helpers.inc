@@ -73,18 +73,18 @@ function manualcrop_get_styles_with_crop() {
  */
 function manualcrop_instance_required_styles($instance) {
   // Get the widget settings.
-  $widget_settings = $instance['widget']['settings'];
+  $settings = $instance['widget']['settings'];
 
   // Array of required styles.
-  $required = (isset($widget_settings['require_cropping']) ? array_values($widget_settings['require_cropping']) : array());
+  $required = (isset($settings['require_cropping']) ? array_values($settings['require_cropping']) : array());
 
   // Make sure to exclude unavailable styles.
-  if (!empty($required) && isset($widget_settings['styles_mode']) && isset($widget_settings['styles_list'])) {
-    if ($widget_settings['styles_mode'] == 'include') {
-      $required = array_intersect($required, array_values($widget_settings['styles_list']));
+  if (!empty($required) && isset($settings['styles_mode']) && isset($settings['styles_list'])) {
+    if ($settings['styles_mode'] == 'include') {
+      $required = array_intersect($required, array_values($settings['styles_list']));
     }
     else {
-      $required = array_diff($required, array_values($widget_settings['styles_list']));
+      $required = array_diff($required, array_values($settings['styles_list']));
     }
   }
 
