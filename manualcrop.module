@@ -411,7 +411,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
       );
 
       // Element to open the croptool.
-      if (!empty($widget_settings['thumblist'])) {
+      if (!empty($settings['thumblist'])) {
         // Thumbnail list, each image style is transformed in a clickable thumbnail.
         array_shift($style_options);
         foreach ($style_options as $style_name => $style_clean_name) {
