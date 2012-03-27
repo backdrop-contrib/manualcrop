@@ -231,7 +231,6 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
       // Default crop settings.
       $identifier = 'manualcrop-file-' . $file->fid;
       $required = array();
-      $use_smartcrop = FALSE;
       $crop_type = 'overlay';
       $crop_info = TRUE;
       $instant_preview = FALSE;
@@ -260,7 +259,6 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         }
 
         // Other widget settings.
-        $use_smartcrop = !empty($settings['use_smartcrop']);
         $crop_info = (!isset($settings['crop_info']) || $settings['crop_info']);
         $instant_preview = !empty($settings['instant_preview']);
         $thumblist = !empty($settings['thumblist']);
@@ -341,18 +339,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
       // Get the crop selections for this file.
       if (!$form_state['submitted'] && !isset($item['manualcrop_selections'])) {
         $item['manualcrop_selections'] = array();
-        $selections = manualcrop_load_crop_selection($file->uri);
-
-        // Use (if possible and enabled) Smart Crop for a default crop selection.
-        if (empty($selections) && $use_smartcrop) {
-          foreach ($hascrop as $style_name => $data) {
-            if ($data = _manualcrop_get_smartcrop_selection($file->uri, $style_name)) {
-              $selections[] = $data;
-            }
-          }
-        }
-
-        foreach ($selections as $data) {
+        foreach (manualcrop_load_crop_selection($file->uri) as $data) {
           $item['manualcrop_selections'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
         }
       }

@@ -407,16 +407,6 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#weight' => 24,
   );
 
-  if (module_exists('smartcrop')) {
-    $form['use_smartcrop'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Use Smart Crop'),
-      '#description' => t('Use Smart Crop to determine a default cropping after uploading. This might fail on big images due to a limited PHP execution time.'),
-      '#default_value' => !empty($settings['use_smartcrop']),
-      '#weight' => 25,
-    );
-  }
-
   return $form;
 }
 
