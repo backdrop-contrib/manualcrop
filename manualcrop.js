@@ -140,7 +140,7 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
   // Additional options based upon the effect.
   if (settings) {
     switch (settings.effect) {
-      // Manual Crop and scale effect.
+      // Crop and scale effect.
       case 'manualcrop_crop_and_scale':
         options.aspectRatio = settings.data.width + ':' + settings.data.height;
 
@@ -151,7 +151,7 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
         }
         break;
 
-      // Manual Crop effect
+      // Crop effect.
       case 'manualcrop_crop':
         if (settings.data.width) {
           options.minWidth = ManualCrop.parseInt(settings.data.width);

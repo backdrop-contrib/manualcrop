@@ -5,10 +5,12 @@
  */
 
 /**
- * Form Builder; Configuration settings for Manual Crop and scale effect.
+ * Form Builder; Configuration settings for the crop and scale effect.
  *
  * @param $data
- *    The current configuration for this Manual Crop and scale effect.
+ *    The current configuration for this crop and scale effect.
+ * @return
+ *    The form structure array.
  */
 function manualcrop_crop_and_scale_form($data) {
   $form = image_scale_form($data);
@@ -34,11 +36,11 @@ function manualcrop_crop_and_scale_form($data) {
 }
 
 /**
- * Returns HTML for a summary of an image Manual Crop and scale effect.
+ * Returns HTML for a summary of an image crop and scale effect.
  *
  * @param $variables
  *    An associative array containing:
- *    - data: The current configuration for this Manual Crop and scale effect.
+ *    - data: The current configuration for this crop and scale effect.
  *
  * @ingroup themeable
  */
@@ -68,10 +70,12 @@ function theme_manualcrop_crop_and_scale_summary($variables) {
 }
 
 /**
- * Form Builder; Configuration settings for Manual Crop effect.
+ * Form Builder; Configuration settings for crop effect.
  *
  * @param $data
- *    The current configuration for this Manual Crop effect.
+ *    The current configuration for this crop effect.
+ * @return
+ *    The form structure array.
  */
 function manualcrop_crop_form($data) {
   $form = image_resize_form($data);
@@ -118,11 +122,11 @@ function manualcrop_keepproportions_validate($element, $form_state) {
 }
 
 /**
- * Returns HTML for a summary of an image resize effect.
+ * Returns HTML for a summary of an image crop effect.
  *
  * @param $variables
  *    An associative array containing:
- *    - data: The current configuration for this resize effect.
+ *    - data: The current configuration for this crop effect.
  *
  * @ingroup themeable
  */
@@ -143,6 +147,53 @@ function theme_manualcrop_crop_summary($variables) {
   }
 
 
+}
+
+/**
+ * Form Builder; Configuration settings for the reuse effect.
+ *
+ * @param $data
+ *    The current configuration for this reuse effect.
+ * @return
+ *    The form structure array.
+ */
+function manualcrop_reuse_form($data) {
+  // Load all image styles that have a cropping effect and exclude the style
+  // that's currently being edited.
+  $styles = manualcrop_get_styles_with_crop();
+  $current = arg(5);
+  if (isset($styles[$current])) {
+    unset($styles[$current]);
+  }
+
+  if (!count($styles)) {
+    drupal_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
+    drupal_goto('admin/config/media/image-styles/edit/' . $current);
+  }
+
+  $form['reusestyle'] = array(
+    '#type' => 'select',
+    '#title' => t('Base image style'),
+    '#description' => t('Base this image style upon the crop selection of the selected style.'),
+    '#options' => drupal_map_assoc(array_keys($styles), '_manualcrop_image_style_name'),
+    '#default_value' => (isset($data['reusestyle']) ? $data['reusestyle'] : ''),
+    '#required' => TRUE,
+  );
+
+  return $form;
+}
+
+/**
+ * Returns HTML for a summary of an image crop selection reuse effect.
+ *
+ * @param $variables
+ *    An associative array containing:
+ *    - data: The current configuration for this crop selection reuse effect.
+ *
+ * @ingroup themeable
+ */
+function theme_manualcrop_reuse_summary($variables) {
+  return '(' . t('Using @style', array('@style' => _manualcrop_image_style_name($variables['data']['reusestyle']))) . ')';
 }
 
 /**
@@ -197,14 +248,14 @@ function manualcrop_form_image_effect_delete_form_alter(&$form, &$form_state) {
     $form['#submit'] = array('image_effect_delete_form_submit');
   }
 
-  // If it's a Manual Crop effect do a custom submit handler to cleanup the cropped areas.
-  if ($form_state['image_effect']['module'] == 'manualcrop') {
+  // If it's a Manual Crop effect do a custom submit handler to cleanup the crop selections.
+  if (_manualcrop_is_crop_effect($form_state['image_effect'])) {
     array_unshift($form['#submit'], 'manualcrop_image_effect_delete_form_submit');
   }
 }
 
 /**
- * Effect deletion form submit handler; Cleanup old selection areas.
+ * Effect deletion form submit handler; Cleanup old selection selections.
  *
  * @param $form
  *    Effect form array.
@@ -297,13 +348,16 @@ function manualcrop_update_style_name($form, &$form_state) {
   if (!empty($style['effects']) && isset($form_state['values']['name']) && $style['name'] != $form_state['values']['name']) {
     $effect = reset($style['effects']);
 
-    if ($effect['module'] == 'manualcrop') {
-      // Change the style name in the effect data and save the effect.
+    if (_manualcrop_is_crop_effect($effect)) {
+      // Change the style name in the effect data and save it.
       $effect["data"]["style_name"] = $form_state['values']['name'];
       image_effect_save($effect);
 
+      // Update all widgets and reuse effects.
       _manualcrop_field_widget_update_names_in_settings($style['name'], $form_state['values']['name']);
+      _manualcrop_reuse_effect_update_names_in_settings($style['name'], $form_state['values']['name']);
 
+      // Update all saved crop selections.
       db_update('manualcrop')
         ->fields(array('style_name' => $form_state['values']['name']))
         ->condition('style_name', $style['name'])

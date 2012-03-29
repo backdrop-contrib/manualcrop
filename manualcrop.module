@@ -28,6 +28,9 @@ function manualcrop_theme() {
     'manualcrop_crop_summary' => array(
       'variables' => array('data' => NULL),
     ),
+    'manualcrop_reuse_summary' => array(
+      'variables' => array('data' => NULL),
+    ),
     'manualcrop_croptool_overlay' => array(
       'variables' => array('attributes' => NULL, 'image' => NULL),
     ),
@@ -59,6 +62,7 @@ function manualcrop_image_style_delete($style) {
         ->execute();
 
       _manualcrop_field_widget_update_names_in_settings($style['name']);
+      _manualcrop_reuse_effect_update_names_in_settings($style['name']);
     }
   }
 }
@@ -622,7 +626,7 @@ function manualcrop_preprocess_image(&$variables) {
   $cache_control = variable_get('manualcrop_cache_control', TRUE);
 
   if ($is_cropstyle && $cache_control) {
-    // Attempt to load HTTP cache-controller from database cache
+    // Attempt to load HTTP cache-controller from database cache.
     $original_path = $variables['path'];
 
     if ($cached_path = cache_get('manualcrop|' . $original_path)) {
@@ -809,12 +813,20 @@ function manualcrop_image_effect_info() {
       'summary theme' => 'manualcrop_crop_and_scale_summary',
     ),
     'manualcrop_crop' => array(
-      'label' => t('Manual Crop'),
+      'label' => t('Manual crop'),
       'help' => t('Crop a freely user-selected area.'),
       'effect callback' => 'manualcrop_crop_effect',
       'dimensions callback' => 'image_resize_dimensions',
       'form callback' => 'manualcrop_crop_form',
       'summary theme' => 'manualcrop_crop_summary',
+    ),
+    'manualcrop_reuse' => array(
+      'label' => t('Reuse a Manual Crop selection'),
+      'help' => 'Reuse a crop selection from another Manual Crop enabled image style.',
+      'effect callback' => 'manualcrop_reuse_effect',
+      'dimensions callback' => 'image_resize_dimensions',
+      'form callback' => 'manualcrop_reuse_form',
+      'summary theme' => 'manualcrop_reuse_summary',
     ),
   );
 }
@@ -825,8 +837,8 @@ function manualcrop_image_effect_info() {
  * @param $image
  *    An image object returned by image_load().
  * @param $data
- *    An array of attributes to use when performing the Manual Crop and scale effect
- *    with the following items:
+ *    An array of attributes, needed to perform the crop and scale effect, with
+ *    the following items:
  *    - "width": An integer representing the desired width in pixels.
  *    - "height": An integer representing the desired height in pixels.
  *    - "upscale": A boolean indicating that the image should be upscalled if
@@ -835,7 +847,7 @@ function manualcrop_image_effect_info() {
  *      if it was cropped.
  *    - "style_name": The style's machine name.
  * @return
- *    TRUE on success. FALSE on failure to crop and scale image.
+ *    TRUE on success, FALSE on failure to crop and scale image.
  *
  * @see image_crop_effect()
  * @see image_scale_effect()
@@ -868,13 +880,13 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  * @param $image
  *    An image object returned by image_load().
  * @param $data
- *    An array of attributes to use when performing the Manual Crop effect with the
+ *    An array of attributes, needed to perform the crop effect, with the
  *    following items:
  *    - "width": An integer representing the desired width in pixels.
  *    - "height": An integer representing the desired height in pixels.
  *    - "style_name": The style's machine name.
  * @return
- *    TRUE on success. FALSE on failure to crop image.
+ *    TRUE on success, FALSE on failure to crop image.
  *
  * @see image_crop_effect()
  */
@@ -890,6 +902,38 @@ function manualcrop_crop_effect(&$image, $data) {
   }
 
   return TRUE;
+}
+
+/**
+ * Image effect callback; Reuse a Manual Crop effect.
+ *
+ * @param $image
+ *    An image object returned by image_load().
+ * @param $data
+ *    An array of settings, needed to perform the reuse effect, with the
+ *    following items:
+ *    - "reusestyle": The image style to reuse.
+ * @return
+ *    TRUE on success, FALSE on failure to reuse the effect.
+ *
+ * @see image_crop_effect()
+ */
+function manualcrop_reuse_effect(&$image, $data) {
+  if (empty($data['reusestyle'])) {
+    return FALSE;
+  }
+
+  // Load the selected image style and gat the first effect.
+  $style = image_style_load($data['reusestyle']);
+  $effect = reset($style['effects']);
+
+  if (_manualcrop_is_crop_effect($effect)) {
+    // Apply the Manual Crop cropping effect.
+    image_effect_apply($image, $effect);
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
