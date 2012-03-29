@@ -43,37 +43,28 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
 /**
  * Returns the styles that have crop settings.
  *
- * @param $cropping_only
- *    If set to TRUE, only styles with a Manual Crop cropping effect
- *    (so not the reuse effect) will be included.
  * @return
  *    An array of styles with the style name as key and the effect data as value.
  */
-function manualcrop_get_styles_with_crop($cropping_only = TRUE) {
-  $hascrop = &drupal_static(__FUNCTION__, array());
-  $cropping_only = ($cropping_only ? 'crop' : 'all');
+function manualcrop_get_styles_with_crop() {
+  $hascrop = &drupal_static(__FUNCTION__);
 
-  if (empty($hascrop)) {
-    $hascrop['all'] = array();
-    $hascrop['crop'] = array();
+  if (is_null($hascrop)) {
+    $hascrop = array();
 
     foreach (image_styles() as $style_name => $style) {
       if (!empty($style['effects'])) {
         // Check if the first effect is a Manual Crop cropping effect.
         $effect = reset($style['effects']);
 
-        if ($effect['module'] == 'manualcrop') {
-          $hascrop['all'][$style_name] = $effect;
-
-          if (_manualcrop_is_crop_effect($effect)) {
-            $hascrop['crop'][$style_name] = $effect;
-          }
+        if (_manualcrop_is_crop_effect($effect)) {
+          $hascrop[$style_name] = $effect;
         }
       }
     }
   }
 
-  return $hascrop[$cropping_only];
+  return $hascrop;
 }
 
 /**
