@@ -441,11 +441,14 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#weight' => 22,
   );
 
+  // Build the array of possible style select options.
+  $style_options = drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop()), '_manualcrop_image_style_name');
+
   $form['styles_list'] = array(
     '#type' => 'select',
     '#title' => t('Styles list'),
     '#description' => t('Select all styles that should be shown or hidden (as selected above) in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
-    '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
+    '#options' => $style_options,
     '#default_value' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
     '#multiple' => TRUE,
     '#weight' => 23,
@@ -455,7 +458,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
     '#type' => 'select',
     '#title' => t('Required croppings'),
     '#description' => t('Select all styles that must have a crop selection.'),
-    '#options' => drupal_map_assoc(array_keys(manualcrop_get_styles_with_crop())),
+    '#options' => $style_options,
     '#default_value' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
     '#multiple' => TRUE,
     '#weight' => 24,
