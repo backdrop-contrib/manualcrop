@@ -824,7 +824,6 @@ function manualcrop_image_effect_info() {
       'label' => t('Reuse a Manual Crop selection'),
       'help' => 'Reuse a crop selection from another Manual Crop enabled image style.',
       'effect callback' => 'manualcrop_reuse_effect',
-      'dimensions callback' => 'image_resize_dimensions',
       'form callback' => 'manualcrop_reuse_form',
       'summary theme' => 'manualcrop_reuse_summary',
     ),
