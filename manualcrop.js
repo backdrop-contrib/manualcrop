@@ -627,13 +627,13 @@ $(document).ready(function() {
 
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
-      // Not sure if this is the right way to fix it, but it works...
-      var element = $('.ajax-new-content', context);
-      if (element.length == 1) {
-        context.once(function() {
-          ManualCrop.afterUpload(context);
-        });
-      }
+      $('.ajax-new-content', context).once('manualcrop', function() {
+        ManualCrop.afterUpload(this);
+      });
+
+      $('.modal-content', context).once('manualcrop', function() {
+        ManualCrop.init();
+      });
     }
   };
 });

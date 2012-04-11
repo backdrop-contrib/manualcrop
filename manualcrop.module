@@ -311,7 +311,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           '#array_parents' => array('manualcrop', 'file_' . $file->fid),
         );
 
-        // Link to the newly created container and.
+        // Link to the newly created container and item.
         $container = &$element['manualcrop']['file_' . $file->fid];
         $item = &$container['#default_value'];
       }
