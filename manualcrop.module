@@ -306,14 +306,14 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         // Create a file specific container.
         $element['manualcrop']['file_' . $file->fid] = array(
           '#type' => 'value',
-          '#value' => array(),
+          '#default_value' => array(),
           '#element_validate' => array('manualcrop_croptool_validate'),
           '#array_parents' => array('manualcrop', 'file_' . $file->fid),
         );
 
         // Link to the newly created container and.
         $container = &$element['manualcrop']['file_' . $file->fid];
-        $item = &$container['#value'];
+        $item = &$container['#default_value'];
       }
 
       // Make sure we have a valid preview or no element.
