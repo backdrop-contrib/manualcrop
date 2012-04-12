@@ -937,6 +937,8 @@ function manualcrop_reuse_effect(&$image, $data) {
 
 /**
  * Implements hook_filefield_sources_widgets().
+ *
+ * Provides integration with the FileField Sources widget.
  */
 function manualcrop_filefield_sources_widgets() {
   return array('manualcrop_image');
@@ -944,6 +946,8 @@ function manualcrop_filefield_sources_widgets() {
 
 /**
  * Implements hook_form_FORM_ID_alter().
+ *
+ * Provides integration with the File Entity and Media modules.
  */
 function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
   if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
@@ -960,6 +964,8 @@ function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
 
 /**
  * Implements hook_insert_widgets().
+ *
+ * Expose the Manual Crop widget to the Insert module.
  */
 function manualcrop_insert_widgets() {
   return array(
@@ -1006,8 +1012,7 @@ function manualcrop_insert_styles_alter(&$types) {
 }
 
 /**
- * Additional after build callback to modify the form elements added by the
- * Insert module.
+ * Additional after build callback to modify form elements added by the Insert module.
  *
  * @param $element
  *    The element to process.

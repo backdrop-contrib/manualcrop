@@ -471,7 +471,7 @@ function manualcrop_field_widget_settings_form($field, $instance) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
-  // The Insert lists should only contain Manual Crop styles.
+  // The Insert list should only contain Manual Crop styles.
   if (module_exists('insert') && $form['#instance']['widget']['module'] == 'manualcrop') {
     $insert = &$form['instance']['settings']['insert'];
     $styles = array_merge(array('image' => 0), manualcrop_insert_styles());
