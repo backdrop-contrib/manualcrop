@@ -1,3 +1,20 @@
+Manual Crop 7.x-1.3, 2012-04-22
+-------------------------------
+- Added inline cropping as alternative to the overlay.
+- Added an instant preview option.
+- Added a thumbnail list option, to show a list of thumbnails instead of the default selection list.
+- Added a crop after upload option.
+- Added an option to show a default crop area.
+- Added basic Media 2.x and Insert integration.
+- Added a crop reuse effect.
+- Added support for image dimensions callbacks (thanks to atlea).
+- Added an option to skip resize if the image was not cropped.
+- Added a "maintain proportions" option for crop without scale.
+- Added support for string overrides.
+- Changed button labels.
+- Fixed enforcing of required fields (thanks to atlea).
+- Various other fixes.
+
 Manual Crop 7.x-1.2, 2011-10-10
 -------------------------------
 - Fixed the crop selection validation, removed images should be skipped during validation.
