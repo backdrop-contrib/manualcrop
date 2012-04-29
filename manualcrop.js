@@ -89,7 +89,7 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
   // Create the croptool.
   ManualCrop.croptool = origContainer.clone()
     .removeAttr('id')
-    .removeClass('element-invisible');
+    .removeClass('element-hidden');
 
   // Get the container maximum width and height.
   if (cropType == 'overlay') {

@@ -354,7 +354,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         '#markup' => theme('manualcrop_croptool_' . $crop_type, array(
           'attributes' => array(
             'id' => array('manualcrop-' . $crop_type . '-' . $file->fid),
-            'class' => array('manualcrop-' . $crop_type, 'element-invisible'),
+            'class' => array('manualcrop-' . $crop_type, 'element-hidden'),
           ),
           'image' => array(
             'path' => $file->uri,
