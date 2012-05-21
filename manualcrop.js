@@ -175,6 +175,10 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
     styleSelect.val('');
     styleSelect.blur();
   }
+  else {
+    // Hide the crop button.
+    $('.manualcrop-style-button-' + fid).hide();
+  }
 
   // Append the cropping area (last, to prevent that '_11' is undefined).
   if (cropType == 'overlay') {
@@ -273,6 +277,8 @@ ManualCrop.closeCroptool = function() {
     ManualCrop.oldSelection = null;
     ManualCrop.widget = null;
     ManualCrop.output = null;
+
+    $('.manualcrop-style-button:hidden').show();
 
     $(document).unbind('keyup', ManualCrop.handleKeyboard);
   }
