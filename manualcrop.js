@@ -278,7 +278,7 @@ ManualCrop.closeCroptool = function() {
     ManualCrop.widget = null;
     ManualCrop.output = null;
 
-    $('.manualcrop-style-button:hidden').show();
+    $('.manualcrop-style-button').show();
 
     $(document).unbind('keyup', ManualCrop.handleKeyboard);
   }
@@ -634,7 +634,11 @@ $(document).ready(function() {
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
       $('.ajax-new-content', context).once('manualcrop', function() {
-        ManualCrop.afterUpload(this);
+        var element = this;
+
+        $('.manualcrop-image', element).load(function() {
+          ManualCrop.afterUpload(element);
+        })
       });
 
       $('.modal-content', context).once('manualcrop', function() {
