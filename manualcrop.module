@@ -330,7 +330,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
       // Get image info, width and height are used by the cropping widget.
       $image = image_get_info($file->uri);
 
-      // Save some images data to improve processing.
+      // Save some image data to improve processing.
       $form_state['manualcrop_data']['images'][$file->fid] = array(
         'uri' => $file->uri,
         'filename' => $file->filename,
@@ -347,6 +347,9 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           $item['manualcrop_selections'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
         }
       }
+
+      // Add a css class
+      $container['#attributes']['class'][] = 'manualcrop-file-' . $file->fid . '-holder';
 
       // Original image for cropping.
       $container['manualcrop_' . $crop_type] = array(
@@ -397,6 +400,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           'js' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
             drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
+            drupal_get_path('module', 'manualcrop') . '/jquery.imagesloaded/jquery.imagesloaded.min.js',
           ),
         ),
       );

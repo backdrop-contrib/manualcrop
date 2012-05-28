@@ -1,4 +1,4 @@
-var ManualCrop = {'croptool': null, 'oldSelection': null, 'widget': null, 'output': null};
+var ManualCrop = {croptool: null, oldSelection: null, widget: null, output: null};
 
 (function ($) {
 
@@ -69,199 +69,210 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
     styleName = styleSelect.val();
   }
 
-  // Determine the croptool type.
-  if ($('#manualcrop-overlay-' + fid).length == 1) {
-    cropType = 'overlay';
-    origContainer = $('#manualcrop-overlay-' + fid);
-  }
-  else {
-    cropType = 'inline';
-    origContainer = $('#manualcrop-inline-' + fid);
-  }
-
-  // Get the crop settings.
-  var settings = Drupal.settings.manualCrop.styles[styleName] || {};
-
-  // Get the destination field and the current selection.
-  ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
-  ManualCrop.oldSelection = ManualCrop.parseStringSelection(ManualCrop.output.val());
-
-  // Create the croptool.
-  ManualCrop.croptool = origContainer.clone()
-    .removeAttr('id')
-    .removeClass('element-hidden');
-
-  // Get the container maximum width and height.
-  if (cropType == 'overlay') {
-    conWidth = $(window).width();
-    conHeight = $(window).height();
-  }
-  else {
-    conWidth = origContainer.parent().innerWidth();
-    conHeight = $(window).height();
-  }
-
-  // Tool width and height.
-  ManualCrop.croptool.css('width', conWidth + 'px');
-
-  if (cropType == 'overlay') {
-    ManualCrop.croptool.css('height', conHeight + 'px');
-  }
-
-  // Get the image and its dimensions, the ManualCrop.croptool clone is not used
-  // because loading css of it doesn't work in Webkit browsers.
-  var image = $('img.manualcrop-image', origContainer);
-  var width = ManualCrop.parseInt(image.attr('width'));
-  var height = ManualCrop.parseInt(image.attr('height'));
-
-  // Scale the image to fit the maximum width and height (so all is visible).
-  var maxWidth = conWidth - ManualCrop.parseInt(image.css('marginLeft')) - ManualCrop.parseInt(image.css('marginRight'));
-  var maxHeight = conHeight - ManualCrop.parseInt(image.css('marginTop')) - ManualCrop.parseInt(image.css('marginBottom'));
-
-  // Calculate the clone image dimensions.
-  var resized = ManualCrop.resizeDimensions(width, height, maxWidth, maxHeight);
-
-  // Set the new width and height to the cloned image.
-  image = $('img.manualcrop-image', ManualCrop.croptool)
-    .css('width', resized.width + 'px')
-    .css('height', resized.height + 'px');
-
-  // Basic imgAreaSelect options.
-  var options = {
-    handles: true,
-    instance: true,
-    keys: true,
-    parent: image.parent(),
-    imageWidth: width,
-    imageHeight: height,
-    onSelectChange: ManualCrop.updateSelection
-  };
-
-  // Additional options based upon the effect.
-  if (settings) {
-    switch (settings.effect) {
-      // Crop and scale effect.
-      case 'manualcrop_crop_and_scale':
-        options.aspectRatio = settings.data.width + ':' + settings.data.height;
-
-        if (settings.data.respectminimum) {
-          // Crop at least the minimum.
-          options.minWidth = ManualCrop.parseInt(settings.data.width);
-          options.minHeight = ManualCrop.parseInt(settings.data.height);
-        }
-        break;
-
-      // Crop effect.
-      case 'manualcrop_crop':
-        if (settings.data.width) {
-          options.minWidth = ManualCrop.parseInt(settings.data.width);
-        }
-
-        if (settings.data.height) {
-          options.minHeight = ManualCrop.parseInt(settings.data.height);
-        }
-
-        if (typeof settings.data.keepproportions != 'undefined' && settings.data.keepproportions) {
-          options.aspectRatio = settings.data.width + ':' + settings.data.height;
-        }
+  $('.manualcrop-file-' + fid + '-holder img').imagesLoaded(function() {
+    // Determine the croptool type.
+    if ($('#manualcrop-overlay-' + fid).length == 1) {
+      cropType = 'overlay';
+      origContainer = $('#manualcrop-overlay-' + fid);
     }
-  }
+    else {
+      cropType = 'inline';
+      origContainer = $('#manualcrop-inline-' + fid);
+    }
 
-  // Set the image style name.
-  $('.manualcrop-image-style', ManualCrop.croptool).text(styleName);
+    // Get the crop settings.
+    var settings = Drupal.settings.manualCrop.styles[styleName] || {};
 
-  if (typeof styleSelect != 'undefined') {
-    // Reset the image style selection list.
-    styleSelect.val('');
-    styleSelect.blur();
-  }
-  else {
-    // Hide the crop button.
-    $('.manualcrop-style-button-' + fid).hide();
-  }
+    // Get the destination field and the current selection.
+    ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
+    ManualCrop.oldSelection = ManualCrop.parseStringSelection(ManualCrop.output.val());
 
-  // Append the cropping area (last, to prevent that '_11' is undefined).
-  if (cropType == 'overlay') {
-    $('body').append(ManualCrop.croptool);
-  }
-  else {
-    origContainer.parent().append(ManualCrop.croptool);
-  }
+    // Create the croptool.
+    ManualCrop.croptool = origContainer.clone()
+      .removeAttr('id')
+      .removeClass('element-hidden');
 
-  // Create the crop widget.
-  ManualCrop.widget = image.imgAreaSelect(options);
+    // Get the container maximum width and height.
+    if (cropType == 'overlay') {
+      conWidth = $(window).width();
+      conHeight = $(window).height();
+    }
+    else {
+      conWidth = origContainer.parent().innerWidth();
+      conHeight = $(window).height();
+    }
 
-  // Insert the instant preview image.
-  var instantPreview = $('.manualcrop-instantpreview', ManualCrop.croptool);
-  if (instantPreview.length) {
-    // Save the current width as maximum width and height.
-    instantPreview
-      .data('maxWidth', instantPreview.width())
-      .data('maxHeight', instantPreview.width())
-      .height(instantPreview.width());
+    // Tool width and height.
+    ManualCrop.croptool.css('width', conWidth + 'px');
 
-    // Calculate the instant preview dimensions.
-    resized = ManualCrop.resizeDimensions(width, height, instantPreview.width(), instantPreview.width());
+    if (cropType == 'overlay') {
+      ManualCrop.croptool.css('height', conHeight + 'px');
+    }
 
-    // Set those dimensions.
-    image.clone().appendTo(instantPreview)
-      .removeClass()
+    // Get the image and its dimensions, the ManualCrop.croptool clone is not used
+    // because loading css of it doesn't work in Webkit browsers.
+    var image = $('img.manualcrop-image', origContainer);
+    var width = ManualCrop.parseInt(image.width());
+    var height = ManualCrop.parseInt(image.height());
+
+    // Scale the image to fit the maximum width and height (so all is visible).
+    var maxWidth = conWidth - ManualCrop.parseInt(image.css('marginLeft')) - ManualCrop.parseInt(image.css('marginRight'));
+    var maxHeight = conHeight - ManualCrop.parseInt(image.css('marginTop')) - ManualCrop.parseInt(image.css('marginBottom'));
+
+    // Calculate the clone image dimensions.
+    var resized = ManualCrop.resizeDimensions(width, height, maxWidth, maxHeight);
+
+    // Set the new width and height to the cloned image.
+    image = $('.manualcrop-image', ManualCrop.croptool)
       .css('width', resized.width + 'px')
       .css('height', resized.height + 'px');
-  }
 
-  if (!ManualCrop.oldSelection) {
-    var fields = Drupal.settings.manualCrop.fields;
+    // Basic imgAreaSelect options; All options are set - also if it's their
+    // default value - because IE doesn't seem to use the default values.
+    var options = {
+      handles: true,
+      instance: true,
+      keys: true,
+      movable: true,
+      resizable: true,
+      parent: image.parent(),
+      imageWidth: width,
+      imageHeight: height,
+      onSelectChange: ManualCrop.updateSelection
+    };
 
-    // Create a default crop area.
-    if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
-      var minWidth = (typeof options.minWidth != 'undefined' ? options.minWidth : 0);
-      var minHeight = (typeof options.minHeight != 'undefined' ? options.minHeight : 0)
+    // Additional options based upon the effect.
+    if (settings) {
+      switch (settings.effect) {
+        // Crop and scale effect.
+        case 'manualcrop_crop_and_scale':
+          options.aspectRatio = settings.data.width + ':' + settings.data.height;
 
-      // Set a width and height.
-      ManualCrop.oldSelection = {
-        width: (minWidth ? minWidth * 100 : (width / 2)),
-        height: (minHeight ? minHeight * 100 : (height / 2)),
-        maxWidth: (width / 2),
-        maxHeight: (height / 2)
-      };
-
-      // Resize the selection.
-      ManualCrop.oldSelection = ManualCrop.resizeDimensions(ManualCrop.oldSelection);
-
-      // Make sure we respect the minimum dimensions.
-      if (minWidth || minHeight) {
-        if (minWidth && ManualCrop.oldSelection.width < minWidth) {
-          ManualCrop.oldSelection.width = minWidth;
-
-          if (minHeight) {
-            ManualCrop.oldSelection.height = minHeight;
+          if (settings.data.respectminimum) {
+            // Crop at least the minimum.
+            options.minWidth = ManualCrop.parseInt(settings.data.width);
+            options.minHeight = ManualCrop.parseInt(settings.data.height);
           }
-        }
-        else if (minHeight && ManualCrop.oldSelection.height < minHeight) {
-          ManualCrop.oldSelection.height = minHeight;
+          break;
 
-          if (minWidth) {
-            ManualCrop.oldSelection.width = minWidth;
+        // Crop effect.
+        case 'manualcrop_crop':
+          if (settings.data.width) {
+            options.minWidth = ManualCrop.parseInt(settings.data.width);
           }
-        }
+
+          if (settings.data.height) {
+            options.minHeight = ManualCrop.parseInt(settings.data.height);
+          }
+
+          if (typeof settings.data.keepproportions != 'undefined' && settings.data.keepproportions) {
+            options.aspectRatio = settings.data.width + ':' + settings.data.height;
+          }
       }
-
-      // Center the selection.
-      ManualCrop.oldSelection.x1 = (width - ManualCrop.oldSelection.width) / 2;
-      ManualCrop.oldSelection.y1 = (height - ManualCrop.oldSelection.height) / 2;
-      ManualCrop.oldSelection.x2 = ManualCrop.oldSelection.x1 + ManualCrop.oldSelection.width;
-      ManualCrop.oldSelection.y2 = ManualCrop.oldSelection.y1 + ManualCrop.oldSelection.height;
     }
-  }
 
-  // Set the initial selection.
-  if (ManualCrop.oldSelection) {
-    ManualCrop.resetSelection();
-  }
+    // Set the image style name.
+    $('.manualcrop-image-style', ManualCrop.croptool).text(styleName);
 
-  // Handle keyboard shortcuts.
-  $(document).keyup(ManualCrop.handleKeyboard);
+    if (typeof styleSelect != 'undefined') {
+      // Reset the image style selection list.
+      styleSelect.val('');
+      styleSelect.blur();
+    }
+    else {
+      // Hide the crop button.
+      $('.manualcrop-style-button-' + fid).hide();
+    }
+
+    // Append the cropping area (last, to prevent that '_11' is undefined).
+    if (cropType == 'overlay') {
+      $('body').append(ManualCrop.croptool);
+    }
+    else {
+      origContainer.parent().append(ManualCrop.croptool);
+    }
+
+    // Create the crop widget.
+    ManualCrop.widget = image.imgAreaSelect(options);
+
+    // IE seems to have some issues with the imgAreaSelect $parent variable,
+    // so we set the options again to initialize it correctly.
+    if ($.browser.msie) {
+      ManualCrop.widget.setOptions(options);
+    }
+
+    // Insert the instant preview image.
+    var instantPreview = $('.manualcrop-instantpreview', ManualCrop.croptool);
+    if (instantPreview.length) {
+      // Save the current width as maximum width and height.
+      instantPreview
+        .data('maxWidth', instantPreview.width())
+        .data('maxHeight', instantPreview.width())
+        .height(instantPreview.width());
+
+      // Calculate the instant preview dimensions.
+      resized = ManualCrop.resizeDimensions(width, height, instantPreview.width(), instantPreview.width());
+
+      // Set those dimensions.
+      image.clone().appendTo(instantPreview)
+        .removeClass()
+        .css('width', resized.width + 'px')
+        .css('height', resized.height + 'px');
+    }
+
+    if (!ManualCrop.oldSelection) {
+      var fields = Drupal.settings.manualCrop.fields;
+
+      // Create a default crop area.
+      if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
+        var minWidth = (typeof options.minWidth != 'undefined' ? options.minWidth : 0);
+        var minHeight = (typeof options.minHeight != 'undefined' ? options.minHeight : 0)
+
+        // Set a width and height.
+        ManualCrop.oldSelection = {
+          width: (minWidth ? minWidth * 100 : (width / 2)),
+          height: (minHeight ? minHeight * 100 : (height / 2)),
+          maxWidth: (width / 2),
+          maxHeight: (height / 2)
+        };
+
+        // Resize the selection.
+        ManualCrop.oldSelection = ManualCrop.resizeDimensions(ManualCrop.oldSelection);
+
+        // Make sure we respect the minimum dimensions.
+        if (minWidth || minHeight) {
+          if (minWidth && ManualCrop.oldSelection.width < minWidth) {
+            ManualCrop.oldSelection.width = minWidth;
+
+            if (minHeight) {
+              ManualCrop.oldSelection.height = minHeight;
+            }
+          }
+          else if (minHeight && ManualCrop.oldSelection.height < minHeight) {
+            ManualCrop.oldSelection.height = minHeight;
+
+            if (minWidth) {
+              ManualCrop.oldSelection.width = minWidth;
+            }
+          }
+        }
+
+        // Center the selection.
+        ManualCrop.oldSelection.x1 = (width - ManualCrop.oldSelection.width) / 2;
+        ManualCrop.oldSelection.y1 = (height - ManualCrop.oldSelection.height) / 2;
+        ManualCrop.oldSelection.x2 = ManualCrop.oldSelection.x1 + ManualCrop.oldSelection.width;
+        ManualCrop.oldSelection.y2 = ManualCrop.oldSelection.y1 + ManualCrop.oldSelection.height;
+      }
+    }
+
+    // Set the initial selection.
+    if (ManualCrop.oldSelection) {
+      ManualCrop.resetSelection();
+    }
+
+    // Handle keyboard shortcuts.
+    $(document).keyup(ManualCrop.handleKeyboard);
+  });
 }
 
 /**
@@ -424,91 +435,93 @@ ManualCrop.updateSelection = function(image, selection) {
 ManualCrop.selectionStored = function(element, fid, styleName) {
   var selection = $(element).val();
 
-  var previewHolder = $('.manualcrop-preview-' + fid + '-' + styleName + ' .manualcrop-preview-cropped');
-  if (!previewHolder.length) {
-    previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
-  }
-
-  var defaultPreview = $('.manualcrop-preview-' + fid + '-' + styleName + ' > img');
-  if (!defaultPreview.length) {
-    defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
-  }
-
-  var toolOpener = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid + ', .manualcrop-style-thumb-' + fid + '-' + styleName + ' .manualcrop-style-thumb-label');
-  var hasClass = toolOpener.hasClass('manualcrop-style-cropped');
-
-  if (previewHolder.length && previewHolder.children().length) {
-    previewHolder.css({
-      width: '0px',
-      height: '0px'
-    }).html('');
-    defaultPreview.css('display', 'block');
-  }
-
-  if (selection) {
-    if (previewHolder.length) {
-      // Get the dimensions of the original preview image and hide it again.
-      var maxWidth = defaultPreview.width();
-      var maxHeight = defaultPreview.height();
-
-      if (maxWidth > 0) {
-        defaultPreview.css('display', 'none');
-
-        // Get the selected crop area.
-        selection = ManualCrop.parseStringSelection(selection);
-
-        // Calculate the preview dimensions.
-        var resized = ManualCrop.resizeDimensions(selection.width, selection.height, maxWidth, maxHeight);
-
-        // Set the new width and height to the cropped preview holder.
-        previewHolder.css({
-          width: resized.width + 'px',
-          height: resized.height + 'px'
-        });
-
-        // Calculate the resize scale.
-        var scaleX = resized.width / selection.width;
-        var scaleY = resized.height / selection.height;
-
-        // Get the original image.
-        var originalImage = $('#manualcrop-overlay-' + fid + ' img.manualcrop-image, #manualcrop-inline-' + fid + ' img.manualcrop-image');
-
-        // Calculate the new width and height using the full image.
-        resized.width = Math.round(scaleX * ManualCrop.parseInt(originalImage.attr('width')));
-        resized.height = Math.round(scaleY * ManualCrop.parseInt(originalImage.attr('height')));
-
-        // Create and insert the cropped preview.
-        previewHolder.append(originalImage.clone().removeClass().css({
-          width: resized.width + 'px',
-          height: resized.height + 'px',
-          marginLeft: '-' + Math.round(scaleX * selection.x1) + 'px',
-          marginTop: '-' + Math.round(scaleY * selection.y1) + 'px'
-        }));
-      }
+  $('.manualcrop-file-' + fid + '-holder img').imagesLoaded(function() {
+    var previewHolder = $('.manualcrop-preview-' + fid + '-' + styleName + ' .manualcrop-preview-cropped');
+    if (!previewHolder.length) {
+      previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
     }
 
-    if (!hasClass) {
-      // Style has been cropped.
-      toolOpener.addClass('manualcrop-style-cropped');
+    var defaultPreview = $('.manualcrop-preview-' + fid + '-' + styleName + ' > img');
+    if (!defaultPreview.length) {
+      defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
+    }
+
+    var toolOpener = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid + ', .manualcrop-style-thumb-' + fid + '-' + styleName + ' .manualcrop-style-thumb-label');
+    var hasClass = toolOpener.hasClass('manualcrop-style-cropped');
+
+    if (previewHolder.length && previewHolder.children().length) {
+      previewHolder.css({
+        width: '0px',
+        height: '0px'
+      }).html('');
+      defaultPreview.css('display', 'block');
+    }
+
+    if (selection) {
+      if (previewHolder.length) {
+        // Get the dimensions of the original preview image and hide it again.
+        var maxWidth = ManualCrop.parseInt(defaultPreview.width());
+        var maxHeight = ManualCrop.parseInt(defaultPreview.height());
+
+        if (maxWidth > 0) {
+          defaultPreview.css('display', 'none');
+
+          // Get the selected crop area.
+          selection = ManualCrop.parseStringSelection(selection);
+
+          // Calculate the preview dimensions.
+          var resized = ManualCrop.resizeDimensions(selection.width, selection.height, maxWidth, maxHeight);
+
+          // Set the new width and height to the cropped preview holder.
+          previewHolder.css({
+            width: resized.width + 'px',
+            height: resized.height + 'px'
+          });
+
+          // Calculate the resize scale.
+          var scaleX = resized.width / selection.width;
+          var scaleY = resized.height / selection.height;
+
+          // Get the original image.
+          var originalImage = $('#manualcrop-overlay-' + fid + ' img.manualcrop-image, #manualcrop-inline-' + fid + ' img.manualcrop-image');
+
+          // Calculate the new width and height using the full image.
+          resized.width = Math.round(scaleX * ManualCrop.parseInt(originalImage.width()));
+          resized.height = Math.round(scaleY * ManualCrop.parseInt(originalImage.height()));
+
+          // Create and insert the cropped preview.
+          previewHolder.append(originalImage.clone().removeClass().css({
+            width: resized.width + 'px',
+            height: resized.height + 'px',
+            marginLeft: '-' + Math.round(scaleX * selection.x1) + 'px',
+            marginTop: '-' + Math.round(scaleY * selection.y1) + 'px'
+          }));
+        }
+      }
+
+      if (!hasClass) {
+        // Style has been cropped.
+        toolOpener.addClass('manualcrop-style-cropped');
+
+        if (toolOpener.is('input')) {
+          toolOpener.val(toolOpener.val() + ' ' + Drupal.t('(cropped)'));
+        }
+        else {
+          toolOpener.text(toolOpener.text() + ' ' + Drupal.t('(cropped)'));
+        }
+      }
+    } else if (hasClass) {
+      // Style not cropped.
+      toolOpener.removeClass('manualcrop-style-cropped');
 
       if (toolOpener.is('input')) {
-        toolOpener.val(toolOpener.val() + ' ' + Drupal.t('(cropped)'));
+        toolOpener.val(toolOpener.val().substr(0, (toolOpener.val().length - Drupal.t('(cropped)').length - 1)));
       }
       else {
-        toolOpener.text(toolOpener.text() + ' ' + Drupal.t('(cropped)'));
+        toolOpener.text(toolOpener.text().substr(0, (toolOpener.text().length - Drupal.t('(cropped)').length - 1)));
       }
     }
-  } else if (hasClass) {
-    // Style not cropped.
-    toolOpener.removeClass('manualcrop-style-cropped');
-
-    if (toolOpener.is('input')) {
-      toolOpener.val(toolOpener.val().substr(0, (toolOpener.val().length - Drupal.t('(cropped)').length - 1)));
-    }
-    else {
-      toolOpener.text(toolOpener.text().substr(0, (toolOpener.text().length - Drupal.t('(cropped)').length - 1)));
-    }
-  }
+  });
 }
 
 /**
@@ -634,11 +647,7 @@ $(document).ready(function() {
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
       $('.ajax-new-content', context).once('manualcrop', function() {
-        var element = this;
-
-        $('.manualcrop-image', element).load(function() {
-          ManualCrop.afterUpload(element);
-        })
+        ManualCrop.afterUpload(this);
       });
 
       $('.modal-content', context).once('manualcrop', function() {
