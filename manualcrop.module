@@ -201,6 +201,12 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $instance = NULL
     'fields' => $fields,
   )), 'type' => 'setting');
 
+  // IE has problems with lazy loading of css files, see http://drupal.org/node/1071818
+  if (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE) {
+    $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/manualcrop.css';
+    $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css';
+  }
+
   // Reset the images array.
   if (!isset($form_state['manualcrop_data'])) {
     $form_state['manualcrop_data'] = array('images' => array());
