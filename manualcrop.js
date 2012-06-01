@@ -277,9 +277,16 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
 
 /**
  * Close the cropping tool.
+ *
+ * @param reset
+ *   Set to true to reset the selection before closing.
  */
-ManualCrop.closeCroptool = function() {
+ManualCrop.closeCroptool = function(reset) {
   if (ManualCrop.croptool) {
+    if (reset) {
+      ManualCrop.resetSelection();
+    }
+
     ManualCrop.output.trigger('change');
 
     ManualCrop.widget.setOptions({remove: true});
@@ -532,12 +539,13 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
  */
 ManualCrop.handleKeyboard = function(e) {
   if (ManualCrop.croptool) {
-    if(e.keyCode == 13) { // Enter
+    if(e.keyCode == 13) {
+      // Enter
       ManualCrop.closeCroptool();
     }
-    else if(e.keyCode == 27) { // Escape
-      ManualCrop.resetSelection();
-      ManualCrop.closeCroptool();
+    else if(e.keyCode == 27) {
+      // Escape
+      ManualCrop.closeCroptool(true);
     }
   }
 }
