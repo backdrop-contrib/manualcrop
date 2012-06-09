@@ -652,8 +652,15 @@ ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
 $(document).ready(function() {
   ManualCrop.init();
 
+  // Add a blur action to all buttons.
+  $('.manualcrop-button').live('mousedown', function() {
+    this.blur();
+  });
+
+  // Attach behaviors to execute after an ajax call.
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
+      // Execute the after upload function on new image uploads.
       $('.ajax-new-content', $(context).parent()).once('manualcrop', function() {
         var element = $(this);
 
@@ -668,6 +675,7 @@ $(document).ready(function() {
         }
       });
 
+      // Execute the init function if a modal (Media module) was opened.
       $('.modal-content', context).once('manualcrop', function() {
         ManualCrop.init();
       });
