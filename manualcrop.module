@@ -440,7 +440,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
                 (in_array($style_name, $required) ? array('manualcrop-style-required') : array())
               ),
               'href' => 'javascript:void(0);',
-              'onmousedown' => "ManualCrop.showCroptool(event, '" . $identifier . "', '" . $style_name . "', " . $file->fid . ");",
+              'onmousedown' => "ManualCrop.showCroptool('" . $identifier . "', '" . $style_name . "', " . $file->fid . ");",
               'onclick' => 'return false;',
             ),
           ));
@@ -465,7 +465,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           '#value' => t('Crop'),
           '#attributes' => array(
             'class' => array_merge(array('manualcrop-style-button', 'manualcrop-style-button-' . $file->fid), (in_array($style_name, $required) ? array('manualcrop-style-required') : array())),
-            'onmousedown' => "ManualCrop.showCroptool(event, '" . $identifier . "', '" . $style_name . "', " . $file->fid . ");",
+            'onmousedown' => "ManualCrop.showCroptool('" . $identifier . "', '" . $style_name . "', " . $file->fid . ");",
             'onclick' => 'return false;',
           ),
           '#prefix' => '<div class="manualcrop-style-button-holder">',
@@ -482,7 +482,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
           '#multiple' => FALSE,
           '#attributes' => array(
             'class' => array('manualcrop-style-select', 'manualcrop-style-select-' . $file->fid),
-            'onchange' => "ManualCrop.showCroptool(event, '" . $identifier . "', this, " . $file->fid . ");",
+            'onchange' => "ManualCrop.showCroptool('" . $identifier . "', this, " . $file->fid . ");",
           ),
         ));
       }

@@ -43,8 +43,6 @@ ManualCrop.afterUpload = function(context) {
 /**
  * Open the cropping tool for an image.
  *
- * @param event
- *   JavaScript event object.
  * @param identifier
  *    Unique field identifier.
  * @param style
@@ -52,7 +50,7 @@ ManualCrop.afterUpload = function(context) {
  * @param fid
  *   The file id of the image the user is about to crop.
  */
-ManualCrop.showCroptool = function(event, identifier, style, fid) {
+ManualCrop.showCroptool = function(identifier, style, fid) {
   var styleName, styleSelect, cropType, origContainer, conWidth, conHeight;
 
   if (ManualCrop.croptool) {
@@ -109,9 +107,8 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
       ManualCrop.croptool.css('height', conHeight + 'px');
     }
 
-    // Get the image and its dimensions, the ManualCrop.croptool clone is not used
-    // because loading css of it doesn't work in Webkit browsers.
-    var image = $('img.manualcrop-image', origContainer);
+    // Get the image and its dimensions.
+    var image = $('.manualcrop-image', origContainer);
     var width = ManualCrop.parseInt(image.width());
     var height = ManualCrop.parseInt(image.height());
 
@@ -267,7 +264,7 @@ ManualCrop.showCroptool = function(event, identifier, style, fid) {
 
     // Set the initial selection.
     if (ManualCrop.oldSelection) {
-      ManualCrop.resetSelection();
+      ManualCrop.croptool.imagesLoaded(ManualCrop.resetSelection);
     }
 
     // Handle keyboard shortcuts.
@@ -340,7 +337,7 @@ ManualCrop.clearSelection = function() {
  * When a selection updates write the position and dimensions to the output field.
  *
  * @param image
- *   Reference to the image thats being cropped.
+ *   Reference to the image that is being cropped.
  * @param selection
  *   Object defining the current selection.
  */
@@ -660,8 +657,8 @@ $(document).ready(function() {
   // Attach behaviors to execute after an ajax call.
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
-      // Execute the after upload function on new image uploads.
-      $('.ajax-new-content', $(context).parent()).once('manualcrop', function() {
+      // After upload function on image upload.
+      $('.ajax-new-content', context).once('manualcrop', function() {
         var element = $(this);
 
         if (!element.html().length) {
@@ -675,7 +672,7 @@ $(document).ready(function() {
         }
       });
 
-      // Execute the init function if a modal (Media module) was opened.
+      // Init function if a modal (Media module) was opened.
       $('.modal-content', context).once('manualcrop', function() {
         ManualCrop.init();
       });
