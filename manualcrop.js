@@ -654,8 +654,18 @@ $(document).ready(function() {
 
   Drupal.behaviors.manualCrop = {
     attach: function(context, settings) {
-      $('.ajax-new-content', context).once('manualcrop', function() {
-        ManualCrop.afterUpload(this);
+      $('.ajax-new-content', $(context).parent()).once('manualcrop', function() {
+        var element = $(this);
+
+        if (!element.html().length) {
+          // If the $form['#file_upload_delta'] is not set or invalid the file module
+          // will add an empty <span> as .ajax-new-content element, so we need the
+          // previous element to execute the after upload function.
+          ManualCrop.afterUpload(element.prev().get(0));
+        }
+        else {
+          ManualCrop.afterUpload(this);
+        }
       });
 
       $('.modal-content', context).once('manualcrop', function() {
