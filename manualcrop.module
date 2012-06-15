@@ -1031,19 +1031,23 @@ function manualcrop_insert_styles_alter(&$types) {
  */
 function manualcrop_process_insert_widget($element) {
   if (!empty($element['insert']['#options']) && !empty($element['manualcrop_selections'])) {
-    // Make a list of all styles that are visible in the widget.
-    $styles = array('image' => 1);
-    foreach (element_children($element['manualcrop_selections']) as $style) {
-      $styles['image_' . $style] = 1;
-    }
+    $settings = $element['insert']['#widget']['settings'];
 
-    // Filter hidden styles from Insert.
-    $element['insert']['#options'] = array_intersect_key($element['insert']['#options'], $styles);
+    if (!isset($settings['insert_manualcrop_only']) || $settings['insert_manualcrop_only']) {
+      // Make a list of all styles that are visible in the widget.
+      $styles = array('image' => 1);
+      foreach (element_children($element['manualcrop_selections']) as $style) {
+        $styles['image_' . $style] = 1;
+      }
 
-    // Make sure the default value is allowed.
-    if (!array_key_exists($element['insert']['#default_value'], $element['insert']['#options'])) {
-      reset($element['insert']['#options']);
-      $element['insert']['#default_value'] = key($element['insert']['#options']);
+      // Filter hidden styles from Insert.
+      $element['insert']['#options'] = array_intersect_key($element['insert']['#options'], $styles);
+
+      // Make sure the default value is allowed.
+      if (!array_key_exists($element['insert']['#default_value'], $element['insert']['#options'])) {
+        reset($element['insert']['#options']);
+        $element['insert']['#default_value'] = key($element['insert']['#options']);
+      }
     }
   }
 

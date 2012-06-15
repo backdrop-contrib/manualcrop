@@ -471,13 +471,31 @@ function manualcrop_field_widget_settings_form($field, $instance) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
-  // The Insert list should only contain Manual Crop styles.
+  // The Insert list should (by default) only contain Manual Crop styles.
   if (module_exists('insert') && $form['#instance']['widget']['module'] == 'manualcrop') {
+    // Get the field settings and a reference to the insert fieldset.
+    $settings = $form['#instance']['widget']['settings'];
     $insert = &$form['instance']['settings']['insert'];
-    $styles = array_merge(array('image' => 0), manualcrop_insert_styles());
 
-    $insert['insert_styles']['#options'] = array_intersect_key($insert['insert_styles']['#options'], $styles);
-    $insert['insert_default']['#options'] = array_intersect_key($insert['insert_default']['#options'], $styles);
+    // Make sure the insert checkbox stays on top.
+    $insert['insert']['#weight'] = -2;
+
+    // Add an option to exclude image styles without a Manual Crop effect.
+    $insert['insert_manualcrop_only'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Only Manual Crop styles'),
+      '#description' => t('Enable this option to filter out all image styles without a Manual Crop effect.'),
+      '#default_value' => (isset($settings['insert_manualcrop_only']) ? $settings['insert_manualcrop_only'] : TRUE),
+      '#weight' => -1,
+    );
+
+    // If checked, remove all none Manual Crop styles.
+    if (!isset($settings['insert_manualcrop_only']) || $settings['insert_manualcrop_only']) {
+      $styles = array_merge(array('image' => 0), manualcrop_insert_styles());
+
+      $insert['insert_styles']['#options'] = array_intersect_key($insert['insert_styles']['#options'], $styles);
+      $insert['insert_default']['#options'] = array_intersect_key($insert['insert_default']['#options'], $styles);
+    }
   }
 }
 
