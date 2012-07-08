@@ -255,7 +255,7 @@ function manualcrop_form_image_effect_delete_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Effect deletion form submit handler; Cleanup old selection selections.
+ * Effect deletion form submit handler; Cleanup old selections.
  *
  * @param $form
  *    Effect form array.
@@ -363,6 +363,125 @@ function manualcrop_update_style_name($form, &$form_state) {
         ->condition('style_name', $style['name'])
         ->execute();
     }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
+  $type = $form['instance']['widget']['type']['#value'];
+
+  if (array_key_exists($type, manualcrop_element_info())) {
+    // Get the field instance data.
+    $instance = field_info_instance($form['instance']['entity_type']['#value'], $form['instance']['field_name']['#value'], $form['instance']['bundle']['#value']);
+
+    // Get the settings and the settings form.
+    $settings = $instance['widget']['settings'];
+    $settings_form = &$form['instance']['settings'];
+
+    // Build the styles list array.
+    $style_options = array_keys(manualcrop_get_styles_with_crop());
+    $style_options = drupal_map_assoc($style_options, '_manualcrop_image_style_name');
+
+    if ($type == 'image' && isset($settings_form['preview_image_style'])) {
+      // Disable the image field preview if the thumblist option is enabled.
+      $settings_form['preview_image_style']['#states'] = array(
+        'disabled' => array(
+          'input[name="instance[widget][settings][manualcrop_enable]"]' => array('checked' => TRUE),
+          'input[name="instance[widget][settings][manualcrop_thumblist]"]' => array('checked' => TRUE),
+        ),
+      );
+    }
+
+    // Add the Manual Crop fieldset.
+    $settings_form['manualcrop'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Manual Crop'),
+      '#description' => t(''),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#weight' => 25,
+      '#parents' => array('instance', 'widget', 'settings'),
+    );
+
+    $settings_form['manualcrop']['manualcrop_enable'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable'),
+      '#description' => t('Enable the Manual Crop features.'),
+      '#default_value' => ($settings['manualcrop_enable'] && !empty($style_options)),
+      '#disabled' => empty($style_options),
+    );
+
+    $settings_form['manualcrop']['manualcrop_thumblist'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('List thumbs'),
+      '#description' => t('Instead showing a button or selection list, show all thumbails (this will disable the preview thumbnail).'),
+      '#default_value' => $settings['manualcrop_thumblist'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_inline_crop'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Inline cropping'),
+      '#description' => t('Instead of opening an overlay, use inline cropping.'),
+      '#default_value' => $settings['manualcrop_inline_crop'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_crop_info'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show crop info'),
+      '#description' => t('Show the crop selection details.'),
+      '#default_value' => $settings['manualcrop_crop_info'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_instant_preview'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Instant preview'),
+      '#description' => t('Show an instant preview of the crop selection.'),
+      '#default_value' => $settings['manualcrop_instant_preview'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_instant_crop'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Crop after upload'),
+      '#description' => t('Open the cropping tool direct after the file upload. Note that this will only work if you <strong>enable only one image style</strong>.'),
+      '#default_value' => $settings['manualcrop_instant_crop'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_default_crop_area'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Default crop area'),
+      '#description' => t('Create a default crop area when opening the croptool for uncropped images.'),
+      '#default_value' => $settings['manualcrop_default_crop_area'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_styles_mode'] = array(
+      '#type' => 'radios',
+      '#title' => t('Styles list mode'),
+      '#options' => array(
+        'exclude' => t('Exclude selected styles'),
+        'include' => t('Include selected styles'),
+      ),
+      '#default_value' => $settings['manualcrop_styles_mode'],
+    );
+
+    $settings_form['manualcrop']['manualcrop_styles_list'] = array(
+      '#type' => 'select',
+      '#title' => t('Styles list'),
+      '#description' => t('Select all styles that should be shown or hidden (as selected above) in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
+      '#options' => $style_options,
+      '#default_value' => $settings['manualcrop_styles_list'],
+      '#multiple' => TRUE,
+    );
+
+    $settings_form['manualcrop']['manualcrop_require_cropping'] = array(
+      '#type' => 'select',
+      '#title' => t('Required croppings'),
+      '#description' => t('Select all styles that must have a crop selection.'),
+      '#options' => $style_options,
+      '#default_value' => $settings['manualcrop_require_cropping'],
+      '#multiple' => TRUE,
+    );
   }
 }
 
