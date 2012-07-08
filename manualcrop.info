@@ -1,5 +1,5 @@
 name = Manual Crop
-description = Let's you manually crop an image based upon the image style effects.
+description = Lets you manually crop an image based upon the image style effects.
 package = Image
 core = 7.x
 
