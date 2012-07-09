@@ -151,7 +151,7 @@ function manualcrop_element_process($element) {
  * Additional after build callback to modify form elements added by the Insert module.
  *
  * @param $element
- *    The element to process.
+ *   The element to process.
  */
 function manualcrop_insert_element_process($element) {
   if (!empty($element['insert']['#options']) && !empty($element['manualcrop_selections'])) {
@@ -201,7 +201,7 @@ function manualcrop_insert_styles() {
  * Preprocessing for theme_image(); Force reloading of an image after re-cropping.
  *
  * @param $variables
- *    Image template variables.
+ *   Image template variables.
  */
 function manualcrop_preprocess_image(&$variables) {
   // Does the image style have a Manual Crop effect?
@@ -244,9 +244,9 @@ function manualcrop_preprocess_image(&$variables) {
  * Returns HTML for the overlay crop area of an image.
  *
  * @param $variables
- *    An associative array containing:
- *    - "attributes": An array of attributes.
- *    - "image": An array of variables for the image theming function.
+ *   An associative array containing:
+ *   - "attributes": An array of attributes.
+ *   - "image": An array of variables for the image theming function.
  *
  * @ingroup themeable
  */
@@ -289,9 +289,9 @@ function theme_manualcrop_croptool_overlay($variables) {
  * Returns HTML for the inline crop area of an image.
  *
  * @param $variables
- *    An associative array containing:
- *    - "attributes": An array of attributes.
- *    - "image": An array of variables for the image theming function.
+ *   An associative array containing:
+ *   - "attributes": An array of attributes.
+ *   - "image": An array of variables for the image theming function.
  *
  * @ingroup themeable
  */
@@ -336,9 +336,9 @@ function theme_manualcrop_croptool_inline($variables) {
  * Returns HTML for thumbnail list.
  *
  * @param $variables
- *    An associative array containing:
- *    - "attributes": An array of attributes.
- *    - "images": Array of images html, themed by the "manualcrop_thumblist_image" function an keyed by style name.
+ *   An associative array containing:
+ *   - "attributes": An array of attributes.
+ *   - "images": Array of images html, themed by the "manualcrop_thumblist_image" function an keyed by style name.
  *
  * @ingroup themeable
  */
@@ -356,10 +356,10 @@ function theme_manualcrop_thumblist($variables) {
  * Returns HTML for a single image in the thumbnail list.
  *
  * @param $variables
- *    An associative array containing:
- *    - "attributes": An array of attributes.
- *    - "image": Rendered image tag html.
- *    - "style": Clean style name.
+ *   An associative array containing:
+ *   - "attributes": An array of attributes.
+ *   - "image": Rendered image tag html.
+ *   - "style": Clean style name.
  *
  * @ingroup themeable
  */
@@ -407,19 +407,20 @@ function manualcrop_image_effect_info() {
  * Image effect callback; Crop and scale an image resource.
  *
  * @param $image
- *    An image object returned by image_load().
+ *   An image object returned by image_load().
  * @param $data
- *    An array of attributes, needed to perform the crop and scale effect, with
- *    the following items:
- *    - "width": An integer representing the desired width in pixels.
- *    - "height": An integer representing the desired height in pixels.
- *    - "upscale": A boolean indicating that the image should be upscalled if
- *      the dimensions are larger than the original image.
- *    - "onlyscaleifcrop": A boolean indicating that the image should only be scaled
- *      if it was cropped.
- *    - "style_name": The style's machine name.
+ *   An array of attributes, needed to perform the crop and scale effect, with
+ *   the following items:
+ *   - "width": An integer representing the desired width in pixels.
+ *   - "height": An integer representing the desired height in pixels.
+ *   - "upscale": A boolean indicating that the image should be upscalled if
+ *     the dimensions are larger than the original image.
+ *   - "onlyscaleifcrop": A boolean indicating that the image should only be scaled
+ *     if it was cropped.
+ *   - "style_name": The style's machine name.
+ *
  * @return
- *    TRUE on success, FALSE on failure to crop and scale image.
+ *   TRUE on success, FALSE on failure to crop and scale image.
  *
  * @see image_crop_effect()
  * @see image_scale_effect()
@@ -450,15 +451,16 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  * Image effect callback; Crop an image resource.
  *
  * @param $image
- *    An image object returned by image_load().
+ *   An image object returned by image_load().
  * @param $data
- *    An array of attributes, needed to perform the crop effect, with the
- *    following items:
- *    - "width": An integer representing the desired width in pixels.
- *    - "height": An integer representing the desired height in pixels.
- *    - "style_name": The style's machine name.
+ *   An array of attributes, needed to perform the crop effect, with the
+ *   following items:
+ *   - "width": An integer representing the desired width in pixels.
+ *   - "height": An integer representing the desired height in pixels.
+ *   - "style_name": The style's machine name.
+ *
  * @return
- *    TRUE on success, FALSE on failure to crop image.
+ *   TRUE on success, FALSE on failure to crop image.
  *
  * @see image_crop_effect()
  */
@@ -480,13 +482,14 @@ function manualcrop_crop_effect(&$image, $data) {
  * Image effect callback; Reuse a Manual Crop effect.
  *
  * @param $image
- *    An image object returned by image_load().
+ *   An image object returned by image_load().
  * @param $data
- *    An array of settings, needed to perform the reuse effect, with the
- *    following items:
- *    - "reusestyle": The image style to reuse.
+ *   An array of settings, needed to perform the reuse effect, with the
+ *   following items:
+ *   - "reusestyle": The image style to reuse.
+ *
  * @return
- *    TRUE on success, FALSE on failure to reuse the effect.
+ *   TRUE on success, FALSE on failure to reuse the effect.
  *
  * @see image_crop_effect()
  */

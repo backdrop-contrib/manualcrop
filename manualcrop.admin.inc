@@ -8,9 +8,10 @@
  * Form Builder; Configuration settings for the crop and scale effect.
  *
  * @param $data
- *    The current configuration for this crop and scale effect.
+ *   The current configuration for this crop and scale effect.
+ *
  * @return
- *    The form structure array.
+ *   The form structure array.
  */
 function manualcrop_crop_and_scale_form($data) {
   $form = image_scale_form($data);
@@ -39,8 +40,8 @@ function manualcrop_crop_and_scale_form($data) {
  * Returns HTML for a summary of an image crop and scale effect.
  *
  * @param $variables
- *    An associative array containing:
- *    - data: The current configuration for this crop and scale effect.
+ *   An associative array containing:
+ *   - data: The current configuration for this crop and scale effect.
  *
  * @ingroup themeable
  */
@@ -73,9 +74,10 @@ function theme_manualcrop_crop_and_scale_summary($variables) {
  * Form Builder; Configuration settings for crop effect.
  *
  * @param $data
- *    The current configuration for this crop effect.
+ *   The current configuration for this crop effect.
+ *
  * @return
- *    The form structure array.
+ *   The form structure array.
  */
 function manualcrop_crop_form($data) {
   $form = image_resize_form($data);
@@ -125,8 +127,8 @@ function manualcrop_keepproportions_validate($element, $form_state) {
  * Returns HTML for a summary of an image crop effect.
  *
  * @param $variables
- *    An associative array containing:
- *    - data: The current configuration for this crop effect.
+ *   An associative array containing:
+ *   - data: The current configuration for this crop effect.
  *
  * @ingroup themeable
  */
@@ -153,9 +155,10 @@ function theme_manualcrop_crop_summary($variables) {
  * Form Builder; Configuration settings for the reuse effect.
  *
  * @param $data
- *    The current configuration for this reuse effect.
+ *   The current configuration for this reuse effect.
+ *
  * @return
- *    The form structure array.
+ *   The form structure array.
  */
 function manualcrop_reuse_form($data) {
   // Load all image styles that have a cropping effect and exclude the style
@@ -187,8 +190,8 @@ function manualcrop_reuse_form($data) {
  * Returns HTML for a summary of an image crop selection reuse effect.
  *
  * @param $variables
- *    An associative array containing:
- *    - data: The current configuration for this crop selection reuse effect.
+ *   An associative array containing:
+ *   - data: The current configuration for this crop selection reuse effect.
  *
  * @ingroup themeable
  */
@@ -218,9 +221,9 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
  * Effect form submit handler; Sets the image style name and weight of the effect.
  *
  * @param $form
- *    Effect form array.
+ *   Effect form array.
  * @param $form_state
- *    Form state array.
+ *   Form state array.
  */
 function manualcrop_image_effect_form_submit($form, &$form_state) {
   $style = $form_state['image_style'];
@@ -258,9 +261,9 @@ function manualcrop_form_image_effect_delete_form_alter(&$form, &$form_state) {
  * Effect deletion form submit handler; Cleanup old selections.
  *
  * @param $form
- *    Effect form array.
+ *   Effect form array.
  * @param $form_state
- *    Form state array.
+ *   Form state array.
  */
 function manualcrop_image_effect_delete_form_submit($form, &$form_state) {
   manualcrop_image_style_delete($form_state['image_style']);
@@ -299,9 +302,9 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
  * Effect and style form submit handler; Force the Manual Crop effect to be the first one.
  *
  * @param $form
- *    Effect or style form array.
+ *   Effect or style form array.
  * @param $form_state
- *    Form state array.
+ *   Form state array.
  */
 function manualcrop_force_effect_order($form, &$form_state) {
   // In both forms (style and effect) we find the style in the same key.
@@ -337,9 +340,9 @@ function manualcrop_force_effect_order($form, &$form_state) {
  * Style form submit handler; Update the style name in the effect data and in the widgets.
  *
  * @param $form
- *    Style form array.
+ *   Style form array.
  * @param $form_state
- *    Form state array.
+ *   Form state array.
  */
 function manualcrop_update_style_name($form, &$form_state) {
   $style = $form_state['image_style'];
@@ -560,9 +563,9 @@ function manualcrop_form_system_performance_settings_alter(&$form, &$form_state)
  * Performance form submit handler; Update the cache-control settings.
  *
  * @param $form
- *    Effect form array.
+ *   Effect form array.
  * @param $form_state
- *    Form state array.
+ *   Form state array.
  */
 function manualcrop_form_system_performance_settings_submit($form, &$form_state) {
   $cache_control = (bool) $form_state['values']['manualcrop']['cache_control'];
