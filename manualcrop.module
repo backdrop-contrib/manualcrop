@@ -109,6 +109,11 @@ function manualcrop_field_widget_info_alter(&$info) {
     'manualcrop_require_cropping' => array(),
   );
 
+  if (module_exists('insert')) {
+    // Filter all styles without a Manual Crop effect?
+    $defaults['manualcrop_filter_insert'] = TRUE;
+  }
+
   foreach (manualcrop_element_info() as $widget_type => $element) {
     if (isset($info[$widget_type]['settings'])) {
       $settings = &$info[$widget_type]['settings'];
@@ -135,7 +140,61 @@ function manualcrop_field_widget_info_alter(&$info) {
  * Process function for Manual Crop enabled widgets.
  */
 function manualcrop_element_process($element) {
+  if (module_exists('insert')) {
+    manualcrop_insert_element_process($element);
+  }
 
+  return $element;
+}
+
+/**
+ * Additional after build callback to modify form elements added by the Insert module.
+ *
+ * @param $element
+ *    The element to process.
+ */
+function manualcrop_insert_element_process($element) {
+  if (!empty($element['insert']['#options']) && !empty($element['manualcrop_selections'])) {
+    $settings = $element['insert']['#widget']['settings'];
+
+    if ($settings['manualcrop_filter_insert']) {
+      // Make a list of all styles that should be visible in the widget.
+      $styles = array('image' => 1);
+      foreach (element_children($element['manualcrop_selections']) as $style) {
+        $styles['image_' . $style] = 1;
+      }
+
+      // Filter hidden styles from Insert.
+      $element['insert']['#options'] = array_intersect_key($element['insert']['#options'], $styles);
+
+      // Make sure the default value is allowed.
+      if (!array_key_exists($element['insert']['#default_value'], $element['insert']['#options'])) {
+        reset($element['insert']['#options']);
+        $element['insert']['#default_value'] = key($element['insert']['#options']);
+      }
+    }
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_insert_styles().
+ */
+function manualcrop_insert_styles() {
+  $insert_styles = drupal_static(__FUNCTION__);
+
+  if (is_null($insert_styles)) {
+    $insert_styles = array();
+
+    foreach (manualcrop_get_styles_with_crop() as $style_name => $effect) {
+      $insert_styles['image_' . $style_name] = array(
+        'label' => _manualcrop_image_style_name($style_name),
+      );
+    }
+  }
+
+  return $insert_styles;
 }
 
 /**
