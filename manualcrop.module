@@ -209,50 +209,52 @@ function manualcrop_element_process($element, &$form_state, $form) {
  *   Field instance array.
  */
 function manualcrop_croptool_prepare_form(&$form, &$form_state, $instance = NULL) {
-  $settings = &drupal_static(__FUNCTION__);
-  $fields = array();
+  if (isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
+    $settings = &drupal_static(__FUNCTION__);
+    $fields = array();
 
-  if (!is_array($settings)) {
-    $settings = array();
+    if (!is_array($settings)) {
+      $settings = array();
 
-    // Generate image style settings.
-    foreach (manualcrop_get_styles_with_crop() as $style_name => $data) {
-      $settings[$style_name] = array(
-        'effect' => $data['name'],
-        'data' => $data['data']
+      // Generate image style settings.
+      foreach (manualcrop_get_styles_with_crop() as $style_name => $data) {
+        $settings[$style_name] = array(
+          'effect' => $data['name'],
+          'data' => $data['data']
+        );
+      }
+    }
+
+    if (is_array($instance)) {
+      // Include the field widget settings for FAPI fields.
+      $fields = array(
+        drupal_clean_css_identifier($instance['field_name']) => array(
+          'required' => manualcrop_instance_required_styles($instance),
+          'instantCrop' => !empty($instance['widget']['settings']['instant_crop']),
+          'defaultCropArea' => (!isset($instance['widget']['settings']['default_crop_area']) || $instance['widget']['settings']['default_crop_area']),
+        ),
       );
     }
-  }
 
-  if (is_array($instance)) {
-    // Include the field widget settings for FAPI fields.
-    $fields = array(
-      drupal_clean_css_identifier($instance['field_name']) => array(
-        'required' => manualcrop_instance_required_styles($instance),
-        'instantCrop' => !empty($instance['widget']['settings']['instant_crop']),
-        'defaultCropArea' => (!isset($instance['widget']['settings']['default_crop_area']) || $instance['widget']['settings']['default_crop_area']),
-      ),
-    );
-  }
+    // Add the JavaScript settings.
+    $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
+      'styles' => $settings,
+      'fields' => $fields,
+    )), 'type' => 'setting');
 
-  // Add the JavaScript settings.
-  $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
-    'styles' => $settings,
-    'fields' => $fields,
-  )), 'type' => 'setting');
+    // IE has problems with lazy loading of css files, see http://drupal.org/node/1071818
+    if (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE) {
+      $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/manualcrop.css';
+      $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css';
+    }
 
-  // IE has problems with lazy loading of css files, see http://drupal.org/node/1071818
-  if (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE) {
-    $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/manualcrop.css';
-    $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css';
-  }
-
-  // Reset the images array.
-  if (!isset($form_state['manualcrop_data'])) {
-    $form_state['manualcrop_data'] = array('images' => array());
-  }
-  else {
-    $form_state['manualcrop_data']['images'] = array();
+    // Reset the images array.
+    if (!isset($form_state['manualcrop_data'])) {
+      $form_state['manualcrop_data'] = array('images' => array());
+    }
+    else {
+      $form_state['manualcrop_data']['images'] = array();
+    }
   }
 }
 
@@ -275,7 +277,7 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $instance = NULL
  *    Returns TRUE if a croptool has been added, FALSE otherwise.
  */
 function manualcrop_croptool_process(&$element, &$form_state, $file, $instance = NULL, $preview = NULL) {
-  if (isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
+  if (isset($form_state['manualcrop_data'])) {
     $styles = manualcrop_get_styles_with_crop();
 
     if (!empty($styles)) {
