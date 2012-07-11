@@ -3,4 +3,4 @@ description = Lets you manually crop an image based upon the image style effects
 package = Image
 core = 7.x
 
-dependencies[] = image
+dependencies[] = image (>=7.8)
