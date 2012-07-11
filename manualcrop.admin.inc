@@ -373,7 +373,7 @@ function manualcrop_update_style_name($form, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
-  if (array_key_exists($form['instance']['widget']['type']['#value'], manualcrop_element_info())) {
+  if (in_array($form['instance']['widget']['type']['#value'], manualcrop_supported_widgets())) {
     // Get the field instance data.
     $instance = field_info_instance($form['instance']['entity_type']['#value'], $form['instance']['field_name']['#value'], $form['instance']['bundle']['#value']);
     $settings = $instance['widget']['settings'];
