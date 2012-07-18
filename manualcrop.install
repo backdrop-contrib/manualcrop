@@ -129,3 +129,61 @@ function manualcrop_update_7100(&$sandbox) {
 function manualcrop_update_7101(&$sandbox) {
   db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
 }
+
+/**
+ * Migrate all Manual Crop widgets to the default image widget.
+ */
+function manualcrop_update_7102(&$sandbox) {
+  foreach (field_info_fields() as $field_name => $field) {
+    // Only update image fields.
+    if ($field['type'] == 'image') {
+      foreach ($field['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle_name) {
+          $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+
+          // Check if this field uses the Manual Crop widget.
+          if ($instance['widget']['type'] == 'manualcrop_image') {
+            $instance['widget']['type'] = 'image_image';
+
+            // Rename all settings.
+            $settings = $instance['widget']['settings'];
+            $settings += array(
+              'manualcrop_enable' => TRUE,
+              'manualcrop_thumblist' => !empty($settings['thumblist']),
+              'manualcrop_inline_crop' => !empty($settings['inline_crop']),
+              'manualcrop_crop_info' => !empty($settings['crop_info']),
+              'manualcrop_instant_preview' => !empty($settings['instant_preview']),
+              'manualcrop_instant_crop' => !empty($settings['instant_crop']),
+              'manualcrop_default_crop_area' => !empty($settings['default_crop_area']),
+              'manualcrop_styles_mode' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
+              'manualcrop_styles_list' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
+              'manualcrop_require_cropping' => $settings['require_cropping'],
+            );
+
+            if (isset($settings['insert_manualcrop_only'])) {
+              $settings['manualcrop_filter_insert'] = $settings['insert_manualcrop_only'];
+            }
+
+            // Remove the old setting names.
+            $instance['widget']['settings'] = array_diff_key($settings, array_flip(array(
+              'thumblist',
+              'inline_crop',
+              'crop_info',
+              'instant_preview',
+              'instant_crop',
+              'default_crop_area',
+              'styles_mode',
+              'styles_list',
+              'require_cropping',
+              'insert_manualcrop_only',
+            )));
+
+            field_update_instance($instance);
+          }
+        }
+      }
+    }
+  }
+
+  field_cache_clear();
+}
