@@ -82,24 +82,6 @@ function manualcrop_supported_widgets() {
 }
 
 /**
- * Implements hook_element_info().
- */
-function manualcrop_element_info() {
-  $types = array(
-    'managed_file' => array(
-      '#process' => array('manualcrop_element_process'),
-      '#element_validate' => array('manualcrop_croptool_validate'),
-    ),
-  );
-
-  if (module_exists('insert')) {
-    $types['managed_file']['#after_build'] = array('manualcrop_insert_element_process');
-  }
-
-  return $types;
-}
-
-/**
  * Implements hook_field_widget_info_alter().
  */
 function manualcrop_field_widget_info_alter(&$info) {
@@ -160,6 +142,15 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
   if (!empty($context['instance']['widget']['settings']['manualcrop_enable'])) {
     // Prepare the form.
     manualcrop_croptool_prepare_form($element, $form_state, $context['instance']);
+
+    foreach (element_children($element) as $key) {
+      $element[$key]['#process'][] = 'manualcrop_widget_process';
+      $element[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
+    }
+
+    if (module_exists('insert')) {
+      $element['#after_build'][] = 'manualcrop_insert_element_process';
+    }
   }
 }
 
@@ -183,8 +174,8 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
  * @return
  *   Altered widget element.
  */
-function manualcrop_element_process($element, &$form_state, $form) {
-  if ($element['#file']) {
+function manualcrop_widget_process($element, &$form_state, $form) {
+  if (!empty($element['#file'])) {
     // Get the instance and settings
     $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
     $settings = $instance['widget']['settings'];
@@ -304,7 +295,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         $required = manualcrop_instance_required_styles($instance);
 
         // Overlay or inline cropping.
-        if (!empty($settings['inline_crop'])) {
+        if (!empty($settings['manualcrop_inline_crop'])) {
           $crop_type = 'inline';
         }
         else {
@@ -312,16 +303,16 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         }
 
         // Other widget settings.
-        $crop_info = !empty($settings['crop_info']);
-        $instant_preview = !empty($settings['instant_preview']);
-        $thumblist = !empty($settings['thumblist']);
+        $crop_info = !empty($settings['manualcrop_crop_info']);
+        $instant_preview = !empty($settings['manualcrop_instant_preview']);
+        $thumblist = !empty($settings['manualcrop_thumblist']);
 
         // Exclude or include styles.
         if (isset($settings['styles_mode']) && isset($settings['styles_list'])) {
           $list = array_values($settings['styles_list']);
 
           // Filter hidden styles.
-          if ($settings['styles_mode'] == 'include') {
+          if ($settings['manualcrop_styles_mode'] == 'include') {
             $styles = array_intersect_key($styles, array_flip($list));
           }
           else {
@@ -362,7 +353,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         $item = &$container['#default_value'];
       }
 
-      // Make sure we have a valid preview or no element.
+      // Make sure we have a valid or no preview element.
       if (!empty($preview) && !isset($element[$preview])) {
         $preview = NULL;
       }
@@ -527,13 +518,13 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         ));
       }
 
-      // The FAPI widget can have a alt and/or title field, decrease their weight.
+      // The FAPI widget can have a alt and/or title field, increase their weight.
       if (isset($container['alt'])) {
-        $container['alt']['#weight']--;
+        $container['alt']['#weight']++;
       }
 
       if (isset($container['title'])) {
-        $container['title']['#weight']--;
+        $container['title']['#weight']++;
       }
 
       return TRUE;
@@ -550,23 +541,28 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
  *   The element to process.
  */
 function manualcrop_insert_element_process($element) {
-  if (!empty($element['insert']['#options']) && !empty($element['manualcrop_selections'])) {
-    $settings = $element['insert']['#widget']['settings'];
+  foreach (element_children($element) as $key) {
+    if (!empty($element[$key]['insert']['#options']) && !empty($element[$key]['manualcrop_selections'])) {
+      $settings = $element[$key]['insert']['#widget']['settings'];
 
-    if ($settings['manualcrop_filter_insert']) {
-      // Make a list of all styles that should be visible in the widget.
-      $styles = array('image' => 1);
-      foreach (element_children($element['manualcrop_selections']) as $style) {
-        $styles['image_' . $style] = 1;
-      }
+      // Increase the select list weight.
+      $element[$key]['insert']['#weight'] = 0;
 
-      // Filter hidden styles from Insert.
-      $element['insert']['#options'] = array_intersect_key($element['insert']['#options'], $styles);
+      if ($settings['manualcrop_filter_insert']) {
+        // Make a list of all styles that should be visible in the widget.
+        $styles = array('image' => 1);
+        foreach (element_children($element[$key]['manualcrop_selections']) as $style) {
+          $styles['image_' . $style] = 1;
+        }
 
-      // Make sure the default value is allowed.
-      if (!array_key_exists($element['insert']['#default_value'], $element['insert']['#options'])) {
-        reset($element['insert']['#options']);
-        $element['insert']['#default_value'] = key($element['insert']['#options']);
+        // Filter hidden styles from Insert.
+        $element[$key]['insert']['#options'] = array_intersect_key($element[$key]['insert']['#options'], $styles);
+
+        // Make sure the default value is allowed.
+        if (!array_key_exists($element[$key]['insert']['#default_value'], $element[$key]['insert']['#options'])) {
+          reset($element[$key]['insert']['#options']);
+          $element[$key]['insert']['#default_value'] = key($element[$key]['insert']['#options']);
+        }
       }
     }
   }
