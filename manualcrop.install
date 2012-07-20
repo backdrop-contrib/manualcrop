@@ -139,7 +139,7 @@ function manualcrop_update_7102(&$sandbox) {
     if ($field['type'] == 'image') {
       foreach ($field['bundles'] as $entity_type => $bundles) {
         foreach ($bundles as $bundle_name) {
-          // Get the field instance and settings.
+          // Get the field instance and its settings.
           $instance = field_info_instance($entity_type, $field_name, $bundle_name);
           $settings = $instance['widget']['settings'];
 
@@ -159,7 +159,7 @@ function manualcrop_update_7102(&$sandbox) {
               'manualcrop_default_crop_area' => !empty($settings['default_crop_area']),
               'manualcrop_styles_mode' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
               'manualcrop_styles_list' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
-              'manualcrop_require_cropping' => $settings['require_cropping'],
+              'manualcrop_require_cropping' => (isset($settings['require_cropping']) ? $settings['require_cropping'] : array()),
             ));
 
             if (isset($settings['insert_manualcrop_only'])) {
