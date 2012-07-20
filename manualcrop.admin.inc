@@ -374,7 +374,7 @@ function manualcrop_update_style_name($form, &$form_state) {
  */
 function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
   if (in_array($form['instance']['widget']['type']['#value'], manualcrop_supported_widgets())) {
-    // Get the field instance data.
+    // Get the field instance and setting.
     $instance = field_info_instance($form['instance']['entity_type']['#value'], $form['instance']['field_name']['#value'], $form['instance']['bundle']['#value']);
     $settings = $instance['widget']['settings'];
 
@@ -500,7 +500,7 @@ function manualcrop_field_widget_settings_form($settings) {
  *   Instance form elements array.
  */
 function manualcrop_field_widget_settings_form_alter(&$form, $settings) {
-  if ($form['widget']['type']['#value'] == 'image_image' && isset($form['widget']['settings']['preview_image_style'])) {
+  if ($form['widget']['type']['#value'] == 'image_image' && isset($settings['preview_image_style'])) {
     // Disable the image field preview if the thumblist option is enabled.
     $form['widget']['settings']['preview_image_style']['#states'] = array(
       'disabled' => array(
@@ -524,10 +524,15 @@ function manualcrop_field_widget_settings_form_alter(&$form, $settings) {
       '#description' => t('Enable this option to filter out all image styles without a Manual Crop effect.'),
       '#default_value' => $settings['manualcrop_filter_insert'],
       '#weight' => -1,
+      '#states' => array(
+        'disabled' => array(
+          'input[name="instance[widget][settings][manualcrop_enable]"]' => array('checked' => FALSE),
+        ),
+      )
     );
 
-    // If checked, remove all none Manual Crop styles.
-    if ($settings['manualcrop_filter_insert']) {
+    // If checked, remove all non-Manual Crop styles.
+    if ($settings['manualcrop_filter_insert'] && $settings['manualcrop_enable']) {
       $styles = array_merge(array('image' => 0), manualcrop_insert_styles());
 
       $insert['insert_styles']['#options'] = array_intersect_key($insert['insert_styles']['#options'], $styles);

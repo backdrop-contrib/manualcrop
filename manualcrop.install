@@ -139,15 +139,17 @@ function manualcrop_update_7102(&$sandbox) {
     if ($field['type'] == 'image') {
       foreach ($field['bundles'] as $entity_type => $bundles) {
         foreach ($bundles as $bundle_name) {
+          // Get the field instance and settings.
           $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+          $settings = $instance['widget']['settings'];
 
-          // Check if this field uses the Manual Crop widget.
-          if ($instance['widget']['type'] == 'manualcrop_image') {
+          // Only continue for the Image and Manual Crop widget.
+          if ($instance['widget']['type'] == 'manualcrop_image' || ($instance['widget']['type'] == 'image_image' && isset($settings['styles_mode']))) {
+            // Change the widget type to the default image widget.
             $instance['widget']['type'] = 'image_image';
 
             // Rename all settings.
-            $settings = $instance['widget']['settings'];
-            $settings += array(
+            $settings = array_merge($settings, array(
               'manualcrop_enable' => TRUE,
               'manualcrop_thumblist' => !empty($settings['thumblist']),
               'manualcrop_inline_crop' => !empty($settings['inline_crop']),
@@ -158,7 +160,7 @@ function manualcrop_update_7102(&$sandbox) {
               'manualcrop_styles_mode' => (isset($settings['styles_mode']) ? $settings['styles_mode'] : 'exclude'),
               'manualcrop_styles_list' => (isset($settings['styles_list']) ? $settings['styles_list'] : array()),
               'manualcrop_require_cropping' => $settings['require_cropping'],
-            );
+            ));
 
             if (isset($settings['insert_manualcrop_only'])) {
               $settings['manualcrop_filter_insert'] = $settings['insert_manualcrop_only'];
