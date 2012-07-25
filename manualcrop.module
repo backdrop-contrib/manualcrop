@@ -221,8 +221,8 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $instance = NULL
       $fields = array(
         drupal_clean_css_identifier($instance['field_name']) => array(
           'required' => manualcrop_instance_required_styles($instance),
-          'instantCrop' => !empty($instance['widget']['settings']['instant_crop']),
-          'defaultCropArea' => (!isset($instance['widget']['settings']['default_crop_area']) || $instance['widget']['settings']['default_crop_area']),
+          'instantCrop' => !empty($instance['widget']['settings']['manualcrop_instant_crop']),
+          'defaultCropArea' => !empty($instance['widget']['settings']['manualcrop_default_crop_area']),
         ),
       );
     }
@@ -308,8 +308,8 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         $thumblist = !empty($settings['manualcrop_thumblist']);
 
         // Exclude or include styles.
-        if (isset($settings['styles_mode']) && isset($settings['styles_list'])) {
-          $list = array_values($settings['styles_list']);
+        if (isset($settings['manualcrop_styles_mode']) && isset($settings['manualcrop_styles_list'])) {
+          $list = array_values($settings['manualcrop_styles_list']);
 
           // Filter hidden styles.
           if ($settings['manualcrop_styles_mode'] == 'include') {
@@ -443,7 +443,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
       );
 
       // Element to open the croptool.
-      if (!empty($settings['thumblist'])) {
+      if (!empty($settings['manualcrop_thumblist'])) {
         // Thumbnail list, each image style is transformed in a clickable thumbnail.
         array_shift($style_options);
         foreach ($style_options as $style_name => $style_clean_name) {
