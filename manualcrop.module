@@ -72,16 +72,6 @@ function manualcrop_file_delete($file) {
 }
 
 /**
- * Returns an array of supported widgets.
- *
- * @return
- *   Array of widget names.
- */
-function manualcrop_supported_widgets() {
-  return array('image_image');
-}
-
-/**
  * Implements hook_field_widget_info_alter().
  */
 function manualcrop_field_widget_info_alter(&$info) {
@@ -308,7 +298,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $file, $instance =
         $thumblist = !empty($settings['manualcrop_thumblist']);
 
         // Exclude or include styles.
-        if (isset($settings['manualcrop_styles_mode']) && isset($settings['manualcrop_styles_list'])) {
+        if (!empty($settings['manualcrop_styles_list'])) {
           $list = array_values($settings['manualcrop_styles_list']);
 
           // Filter hidden styles.

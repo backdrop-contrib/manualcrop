@@ -5,6 +5,16 @@
  */
 
 /**
+ * Returns an array of supported widgets.
+ *
+ * @return
+ *   Array of widget names.
+ */
+function manualcrop_supported_widgets() {
+  return array('image_image');
+}
+
+/**
  * Gets the crop area for an image.
  *
  * @param $file
@@ -79,15 +89,15 @@ function manualcrop_instance_required_styles($instance) {
   $settings = $instance['widget']['settings'];
 
   // Array of required styles.
-  $required = (isset($settings['require_cropping']) ? array_values($settings['require_cropping']) : array());
+  $required = array_values($settings['manualcrop_require_cropping']);
 
   // Make sure to exclude unavailable styles.
-  if (!empty($required) && isset($settings['styles_mode']) && isset($settings['styles_list'])) {
-    if ($settings['styles_mode'] == 'include') {
-      $required = array_intersect($required, array_values($settings['styles_list']));
+  if (!empty($required) && !empty($settings['manualcrop_styles_list'])) {
+    if ($settings['manualcrop_styles_mode'] == 'include') {
+      $required = array_intersect($required, array_values($settings['manualcrop_styles_list']));
     }
     else {
-      $required = array_diff($required, array_values($settings['styles_list']));
+      $required = array_diff($required, array_values($settings['manualcrop_styles_list']));
     }
   }
 
@@ -109,17 +119,18 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
         foreach ($bundles as $bundle) {
           // Check each instance for processing.
           $instance = field_info_instance($entity_type, $field['field_name'], $bundle);
+          $settings = &$instance['widget']['settings'];
 
-          if ($instance['widget']['module'] == 'manualcrop' && (isset($instance['widget']['settings']['require_cropping']) || isset($instance['widget']['settings']['styles_list']))) {
+          if (in_array($instance['widget']['type'], manualcrop_supported_widgets()) && (!empty($settings['manualcrop_require_cropping']) || !empty($settings['manualcrop_styles_list']))) {
             $list = array();
 
             // Add all existing settings to the list.
-            if (isset($instance['widget']['settings']['require_cropping'])) {
-              $list['require_cropping'] = &$instance['widget']['settings']['require_cropping'];
+            if (!empty($settings['manualcrop_require_cropping'])) {
+              $list['manualcrop_require_cropping'] = &$settings['manualcrop_require_cropping'];
             }
 
-            if (isset($instance['widget']['settings']['styles_list'])) {
-              $list['styles_list'] = &$instance['widget']['settings']['styles_list'];
+            if (!empty($settings['manualcrop_styles_list'])) {
+              $list['manualcrop_styles_list'] = &$settings['manualcrop_styles_list'];
             }
 
             // Process all settings.
@@ -131,7 +142,7 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
                   $item[$new_style_name] = $new_style_name;
                 }
                 elseif (empty($require)) {
-                  unset($field['widget']['settings'][$key]);
+                  unset($settings[$key]);
                 }
               }
               else {
