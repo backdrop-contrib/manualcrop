@@ -689,37 +689,43 @@ function manualcrop_croptool_submit($form, &$form_state) {
  *   Image template variables.
  */
 function manualcrop_preprocess_image(&$variables) {
-  // Does the image style have a Manual Crop effect?
-  $is_cropstyle = (isset($variables['style_name']) && array_key_exists($variables['style_name'], manualcrop_get_styles_with_crop()));
-
   // Is cache control enabled?
-  $cache_control = variable_get('manualcrop_cache_control', TRUE);
+  if (!empty($variables['style_name']) && variable_get('manualcrop_cache_control', TRUE)) {
+    $styles = manualcrop_get_styles_with_crop();
+    $style_name = $variables['style_name'];
 
-  if ($is_cropstyle && $cache_control) {
-    // Attempt to load HTTP cache-controller from database cache.
-    $original_path = $variables['path'];
+    // Does this image style have a Manual Crop effect?
+    if (isset($styles[$style_name])) {
+      $original_path = $variables['path'];
 
-    if ($cached_path = cache_get('manualcrop|' . $original_path)) {
-      $variables['path'] = $cached_path->data;
-    }
-    else {
-      // No HTTP cache-controller in database cache, get the image path.
-      $match = '/styles/' . $variables['style_name'] . '/';
-      $path = substr($variables['path'], (strrpos($variables['path'], $match) + drupal_strlen($match)));
-      $path = explode('/', $path);
+      // Attempt to load the HTTP cache-controller from cache.
+      if ($cached_path = cache_get('manualcrop|' . $original_path)) {
+        $variables['path'] = $cached_path->data;
+      }
+      else {
+        // No HTTP cache-controller in cache, get the image path.
+        $match = '/styles/' . $style_name . '/';
+        $path = substr($variables['path'], (strrpos($variables['path'], $match) + drupal_strlen($match)));
+        $path = explode('/', $path);
 
-      // Build the image URI.
-      $scheme = array_shift($path);
-      $target = implode('/', $path);
-      $image_uri = $scheme . '://' . urldecode($target);
+        // Build the image URI.
+        $scheme = array_shift($path);
+        $target = implode('/', $path);
+        $image_uri = $scheme . '://' . urldecode($target);
 
-      // Load the cropping area.
-      if ($crop = manualcrop_load_crop_selection($image_uri, $variables['style_name'])) {
-        // Add a HTTP cache-controller to the image path.
-        $variables['path'] .= (strpos($variables['path'], '?q=') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+        // Use the reuse style to load the crop selection.
+        if (_manualcrop_is_own_effect($styles[$style_name], FALSE)) {
+          $style_name = $styles[$style_name]['data']['reusestyle'];
+        }
 
-        // Cache the the updated image path.
-        cache_set('manualcrop|' . $original_path, $variables['path']);
+        // Load the cropping area.
+        if ($crop = manualcrop_load_crop_selection($image_uri, $style_name)) {
+          // Add a HTTP cache-controller to the image path.
+          $variables['path'] .= (strpos($variables['path'], '?q=') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+
+          // Cache the the updated image path.
+          cache_set('manualcrop|' . $original_path, $variables['path']);
+        }
       }
     }
   }
