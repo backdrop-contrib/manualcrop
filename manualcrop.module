@@ -53,7 +53,7 @@ function manualcrop_image_style_delete($style) {
   if (!empty($style['effects'])) {
     $effect = reset($style['effects']);
 
-    if ($effect['module'] == 'manualcrop') {
+    if (_manualcrop_is_own_effect($effect)) {
       db_delete('manualcrop')
         ->condition('style_name', $style['name'])
         ->execute();
@@ -987,7 +987,7 @@ function manualcrop_reuse_effect(&$image, $data) {
   $style = image_style_load($data['reusestyle']);
   $effect = reset($style['effects']);
 
-  if (_manualcrop_is_crop_effect($effect)) {
+  if (_manualcrop_is_own_effect($effect, TRUE)) {
     // Apply the Manual Crop cropping effect.
     image_effect_apply($image, $effect);
     return TRUE;

@@ -54,28 +54,35 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
 /**
  * Returns the styles that have crop settings.
  *
+ * @param $include_reuse
+ *   Set to TRUE to include styles with a Manual Crop reuse effect.
+ *
  * @return
  *   An array of styles with the style name as key and the effect data as value.
  */
-function manualcrop_get_styles_with_crop() {
+function manualcrop_get_styles_with_crop($include_reuse = FALSE) {
   $hascrop = &drupal_static(__FUNCTION__);
 
   if (is_null($hascrop)) {
-    $hascrop = array();
+    $hascrop = array(array(), array());
 
     foreach (image_styles() as $style_name => $style) {
       if (!empty($style['effects'])) {
         // Check if the first effect is a Manual Crop cropping effect.
         $effect = reset($style['effects']);
 
-        if (_manualcrop_is_crop_effect($effect)) {
-          $hascrop[$style_name] = $effect;
+        if (_manualcrop_is_own_effect($effect)) {
+          $hascrop[1][$style_name] = $effect;
+
+          if (_manualcrop_is_own_effect($effect, TRUE)) {
+            $hascrop[0][$style_name] = $effect;
+          }
         }
       }
     }
   }
 
-  return $hascrop;
+  return $hascrop[(int) $include_reuse];
 }
 
 /**
@@ -171,14 +178,14 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
  *   New image style name if renamed, a NULL value will remove the effect from the style.
  */
 function _manualcrop_reuse_effect_update_names_in_settings($style_name, $new_style_name = NULL) {
-  foreach (image_styles() as $style_name => $style) {
+  foreach (image_styles() as $style) {
     if (!empty($style['effects'])) {
       // Check if the first effect is a Manual Crop effect.
       $effect = reset($style['effects']);
 
       // Check if this is a Manual Crop reuse effect that needs an update.
-      if ($effect['module'] == 'manualcrop' && $effect['name'] == 'manualcrop_reuse' && $effect['data']['reusestyle'] == $style_name) {
-        if ($new_style_name) {
+      if (_manualcrop_is_own_effect($effect, FALSE) && $effect['data']['reusestyle'] == $style_name) {
+        if (is_null($new_style_name)) {
           image_effect_delete($effect);
         }
         else {
@@ -220,14 +227,17 @@ function _manualcrop_image_style_name($style_name) {
 }
 
 /**
- * Checks if the effect is a Manual Crop cropping effect.
+ * Checks if the effect is a Manual Crop effect.
  *
  * @param $effect
- *   Array of effect information.
+ *   Image style effect information array.
+ * @param $crop_effect
+ *   Set to TRUE to require a cropping effect or set to FALSE to require the
+ *   reuse effect.
  *
  * @return
- *   TRUE if this is a Manual Crop cropping effect, FALSE otherwise.
+ *   TRUE if this is a Manual Crop (cropping/reuse) effect, FALSE otherwise.
  */
-function _manualcrop_is_crop_effect($effect) {
-  return ($effect['module'] == 'manualcrop' && $effect['name'] != 'manualcrop_reuse');
+function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
+  return ($effect['module'] == 'manualcrop' && (is_null($crop_effect) || ($crop_effect ^ ($effect['name'] == 'manualcrop_reuse'))));
 }

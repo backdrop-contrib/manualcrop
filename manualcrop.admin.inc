@@ -196,7 +196,7 @@ function manualcrop_reuse_form($data) {
  * @ingroup themeable
  */
 function theme_manualcrop_reuse_summary($variables) {
-  return '(' . t('Using @style', array('@style' => _manualcrop_image_style_name($variables['data']['reusestyle']))) . ')';
+  return '(' . t('using @style', array('@style' => _manualcrop_image_style_name($variables['data']['reusestyle']))) . ')';
 }
 
 /**
@@ -208,8 +208,8 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
   }
 
   // If it's a Manual Crop effect do a custom submit handler first.
-  // Otherwise reorden the effects after the submit.
-  if ($form_state['image_effect']['module'] == 'manualcrop') {
+  // Otherwise reorder the effects after the submit.
+  if (_manualcrop_is_own_effect($form_state['image_effect'])) {
     array_unshift($form['#submit'], 'manualcrop_image_effect_form_submit');
   }
   elseif (!empty($form_state['image_style']['effects'])) {
@@ -237,7 +237,7 @@ function manualcrop_image_effect_form_submit($form, &$form_state) {
     $form_state['values']['weight'] = 0;
   }
   elseif (!isset($effect['ieid'])) {
-    // New effect, weight must be the weight of the first one minus 1.
+    // New effect, the weight must be the weight of the first effect minus one.
     $first = reset($style['effects']);
     $form_state['values']['weight'] = $first["weight"] - 1;
   }
@@ -251,8 +251,8 @@ function manualcrop_form_image_effect_delete_form_alter(&$form, &$form_state) {
     $form['#submit'] = array('image_effect_delete_form_submit');
   }
 
-  // If it's a Manual Crop effect do a custom submit handler to cleanup the crop selections.
-  if (_manualcrop_is_crop_effect($form_state['image_effect'])) {
+  if (_manualcrop_is_own_effect($form_state['image_effect'], TRUE)) {
+    // Submit handler to cleanup the crop selections.
     array_unshift($form['#submit'], 'manualcrop_image_effect_delete_form_submit');
   }
 }
@@ -286,10 +286,10 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
     // Update style name in effect data.
     $form['#submit'][] = 'manualcrop_update_style_name';
 
-    // Filter all Manual Crop effects out of the form if there's already a Manual Crop effect.
+    // Filter all Manual Crop effects from the form if there's already a Manual Crop effect.
     if (isset($form['effects']['new']['new'])) {
       foreach ($style['effects'] as $effect) {
-        if ($effect['module'] == 'manualcrop') {
+        if (_manualcrop_is_own_effect($effect)) {
           $form['effects']['new']['new']['#options'] = array_diff_key($form['effects']['new']['new']['#options'], manualcrop_image_effect_info());
           break;
         }
@@ -321,7 +321,7 @@ function manualcrop_force_effect_order($form, &$form_state) {
 
   if (!empty($style['effects'])) {
     foreach ($style['effects'] as $eid => $effect) {
-      if ($effect['module'] == 'manualcrop') {
+      if (_manualcrop_is_own_effect($effect)) {
         $first = reset($style['effects']);
 
         if ($eid != key($style['effects'])) {
@@ -351,9 +351,9 @@ function manualcrop_update_style_name($form, &$form_state) {
   if (!empty($style['effects']) && isset($form_state['values']['name']) && $style['name'] != $form_state['values']['name']) {
     $effect = reset($style['effects']);
 
-    if (_manualcrop_is_crop_effect($effect)) {
+    if (_manualcrop_is_own_effect($effect, TRUE)) {
       // Change the style name in the effect data and save it.
-      $effect["data"]["style_name"] = $form_state['values']['name'];
+      $effect['data']['style_name'] = $form_state['values']['name'];
       image_effect_save($effect);
 
       // Update all widgets and reuse effects.
