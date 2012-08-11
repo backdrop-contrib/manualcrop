@@ -473,21 +473,21 @@ function manualcrop_field_widget_settings_form($settings) {
   );
 
   $form['manualcrop']['manualcrop_styles_list'] = array(
-    '#type' => 'select',
+    '#type' => 'checkboxes',
     '#title' => t('Styles list'),
     '#description' => t('Select all styles that should be shown or hidden (as selected above) in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
     '#options' => $style_options,
     '#default_value' => $settings['manualcrop_styles_list'],
-    '#multiple' => TRUE,
+    '#multicolumn' => array('width' => 3),
   );
 
   $form['manualcrop']['manualcrop_require_cropping'] = array(
-    '#type' => 'select',
+    '#type' => 'checkboxes',
     '#title' => t('Required croppings'),
     '#description' => t('Select all styles that must have a crop selection.'),
     '#options' => $style_options,
     '#default_value' => $settings['manualcrop_require_cropping'],
-    '#multiple' => TRUE,
+    '#multicolumn' => array('width' => 3),
   );
 
   return $form;
