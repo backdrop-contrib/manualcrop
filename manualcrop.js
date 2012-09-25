@@ -324,6 +324,57 @@ ManualCrop.resetSelection = function() {
 }
 
 /**
+ * Maximize the selection to fill the container as much as possible/allowed.
+ */
+ManualCrop.maximizeSelection = function() {
+  if (ManualCrop.croptool) {
+    var image = $('img.manualcrop-image', ManualCrop.croptool);
+
+    // Get the original width and height.
+    var origWidth = ManualCrop.parseInt(image.get(0).getAttribute('width'));
+    var origHeight = ManualCrop.parseInt(image.get(0).getAttribute('height'))
+    var options = ManualCrop.widget.getOptions();
+
+    // Check if the ratio should be respected.
+    if (typeof options.aspectRatio != 'undefined' && options.aspectRatio != '') {
+      // Get the ratio.
+      var ratio = options.aspectRatio.match(/([0-9]+):([0-9]+)/);
+      var ratioWidth = ManualCrop.parseInt(ratio[1]);
+      var ratioHeight = ManualCrop.parseInt(ratio[2]);
+
+      // Crop area defaults.
+      var width = origWidth;
+      var height = origHeight;
+      var x = 0;
+      var y = 0;
+
+      if ((ratioWidth / ratioHeight) > (origWidth / origHeight)) {
+        // Crop from top and bottom.
+        height = Math.floor((width / ratioWidth) * ratioHeight);
+        y = Math.floor((origHeight - height) / 2);
+      }
+      else {
+        // Crop from sides.
+        width = Math.floor((origHeight / ratioHeight) * ratioWidth);
+        x = Math.floor((origWidth - width) / 2);
+      }
+
+      // Set the new selection.
+      ManualCrop.widget.setSelection(x, y, (x + width), (y + height));
+    }
+    else {
+      // No ratio requirements, just select the whole image.
+      ManualCrop.widget.setSelection(0, 0, origWidth, origHeight);
+    }
+
+    // Update the widget and stored selection.
+    ManualCrop.widget.setOptions({hide: false, show: true});
+    ManualCrop.widget.update();
+    ManualCrop.updateSelection(null, ManualCrop.widget.getSelection());
+  }
+}
+
+/**
  * Remove the selection.
  */
 ManualCrop.clearSelection = function() {
@@ -362,6 +413,7 @@ ManualCrop.updateSelection = function(image, selection) {
     if (selection && selection.width && selection.height && selection.x1 >= 0 && selection.y1 >= 0) {
       ManualCrop.output.val(selection.x1 + '|' + selection.y1 + '|' + selection.width + '|' + selection.height);
 
+      // Update the selection details.
       $('.manualcrop-selection-x', ManualCrop.croptool).text(selection.x1);
       $('.manualcrop-selection-y', ManualCrop.croptool).text(selection.y1);
       $('.manualcrop-selection-width', ManualCrop.croptool).text(selection.width);
