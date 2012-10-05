@@ -27,7 +27,7 @@ function manualcrop_supported_widgets($widget_type = NULL, $settings = array()) 
   // List all widgets and the optional settings they support.
   $widgets = array(
     'image_image' => $optional_settings,
-    'media_generic' => array(),
+    'media_generic' => array('thumblist'),
   );
 
   // Make sure $settings contains only valid entries.
