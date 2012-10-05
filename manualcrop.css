@@ -85,7 +85,7 @@
 /* Croptool: buttons */
 .manualcrop-overlay .manualcrop-buttons {
   position: absolute;
-  bottom: 2.8em;
+  bottom: 0.8em;
   right: 0em;
   z-index: 10004;
 }

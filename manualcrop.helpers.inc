@@ -5,13 +5,119 @@
  */
 
 /**
- * Returns an array of supported widgets.
+ * Returns an array of supported widget types or checks if a type is supported.
+ *
+ * @param $widget_type
+ *   If set, this function will return a boolean indicating if $widget_type
+ *   is supported.
+ * @param $settings
+ *   Only include widgets that support these setting(s).
  *
  * @return
- *   Array of widget names.
+ *   Array of widget types.
  */
-function manualcrop_supported_widgets() {
-  return array('image_image');
+function manualcrop_supported_widgets($widget_type = NULL, $settings = array()) {
+  // List settings that can differ from widget to widget.
+  $optional_settings = array(
+    'thumblist',
+    'inline_crop',
+    'instant_crop',
+  );
+
+  // List all widgets and the optional settings they support.
+  $widgets = array(
+    'image_image' => $optional_settings,
+    'media_generic' => array(),
+  );
+
+  // Make sure $settings contains only valid entries.
+  if (!empty($settings)) {
+    if (!is_array($settings)) {
+      $settings = array($settings);
+    }
+
+    $settings = array_intersect($settings, $optional_settings);
+  }
+
+  if (empty($settings)) {
+    // No settings required.
+    $result = array_keys($widgets);
+  }
+  else {
+    // Filter all widgets that don't support the required settings.
+    $result = array();
+    foreach ($widgets as $name => $widget_settings) {
+      if (!count(array_diff($settings, $widget_settings))) {
+        $result[] = $name;
+      }
+    }
+  }
+
+  if (!empty($widget_type)) {
+    return in_array($widget_type, $result);
+  }
+  else {
+    return $result;
+  }
+}
+
+/**
+ * Returns the default widget settings.
+ *
+ * @return
+ *   Array of default widget settings.
+ */
+function manualcrop_default_widget_settings() {
+  $defaults = array(
+    // Enable Manual Crop?
+    'manualcrop_enable' => FALSE,
+    // Show a list of thubnails instead of a selection list or button?
+    'manualcrop_thumblist' => FALSE,
+    // Enable inline cropping?
+    'manualcrop_inline_crop' => FALSE,
+    // Show the crop info (width, height...)?
+    'manualcrop_crop_info' => TRUE,
+    // Automatically update the preview image?
+    'manualcrop_instant_preview' => TRUE,
+    // Open the crop tool after uploading?
+    'manualcrop_instant_crop' => FALSE,
+    // Show a default crop area when opening an uncropped image?
+    'manualcrop_default_crop_area' => TRUE,
+    // Exclude or include the selected styles?
+    'manualcrop_styles_mode' => 'exclude',
+    // List of selected styles.
+    'manualcrop_styles_list' => array(),
+    // List of required crop selections.
+    'manualcrop_require_cropping' => array(),
+  );
+
+  if (module_exists('insert')) {
+    // Filter all styles without a Manual Crop effect?
+    $defaults['manualcrop_filter_insert'] = TRUE;
+  }
+
+  return $defaults;
+}
+
+/**
+ * Get the unique javascript crop settings identifier.
+ *
+ * @param $data
+ *   Field instance array (preferred) or file object.
+ *
+ * @return
+ *   Unique javascript crop settings identifier.
+ */
+function manualcrop_js_identifier($data) {
+  if (is_array($data) && !empty($data['field_name'])) {
+    return drupal_clean_css_identifier($data['field_name']);
+  }
+  elseif (is_object($data) && isset($data->fid)) {
+    return 'manualcrop-file-' . $data->fid;
+  }
+  else {
+    return 'manualcrop-' . md5(serialize($data));
+  }
 }
 
 /**
@@ -60,10 +166,10 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  * @return
  *   An array of styles with the style name as key and the effect data as value.
  */
-function manualcrop_get_styles_with_crop($include_reuse = FALSE) {
+function manualcrop_styles_with_crop($include_reuse = FALSE) {
   $hascrop = &drupal_static(__FUNCTION__);
 
-  if (is_null($hascrop)) {
+  if (!is_array($hascrop)) {
     $hascrop = array(array(), array());
 
     foreach (image_styles() as $style_name => $style) {
@@ -86,15 +192,12 @@ function manualcrop_get_styles_with_crop($include_reuse = FALSE) {
 }
 
 /**
- * Get the list of required image styles for a field instance.
+ * Get the list of required image styles from the widget settings.
  *
- * @param $instance
- *   The field instance.
+ * @param $settings
+ *   Widget settings array.
  */
-function manualcrop_instance_required_styles($instance) {
-  // Get the widget settings.
-  $settings = $instance['widget']['settings'];
-
+function manualcrop_instance_required_styles($settings) {
   // Array of required styles.
   $required = array_values($settings['manualcrop_require_cropping']);
 
@@ -128,7 +231,7 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
           $instance = field_info_instance($entity_type, $field['field_name'], $bundle);
           $settings = &$instance['widget']['settings'];
 
-          if (in_array($instance['widget']['type'], manualcrop_supported_widgets()) && (!empty($settings['manualcrop_require_cropping']) || !empty($settings['manualcrop_styles_list']))) {
+          if (manualcrop_supported_widgets($instance['widget']['type']) && (!empty($settings['manualcrop_require_cropping']) || !empty($settings['manualcrop_styles_list']))) {
             $list = array();
 
             // Add all existing settings to the list.

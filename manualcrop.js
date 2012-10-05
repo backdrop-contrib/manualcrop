@@ -12,7 +12,7 @@ ManualCrop.init = function() {
 
   for (var identifier in fields) {
     for (var k in fields[identifier].required) {
-      $('.field-widget-manualcrop-image.field-name-' + identifier + ' .manualcrop-style-select option[value="' + fields[identifier].required[k] + '"]')
+      $('.manualcrop-identifier-' + identifier + ' option[value="' + fields[identifier].required[k] + '"]')
         .addClass('manualcrop-style-required');
     }
   }
@@ -44,7 +44,7 @@ ManualCrop.afterUpload = function(context) {
  * Open the cropping tool for an image.
  *
  * @param identifier
- *    Unique field identifier.
+ *    Unique crop settings identifier.
  * @param style
  *   The image style name or selection list triggering this event.
  * @param fid
@@ -729,7 +729,7 @@ $(document).ready(function() {
       });
 
       // Init function if a modal (Media module) was opened.
-      $('.modal-content', context).once('manualcrop', function() {
+      $('.modal-content', context).ready(function() {
         ManualCrop.init();
       });
     }
