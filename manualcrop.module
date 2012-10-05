@@ -690,7 +690,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
 function manualcrop_preprocess_image(&$variables) {
   // Is cache control enabled?
   if (!empty($variables['style_name']) && variable_get('manualcrop_cache_control', TRUE)) {
-    $styles = manualcrop_styles_with_crop();
+    $styles = manualcrop_styles_with_crop(TRUE);
     $style_name = $variables['style_name'];
 
     // Does this image style have a Manual Crop effect?
