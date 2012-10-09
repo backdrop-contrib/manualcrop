@@ -172,7 +172,7 @@ function manualcrop_widget_process($element, &$form_state, $form) {
  */
 function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, $settings = array()) {
   if (isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
-    $styles = &drupal_static(__FUNCTION__, array());
+    $styles = &drupal_static(__FUNCTION__);
 
     if (!is_array($styles)) {
       $styles = array();
