@@ -112,8 +112,8 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
 
       // Get the image and its dimensions.
       var image = $('.manualcrop-image', origContainer);
-      var width = ManualCrop.parseInt(image.width());
-      var height = ManualCrop.parseInt(image.height());
+      var width = ManualCrop.parseInt(image.width()) || ManualCrop.parseInt(image.attr('width'));
+      var height = ManualCrop.parseInt(image.height()) || ManualCrop.parseInt(image.attr('height'));
 
       // Scale the image to fit the maximum width and height (so all is visible).
       var maxWidth = conWidth - ManualCrop.parseInt(image.css('marginLeft')) - ManualCrop.parseInt(image.css('marginRight'));
