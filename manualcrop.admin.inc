@@ -94,7 +94,7 @@ function manualcrop_crop_form($data) {
     '#type' => 'checkbox',
     '#title' => t('Maintain proportions'),
     '#description' => t('Maintain the proportions while cropping. This requires seting a width and height.'),
-    '#default_value' => (isset($data['keepproportions']) ? $data['keepproportions'] : FALSE),
+    '#default_value' => !empty($data['keepproportions']),
     '#element_validate' => array('manualcrop_keepproportions_validate'),
     '#states' => array(
       'disabled' => array(
