@@ -523,7 +523,7 @@ function manualcrop_field_widget_settings_form_alter(&$form, $settings) {
     );
   }
 
-  if (module_exists('insert')) {
+  if (module_exists('insert') && isset($form['settings']['insert'])) {
     // Get the reference to the insert fieldset.
     $insert = &$form['settings']['insert'];
 
