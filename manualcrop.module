@@ -552,8 +552,24 @@ function manualcrop_insert_element_process($element) {
  *   The element to process.
  */
 function manualcrop_media_element_process($element) {
+  $data = array(
+    'manualcrop' => array(
+      'entity_type' => $element['#entity_type'],
+      'bundle' => $element['#bundle'],
+      'field_name' => $element['#field_name'],
+    )
+  );
+
+  // Add the options to the element.
+  $element['#media_options']['global'] += $data;
+
+  // Attach the options as javascript settings.
+  $media = &$element['#attached']['js'][1]['data']['media'];
+  $media['elements'][$element['#id']]['global'] += $data;
+
+  // Modify the "Edit" link.
   if (!empty($element['edit'])) {
-    $element['edit']['#href'] .= url('media/' . $element['fid']['#value'] . '/edit/nojs/' . $element['#entity_type'] . '/' . $element['#bundle'] . '/' . $element['#field_name']);
+    $element['edit']['#href'] .= url('media/' . $element['fid']['#value'] . '/edit/nojs', array('query' => $data));
   }
 
   return $element;
@@ -1025,6 +1041,30 @@ function manualcrop_insert_styles() {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
+ * Alters the File Entity upload form for Media integration.
+ */
+function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
+  $form['#submit'][] = 'manualcrop_form_file_entity_add_upload_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Additional submit handler to add the field info to query array.
+ */
+function manualcrop_form_file_entity_add_upload_submit($form, &$form_state) {
+  $arg = $form_state['build_info']['args'][0];
+
+  if (!empty($arg['manualcrop'])) {
+    $form_state['redirect'][1]['query'] += array(
+      'manualcrop' => $arg['manualcrop'],
+    );
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
  * Provides integration with the File Entity and Media modules.
  */
 function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
@@ -1033,15 +1073,12 @@ function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
     $settings = array();
 
     // Check if the field info is passed.
-    $arg = arg();
-    if ($arg[0] == 'media' && count($arg) > 5) {
-      $field_name = array_pop($arg);
-      $bundle = array_pop($arg);
-      $entity_type = array_pop($arg);
+    if (!empty($_GET['manualcrop']) && is_array($_GET['manualcrop'])) {
+      $manualcrop = $_GET['manualcrop'];
 
-      if (!empty($entity_type) && !empty($bundle) && !empty($field_name)) {
+      if (!empty($manualcrop['entity_type']) && !empty($manualcrop['bundle']) && !empty($manualcrop['field_name'])) {
         // Get the field instance.
-        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        $instance = field_info_instance($manualcrop['entity_type'], $manualcrop['field_name'], $manualcrop['bundle']);
 
         if (!empty($instance)) {
           // A field insatnce was found, use its settings.
