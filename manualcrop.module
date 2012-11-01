@@ -1041,7 +1041,7 @@ function manualcrop_insert_styles() {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Alters the File Entity upload form for Media integration.
+ * Adds a submit handler to the File Entity upload form for Media integration.
  */
 function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
   $form['#submit'][] = 'manualcrop_form_file_entity_add_upload_submit';
@@ -1050,7 +1050,7 @@ function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Additional submit handler to add the field info to query array.
+ * Additional submit handler to add the field info to redirect query array.
  */
 function manualcrop_form_file_entity_add_upload_submit($form, &$form_state) {
   $arg = $form_state['build_info']['args'][0];
@@ -1071,6 +1071,11 @@ function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
   if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
     $js_identifier = manualcrop_js_identifier($form['preview']['#file']);
     $settings = array();
+
+    // If the parameters weren't correctly parsed, do it now.
+    if (!isset($_GET['manualcrop']) && strpos($_GET['q'], '?') !== FALSE) {
+      parse_str('q=' . str_replace('?', '&', $_GET['q']), $_GET);
+    }
 
     // Check if the field info is passed.
     if (!empty($_GET['manualcrop']) && is_array($_GET['manualcrop'])) {
