@@ -953,7 +953,13 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
     return TRUE;
   }
 
-  return image_scale_and_crop_effect($image, $scale_data);
+  // Crop first, we don't use image_scale_and_crop_effect() because it
+  // doesn't respect the upscale setting.
+  if (!image_crop_effect($image, $scale_data)) {
+    return FALSE;
+  }
+
+  return image_scale_effect($image, $scale_data);
 }
 
 /**
