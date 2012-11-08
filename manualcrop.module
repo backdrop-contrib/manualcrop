@@ -117,6 +117,7 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
       foreach (element_children($element) as $key) {
         $element[$key]['#process'][] = 'manualcrop_widget_process';
         $element[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
+        $element[$key]['#element_validate'][] = 'file_managed_file_validate';
       }
 
       if (module_exists('insert')) {
