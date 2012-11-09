@@ -684,7 +684,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
 
       if (variable_get('manualcrop_cache_control', TRUE)) {
         // Clear the cached image paths.
-        cache_clear_all('manualcrop', 'cache', TRUE);
+        cache_clear_all('manualcrop:', 'cache', TRUE);
       }
     }
 
@@ -715,7 +715,8 @@ function manualcrop_preprocess_image(&$variables) {
       $original_path = $variables['path'];
 
       // Attempt to load the HTTP cache-controller from cache.
-      if ($cached_path = cache_get('manualcrop|' . $original_path)) {
+      $cache_key = 'manualcrop:' . md5($original_path);
+      if ($cached_path = cache_get($cache_key)) {
         $variables['path'] = $cached_path->data;
       }
       else {
@@ -740,7 +741,7 @@ function manualcrop_preprocess_image(&$variables) {
           $variables['path'] .= (strpos($variables['path'], '?q=') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
 
           // Cache the the updated image path.
-          cache_set('manualcrop|' . $original_path, $variables['path']);
+          cache_set($cache_key, $variables['path']);
         }
       }
     }
