@@ -936,15 +936,16 @@ function manualcrop_image_effect_info() {
  * @see image_scale_effect()
  */
 function manualcrop_crop_and_scale_effect(&$image, $data) {
-  // The width and height will be possibly overwritten for the cropping, so copy the data array for later.
+  // The width and height will be possibly overwritten for the cropping,
+  // so copy the data array for later.
   $scale_data = $data;
-  $crop = manualcrop_load_crop_selection($image->source, $data["style_name"]);
+  $crop = manualcrop_load_crop_selection($image->source, $data['style_name']);
 
   if ($crop) {
     // Only crop if a crop was applied.
-    $data["width"] = $crop->width;
-    $data["height"] = $crop->height;
-    $data["anchor"] = $crop->x . "-" . $crop->y;
+    $data['width'] = $crop->width;
+    $data['height'] = $crop->height;
+    $data['anchor'] = $crop->x . '-' . $crop->y;
 
     if (!image_crop_effect($image, $data)) {
       return FALSE;
@@ -953,8 +954,21 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
   elseif (!empty($data['onlyscaleifcrop'])) {
     return TRUE;
   }
+  else {
+    // Automated crop, don't use image_scale_and_crop_effect() unless both
+    // imagedimensions are bigger than the desired dimensions. This way
+    // unwanted upscaling is prevented.
+    if ($image->info['width'] > $scale_data['width'] && $image->info['height'] > $scale_data['height']) {
+      if (!image_scale_and_crop_effect($image, $scale_data)) {
+        return FALSE;
+      }
+    }
+    else if (!image_crop_effect($image, $scale_data)) {
+      return FALSE;
+    }
+  }
 
-  return image_scale_and_crop_effect($image, $scale_data);
+  return image_scale_effect($image, $scale_data);
 }
 
 /**
