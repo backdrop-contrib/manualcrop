@@ -570,7 +570,7 @@ function manualcrop_media_element_process($element) {
 
   // Modify the "Edit" link.
   if (!empty($element['edit'])) {
-    $element['edit']['#href'] .= url('media/' . $element['fid']['#value'] . '/edit/nojs', array('query' => $data));
+    $element['edit']['#href'] = url('media/' . $element['fid']['#value'] . '/edit/nojs', array('query' => $data, 'absolute' => TRUE));
   }
 
   return $element;
