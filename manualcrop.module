@@ -547,6 +547,13 @@ function manualcrop_insert_element_process($element) {
 }
 
 /**
+ * Implements of hook_insert_content().
+ */
+function manualcrop_insert_content($item, $style, $widget) {
+  return image_insert_content($item, $style, $widget);
+}
+
+/**
  * Additional after build callback to modify the Media widget.
  *
  * @param $element
