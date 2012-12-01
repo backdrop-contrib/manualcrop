@@ -373,25 +373,22 @@ function manualcrop_update_style_name($form, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
-  // Get the instance and widget type. In some cases we have to use
-  // "#instance" instead of "instance", see http://drupal.org/node/1847960
-  $element = &$form[(isset($form['instance']) ? 'instance' : '#instance')];
-  $widget_type = $element['widget']['type'];
+  if (isset($form['instance'])) {
+    // Get the instance and widget type.
+    $element = &$form['instance'];
+    $widget_type = $element['widget']['type']['#value'];
 
-  if (is_array($widget_type)) {
-      $widget_type = $widget_type['#value'];
-  }
+    if (manualcrop_supported_widgets($widget_type)) {
+      // Get the field instance and setting.
+      $instance = field_info_instance($element['entity_type']['#value'], $element['field_name']['#value'], $element['bundle']['#value']);
+      $settings = $instance['widget']['settings'];
 
-  if (manualcrop_supported_widgets($widget_type)) {
-    // Get the field instance and setting.
-    $instance = field_info_instance($element['entity_type']['#value'], $element['field_name']['#value'], $element['bundle']['#value']);
-    $settings = $instance['widget']['settings'];
+      // Add our custom field settings.
+      $element['settings'] += manualcrop_field_widget_settings_form($widget_type, $settings);
 
-    // Add our custom field settings.
-    $element['settings'] += manualcrop_field_widget_settings_form($widget_type, $settings);
-
-    // Alter the existing form elements.
-    manualcrop_field_widget_settings_form_alter($element, $settings);
+      // Alter the existing form elements.
+      manualcrop_field_widget_settings_form_alter($element, $settings);
+    }
   }
 }
 
