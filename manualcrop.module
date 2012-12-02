@@ -110,8 +110,11 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
       $element['#after_build'][] = 'manualcrop_media_element_process';
     }
     elseif (!empty($widget['settings']['manualcrop_enable'])) {
-      // Prepare the form.
-      manualcrop_croptool_prepare_form($element, $form_state, manualcrop_js_identifier($context['instance']), $widget['settings']);
+      // Check if this field instance is attached to a Field Collection item
+      // entity, if so we prepare the form only once.
+      if (_manualcrop_check_field_collection_form_prepare($context['instance'])) {
+        manualcrop_croptool_prepare_form($element, $form_state, manualcrop_js_identifier($context['instance']), $widget['settings']);
+      }
 
       // Default, add a process and validate callback for each child.
       foreach (element_children($element) as $key) {

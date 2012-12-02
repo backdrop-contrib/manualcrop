@@ -344,3 +344,32 @@ function _manualcrop_image_style_name($style_name) {
 function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
   return ($effect['module'] == 'manualcrop' && (is_null($crop_effect) || ($crop_effect ^ ($effect['name'] == 'manualcrop_reuse'))));
 }
+
+/**
+ * Helper function to determine if the form for a Field Collection field has
+ * already been prepared. This function checks if the field instance is
+ * attached to a Field Collection item entity, if so we'll store it and return
+ * FALSE the next time.
+ *
+ * @param $instance
+ *   Field instance array.
+ *
+ * @return
+ *   TRUE if this field isn't attached to a Field Collection entity or if it was
+ *   checked for the first time, FALSE otherwise.
+ */
+function _manualcrop_check_field_collection_form_prepare($instance) {
+  $processed = &drupal_static(__FUNCTION__, array());
+
+  if (module_exists('field_collection')) {
+    if (!empty($instance['entity_type']) && $instance['entity_type'] == 'field_collection_item') {
+      if (isset($processed[$instance['field_name']])) {
+        return FALSE;
+      }
+
+      $processed[$instance['field_name']] = TRUE;
+    }
+  }
+
+  return TRUE;
+}
