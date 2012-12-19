@@ -56,6 +56,12 @@
   left: 5px;
   z-index: 10002;
 }
+.toolbar .manualcrop-overlay .manualcrop-instantpreview {
+  top: 35px;
+}
+.toolbar-drawer .manualcrop-overlay .manualcrop-instantpreview {
+  top: 70px;
+}
 .manualcrop-inline .manualcrop-instantpreview {
   margin-right: 1em;
   width: 30%;
