@@ -85,7 +85,7 @@ function manualcrop_default_widget_settings() {
     // Show a default crop area when opening an uncropped image?
     'manualcrop_default_crop_area' => TRUE,
     // Exclude or include the selected styles?
-    'manualcrop_styles_mode' => 'exclude',
+    'manualcrop_styles_mode' => 'include',
     // List of selected styles.
     'manualcrop_styles_list' => array(),
     // List of required crop selections.

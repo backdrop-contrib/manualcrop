@@ -1112,7 +1112,7 @@ function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
         $instance = field_info_instance($manualcrop['entity_type'], $manualcrop['field_name'], $manualcrop['bundle']);
 
         if (!empty($instance)) {
-          // A field insatnce was found, use its settings.
+          // A field instance was found, use its settings.
           $settings = $instance['widget']['settings'];
 
           if (empty($settings['manualcrop_enable'])) {

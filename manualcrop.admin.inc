@@ -481,8 +481,8 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     '#type' => 'radios',
     '#title' => t('Styles list mode'),
     '#options' => array(
-      'exclude' => t('Exclude selected styles'),
       'include' => t('Include selected styles'),
+      'exclude' => t('Exclude selected styles'),
     ),
     '#default_value' => $settings['manualcrop_styles_mode'],
   );
