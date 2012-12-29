@@ -101,10 +101,6 @@ function manualcrop_crop_form($data) {
         'input[name="data[width]"]' => array('empty' => TRUE),
         'input[name="data[height]"]' => array('empty' => TRUE),
       ),
-      'unchecked' => array(
-        'input[name="data[width]"]' => array('empty' => TRUE),
-        'input[name="data[height]"]' => array('empty' => TRUE),
-      ),
     ),
   );
 
@@ -475,6 +471,19 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     '#title' => t('Default crop area'),
     '#description' => t('Create a default crop area when opening the croptool for uncropped images.'),
     '#default_value' => $settings['manualcrop_default_crop_area'],
+  );
+
+  $form['manualcrop']['manualcrop_maximize_default_crop_area'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Maximize default crop area'),
+    '#description' => t('Maximize the default crop area.'),
+    '#default_value' => $settings['manualcrop_maximize_default_crop_area'],
+    '#states' => array(
+      'disabled' => array(
+        'input[name="instance[widget][settings][manualcrop_default_crop_area]"]' => array('checked' => FALSE),
+        'input[name="instance[widget][settings][manualcrop_default_crop_area]"]' => array('checked' => FALSE),
+      ),
+    ),
   );
 
   $form['manualcrop']['manualcrop_styles_mode'] = array(

@@ -84,6 +84,8 @@ function manualcrop_default_widget_settings() {
     'manualcrop_instant_crop' => FALSE,
     // Show a default crop area when opening an uncropped image?
     'manualcrop_default_crop_area' => TRUE,
+    // Maximize the default crop area?
+    'manualcrop_maximize_default_crop_area' => FALSE,
     // Exclude or include the selected styles?
     'manualcrop_styles_mode' => 'include',
     // List of selected styles.

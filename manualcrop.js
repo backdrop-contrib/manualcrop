@@ -225,34 +225,39 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
 
         // Create a default crop area.
         if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
-          var minWidth = (typeof options.minWidth != 'undefined' ? options.minWidth : 0);
-          var minHeight = (typeof options.minHeight != 'undefined' ? options.minHeight : 0)
+          if (fields[identifier].maximizeDefaultCropArea) {
+            ManualCrop.croptool.imagesLoaded(ManualCrop.maximizeSelection);
+          }
+          else {
+            var minWidth = (typeof options.minWidth != 'undefined' ? options.minWidth : 0);
+            var minHeight = (typeof options.minHeight != 'undefined' ? options.minHeight : 0)
 
-          // Set a width and height.
-          ManualCrop.oldSelection = {
-            width: (minWidth ? minWidth * 100 : (width / 2)),
-            height: (minHeight ? minHeight * 100 : (height / 2)),
-            maxWidth: (width / 2),
-            maxHeight: (height / 2)
-          };
+            // Set a width and height.
+            ManualCrop.oldSelection = {
+              width: (minWidth ? minWidth * 100 : (width / 2)),
+              height: (minHeight ? minHeight * 100 : (height / 2)),
+              maxWidth: (width / 2),
+              maxHeight: (height / 2)
+            };
 
-          // Resize the selection.
-          ManualCrop.oldSelection = ManualCrop.resizeDimensions(ManualCrop.oldSelection);
+            // Resize the selection.
+            ManualCrop.oldSelection = ManualCrop.resizeDimensions(ManualCrop.oldSelection);
 
-          // Make sure we respect the minimum dimensions.
-          if (minWidth || minHeight) {
-            if (minWidth && ManualCrop.oldSelection.width < minWidth) {
-              ManualCrop.oldSelection.width = minWidth;
-
-              if (minHeight) {
-                ManualCrop.oldSelection.height = minHeight;
-              }
-            }
-            else if (minHeight && ManualCrop.oldSelection.height < minHeight) {
-              ManualCrop.oldSelection.height = minHeight;
-
-              if (minWidth) {
+            // Make sure we respect the minimum dimensions.
+            if (minWidth || minHeight) {
+              if (minWidth && ManualCrop.oldSelection.width < minWidth) {
                 ManualCrop.oldSelection.width = minWidth;
+
+                if (minHeight) {
+                  ManualCrop.oldSelection.height = minHeight;
+                }
+              }
+              else if (minHeight && ManualCrop.oldSelection.height < minHeight) {
+                ManualCrop.oldSelection.height = minHeight;
+
+                if (minWidth) {
+                  ManualCrop.oldSelection.width = minWidth;
+                }
               }
             }
           }
