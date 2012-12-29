@@ -282,11 +282,15 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
     // Update style name in effect data.
     $form['#submit'][] = 'manualcrop_update_style_name';
 
-    // Filter all Manual Crop effects from the form if there's already a Manual Crop effect.
+    // If there's already a Manual Crop effect we have to filter all
+    // Manual Crop effects from the add new effect list.
     if (isset($form['effects']['new']['new'])) {
       foreach ($style['effects'] as $effect) {
         if (_manualcrop_is_own_effect($effect)) {
-          $form['effects']['new']['new']['#options'] = array_diff_key($form['effects']['new']['new']['#options'], manualcrop_image_effect_info());
+          $form['effects']['new']['new']['#options'] = array_diff_key(
+            $form['effects']['new']['new']['#options'],
+            manualcrop_image_effect_info()
+          );
           break;
         }
       }

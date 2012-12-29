@@ -249,14 +249,11 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
             // Process all settings.
             foreach ($list as $key => &$item) {
               if (isset($item[$style_name])) {
-                unset($item[$style_name]);
-
-                if (!is_null($new_style_name)) {
+                if (!is_null($new_style_name) && $item[$style_name]) {
                   $item[$new_style_name] = $new_style_name;
                 }
-                elseif (empty($require)) {
-                  unset($settings[$key]);
-                }
+
+                unset($item[$style_name]);
               }
               else {
                 // Not processed, so remove it from the list.
@@ -289,7 +286,7 @@ function _manualcrop_reuse_effect_update_names_in_settings($style_name, $new_sty
       // Check if the first effect is a Manual Crop effect.
       $effect = reset($style['effects']);
 
-      // Check if this is a Manual Crop reuse effect that needs an update.
+      // Check if this is a Manual Crop reuse effect that needs to be updated.
       if (_manualcrop_is_own_effect($effect, FALSE) && $effect['data']['reusestyle'] == $style_name) {
         if (is_null($new_style_name)) {
           image_effect_delete($effect);
