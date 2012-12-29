@@ -97,9 +97,9 @@ function manualcrop_crop_form($data) {
     '#default_value' => !empty($data['keepproportions']),
     '#element_validate' => array('manualcrop_keepproportions_validate'),
     '#states' => array(
-      'disabled' => array(
-        'input[name="data[width]"]' => array('empty' => TRUE),
-        'input[name="data[height]"]' => array('empty' => TRUE),
+      'enabled' => array(
+        'input[name="data[width]"]' => array('filled' => TRUE),
+        'input[name="data[height]"]' => array('filled' => TRUE),
       ),
     ),
   );
