@@ -373,7 +373,7 @@ function manualcrop_update_style_name($form, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
-  if (isset($form['instance'])) {
+  if (isset($form['instance']) && isset($form['instance']['widget']['type']['#value'])) {
     // Get the instance and widget type.
     $element = &$form['instance'];
     $widget_type = $element['widget']['type']['#value'];
