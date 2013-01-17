@@ -263,8 +263,8 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
           }
 
           // Center the selection.
-          ManualCrop.oldSelection.x1 = (width - ManualCrop.oldSelection.width) / 2;
-          ManualCrop.oldSelection.y1 = (height - ManualCrop.oldSelection.height) / 2;
+          ManualCrop.oldSelection.x1 = Math.round((width - ManualCrop.oldSelection.width) / 2);
+          ManualCrop.oldSelection.y1 = Math.round((height - ManualCrop.oldSelection.height) / 2);
           ManualCrop.oldSelection.x2 = ManualCrop.oldSelection.x1 + ManualCrop.oldSelection.width;
           ManualCrop.oldSelection.y2 = ManualCrop.oldSelection.y1 + ManualCrop.oldSelection.height;
         }
