@@ -8,6 +8,38 @@ require_once 'manualcrop.helpers.inc';
 require_once 'manualcrop.admin.inc';
 
 /**
+ * Implements hook_permission().
+ */
+function manualcrop_permission() {
+  return array(
+    'administer manualcrop settings' => array(
+      'title' => t('Administer Manual Crop'),
+      'description' => t('Allows users to change the global Manual Crop settings.'),
+      'restrict access' => FALSE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function manualcrop_menu() {
+  $items = array();
+
+  $items['admin/config/media/manualcrop'] = array(
+    'title' => 'Manual Crop',
+    'description' => 'Configure the global Manual Crop options.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('manualcrop_global_settings_form'),
+    'access arguments' => array('administer manualcrop settings'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'manualcrop.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
  * Implements hook_help().
  */
 function manualcrop_help($path) {
@@ -175,7 +207,7 @@ function manualcrop_widget_process($element, &$form_state, $form) {
  *   Widget settings.
  */
 function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, $settings = array()) {
-  if (isset($_COOKIE['has_js']) && $_COOKIE['has_js']) {
+  if (!empty($_COOKIE['has_js']) || variable_get('manualcrop_skip_js_check', FALSE)) {
     $styles = &drupal_static(__FUNCTION__);
 
     if (!is_array($styles)) {
@@ -767,6 +799,9 @@ function manualcrop_preprocess_image(&$variables) {
  *   - "attributes": An array of attributes.
  *   - "image": An array of variables for the image theming function.
  *
+ * @return
+ *   HTML for the overlay crop tool.
+ *
  * @ingroup themeable
  */
 function theme_manualcrop_croptool_overlay($variables) {
@@ -812,6 +847,9 @@ function theme_manualcrop_croptool_overlay($variables) {
  *   An associative array containing:
  *   - "attributes": An array of attributes.
  *   - "image": An array of variables for the image theming function.
+ *
+ * @return
+ *   HTML for the inline crop tool.
  *
  * @ingroup themeable
  */
@@ -861,6 +899,9 @@ function theme_manualcrop_croptool_inline($variables) {
  *   - "attributes": An array of attributes.
  *   - "images": Array of images html, themed by the "manualcrop_thumblist_image" function an keyed by style name.
  *
+ * @return
+ *   HTML for the thumb list.
+ *
  * @ingroup themeable
  */
 function theme_manualcrop_thumblist($variables) {
@@ -881,6 +922,9 @@ function theme_manualcrop_thumblist($variables) {
  *   - "attributes": An array of attributes.
  *   - "image": Rendered image tag html.
  *   - "style": Clean style name.
+ *
+ * @return
+ *   HTML for a single thumblist image.
  *
  * @ingroup themeable
  */

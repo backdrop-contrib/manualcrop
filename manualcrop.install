@@ -8,8 +8,6 @@
  * Implements hook_install().
  */
 function manualcrop_install() {
-  variable_set('manualcrop_cache_control', TRUE);
-
   // Hooks have to run after the Insert module.
   db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
 }
@@ -19,6 +17,7 @@ function manualcrop_install() {
  */
 function manualcrop_uninstall() {
   variable_del('manualcrop_cache_control');
+  variable_del('manualcrop_skip_js_check');
 }
 
 /**

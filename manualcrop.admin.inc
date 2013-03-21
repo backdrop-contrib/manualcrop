@@ -5,7 +5,42 @@
  */
 
 /**
- * Form Builder; Configuration settings for the crop and scale effect.
+ * Form builder; Global settings configuration form.
+ */
+function manualcrop_global_settings_form() {
+  $form = array();
+
+  $form['manualcrop_cache_control'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Reload cache-control'),
+    '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image, this way the visitor his/her browser will reload the image.'),
+    '#default_value' => variable_get('manualcrop_cache_control', TRUE),
+  );
+
+  $form['manualcrop_skip_js_check'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Skip javascript cookie check'),
+    '#description' => t("Don't check if the javascript cookie has been set."),
+    '#default_value' => variable_get('manualcrop_skip_js_check', FALSE),
+  );
+
+  $form['#submit'] = array('manualcrop_global_settings_form_submit');
+
+  return system_settings_form($form);
+}
+
+/**
+ * Form submit handler; Clears the Manual Crop cache if the cache control gets disabled.
+ */
+function manualcrop_global_settings_form_submit($form, &$form_state) {
+  if (!$form_state['values']['manualcrop_cache_control']) {
+    // Clear the cached image paths.
+    cache_clear_all('manualcrop', 'cache', TRUE);
+  }
+}
+
+/**
+ * Form builder; Configuration settings for the crop and scale effect.
  *
  * @param $data
  *   The current configuration for this crop and scale effect.
@@ -43,6 +78,9 @@ function manualcrop_crop_and_scale_form($data) {
  *   An associative array containing:
  *   - data: The current configuration for this crop and scale effect.
  *
+ * @return
+ *   Summary HTML.
+ *
  * @ingroup themeable
  */
 function theme_manualcrop_crop_and_scale_summary($variables) {
@@ -71,7 +109,7 @@ function theme_manualcrop_crop_and_scale_summary($variables) {
 }
 
 /**
- * Form Builder; Configuration settings for crop effect.
+ * Form builder; Configuration settings for crop effect.
  *
  * @param $data
  *   The current configuration for this crop effect.
@@ -126,6 +164,9 @@ function manualcrop_keepproportions_validate($element, $form_state) {
  *   An associative array containing:
  *   - data: The current configuration for this crop effect.
  *
+ * @return
+ *   Summary HTML.
+ *
  * @ingroup themeable
  */
 function theme_manualcrop_crop_summary($variables) {
@@ -148,7 +189,7 @@ function theme_manualcrop_crop_summary($variables) {
 }
 
 /**
- * Form Builder; Configuration settings for the reuse effect.
+ * Form builder; Configuration settings for the reuse effect.
  *
  * @param $data
  *   The current configuration for this reuse effect.
@@ -188,6 +229,9 @@ function manualcrop_reuse_form($data) {
  * @param $variables
  *   An associative array containing:
  *   - data: The current configuration for this crop selection reuse effect.
+ *
+ * @return
+ *   Summary HTML.
  *
  * @ingroup themeable
  */
@@ -566,47 +610,5 @@ function manualcrop_field_widget_settings_form_alter(&$form, $settings) {
       $insert['insert_styles']['#options'] = array_intersect_key($insert['insert_styles']['#options'], $styles);
       $insert['insert_default']['#options'] = array_intersect_key($insert['insert_default']['#options'], $styles);
     }
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function manualcrop_form_system_performance_settings_alter(&$form, &$form_state) {
-  $form['manualcrop'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Manual Crop'),
-    '#collapsible' => FALSE,
-    '#tree' => TRUE,
-  );
-
-  $form['manualcrop']['cache_control'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Reload cache-control'),
-    '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image, this way the visitor his/her browser will reload the image.'),
-    '#default_value' => variable_get('manualcrop_cache_control', TRUE),
-  );
-
-  $form['#submit'][] = 'manualcrop_form_system_performance_settings_submit';
-
-  return $form;
-}
-
-/**
- * Performance form submit handler; Update the cache-control settings.
- *
- * @param $form
- *   Effect form array.
- * @param $form_state
- *   Form state array.
- */
-function manualcrop_form_system_performance_settings_submit($form, &$form_state) {
-  $cache_control = (bool) $form_state['values']['manualcrop']['cache_control'];
-
-  variable_set('manualcrop_cache_control', $cache_control);
-
-  if (!$cache_control) {
-    // Clear the cached image paths.
-    cache_clear_all('manualcrop', 'cache', TRUE);
   }
 }
