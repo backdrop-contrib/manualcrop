@@ -40,16 +40,6 @@ function manualcrop_menu() {
 }
 
 /**
- * Implements hook_help().
- */
-function manualcrop_help($path) {
-  switch ($path) {
-    case 'admin/config/media/image-styles/edit/%':
-      return '<p>' . t("<strong>Note:</strong> if you are using a Manual Crop effect, it's forced to be the only Manual Crop effect and first effect in the list.") . '</p>';
-  }
-}
-
-/**
  * Implements hook_theme().
  */
 function manualcrop_theme() {
@@ -75,6 +65,26 @@ function manualcrop_theme() {
     'manualcrop_thumblist_image' => array(
       'variables' => array('attributes' => NULL, 'image' => NULL, 'style' => NULL),
     ),
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function manualcrop_help($path) {
+  switch ($path) {
+    case 'admin/config/media/image-styles/edit/%':
+      return '<p>' . t("<strong>Note:</strong> if you are using a Manual Crop effect, it's forced to be the only Manual Crop effect and first effect in the list.") . '</p>';
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function manualcrop_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'manualcrop') . '/includes/views',
   );
 }
 

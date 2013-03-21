@@ -4,3 +4,5 @@ package = Image
 core = 7.x
 
 dependencies[] = image (>=7.8)
+
+files[] = includes/views/manualcrop.views.inc
