@@ -791,7 +791,7 @@ function manualcrop_preprocess_image(&$variables) {
         // Load the cropping area.
         if ($crop = manualcrop_load_crop_selection($image_uri, $style_name)) {
           // Add a HTTP cache-controller to the image path.
-          $variables['path'] .= (strpos($variables['path'], '?q=') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+          $variables['path'] .= (strpos($variables['path'], '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
 
           // Cache the the updated image path.
           cache_set($cache_key, $variables['path']);

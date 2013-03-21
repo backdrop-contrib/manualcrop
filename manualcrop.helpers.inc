@@ -141,6 +141,11 @@ function manualcrop_js_identifier($data) {
  *   If the style machine name was empty an object with all the styles is returned.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
+  // Remove any query string (e.g., the security token used by the Image module)
+  // to get the correct file uri as stored in the {file_managed} table.
+  $parts = explode('?', $file);
+  $file = reset($parts);
+
   if (empty($style_name)) {
     $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
       ':uri' => $file,
@@ -199,6 +204,9 @@ function manualcrop_styles_with_crop($include_reuse = FALSE) {
  *
  * @param $settings
  *   Widget settings array.
+ *
+ * @return
+ *   List of required image styles.
  */
 function manualcrop_instance_required_styles($settings) {
   // Array of required styles.
