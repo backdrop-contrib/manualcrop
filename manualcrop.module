@@ -122,14 +122,10 @@ function manualcrop_field_widget_info_alter(&$info) {
       $settings = &$info[$widget_type]['settings'];
       $settings += manualcrop_default_widget_settings();
 
-      if ($settings['manualcrop_styles_mode'] == 'include' && empty($settings['manualcrop_styles_list'])) {
-        // No styles are included.
-        $settings['enable'] = FALSE;
-      }
-      elseif ($settings['manualcrop_styles_mode'] == 'exlude' && !empty($settings['manualcrop_styles_list'])) {
-        // Check if all styles are exluded.
+      if ($settings['manualcrop_styles_mode'] == 'exclude' && !empty($settings['manualcrop_styles_list'])) {
+        // Check if all styles are excluded.
         $styles = manualcrop_styles_with_crop();
-        $styles = array_diff_key($styles, array_flip($settings['manualcrop_styles_list']));
+        $styles = array_diff_key($styles, $settings['manualcrop_styles_list']);
 
         if (empty($styles)) {
           $settings['manualcrop_enable'] = FALSE;
@@ -312,14 +308,12 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
 
       // Exclude or include styles.
       if (!empty($settings['manualcrop_styles_list'])) {
-        $list = array_values($settings['manualcrop_styles_list']);
-
         // Filter hidden styles.
         if ($settings['manualcrop_styles_mode'] == 'include') {
-          $styles = array_intersect_key($styles, array_flip($list));
+          $styles = array_intersect_key($styles, $settings['manualcrop_styles_list']);
         }
         else {
-          $styles = array_diff_key($styles, array_flip($list));
+          $styles = array_diff_key($styles, $settings['manualcrop_styles_list']);
         }
 
         if (empty($styles)) {

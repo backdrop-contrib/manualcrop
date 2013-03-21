@@ -209,20 +209,17 @@ function manualcrop_styles_with_crop($include_reuse = FALSE) {
  *   List of required image styles.
  */
 function manualcrop_instance_required_styles($settings) {
-  // Array of required styles.
-  $required = array_values($settings['manualcrop_require_cropping']);
-
   // Make sure to exclude unavailable styles.
-  if (!empty($required) && !empty($settings['manualcrop_styles_list'])) {
+  if (!empty($settings['manualcrop_require_cropping']) && !empty($settings['manualcrop_styles_list'])) {
     if ($settings['manualcrop_styles_mode'] == 'include') {
-      $required = array_intersect($required, array_values($settings['manualcrop_styles_list']));
+      return array_intersect($settings['manualcrop_require_cropping'], $settings['manualcrop_styles_list']);
     }
     else {
-      $required = array_diff($required, array_values($settings['manualcrop_styles_list']));
+      return array_diff($settings['manualcrop_require_cropping'], $settings['manualcrop_styles_list']);
     }
   }
 
-  return $required;
+  return array();
 }
 
 /**
@@ -257,7 +254,7 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
             // Process all settings.
             foreach ($list as $key => &$item) {
               if (isset($item[$style_name])) {
-                if (!is_null($new_style_name) && $item[$style_name]) {
+                if (!is_null($new_style_name)) {
                   $item[$new_style_name] = $new_style_name;
                 }
 

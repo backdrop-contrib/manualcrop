@@ -188,3 +188,37 @@ function manualcrop_update_7102(&$sandbox) {
 
   field_cache_clear();
 }
+
+/**
+ * Update the image fields so the settings no longer contain the styles that
+ * weren't selected in the interface.
+ */
+function manualcrop_update_7103(&$sandbox) {
+  foreach (field_info_fields() as $field_name => $field) {
+    // Only update image fields.
+    if ($field['type'] == 'image') {
+      foreach ($field['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle_name) {
+          // Get the field instance and its settings.
+          $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+          $settings = $instance['widget']['settings'];
+
+          // Update the image styles settings.
+          if (!empty($settings['manualcrop_styles_list']) || !empty($settings['manualcrop_require_cropping'])) {
+            if (!empty($settings['manualcrop_styles_list'])) {
+              $settings['manualcrop_styles_list'] = array_filter($settings['manualcrop_styles_list']);
+            }
+
+            if (!empty($settings['manualcrop_require_cropping'])) {
+              $settings['manualcrop_require_cropping'] = array_filter($settings['manualcrop_require_cropping']);
+            }
+
+            field_update_instance($instance);
+          }
+        }
+      }
+    }
+  }
+
+  field_cache_clear();
+}

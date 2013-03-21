@@ -550,6 +550,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     '#description' => t('Select all styles that should be shown or hidden (as selected above) in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
     '#options' => $style_options,
     '#default_value' => $settings['manualcrop_styles_list'],
+    '#element_validate' => array('manualcrop_checkboxes_filter'),
     '#multicolumn' => array('width' => 3),
   );
 
@@ -559,6 +560,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     '#description' => t('Select all styles that must have a crop selection.'),
     '#options' => $style_options,
     '#default_value' => $settings['manualcrop_require_cropping'],
+    '#element_validate' => array('manualcrop_checkboxes_filter'),
     '#multicolumn' => array('width' => 3),
   );
 
@@ -610,5 +612,15 @@ function manualcrop_field_widget_settings_form_alter(&$form, $settings) {
       $insert['insert_styles']['#options'] = array_intersect_key($insert['insert_styles']['#options'], $styles);
       $insert['insert_default']['#options'] = array_intersect_key($insert['insert_default']['#options'], $styles);
     }
+  }
+}
+
+/**
+ * Checkboxes element validation callback used to filter all unselected items
+ * from the #value array.
+ */
+function manualcrop_checkboxes_filter($element, &$form_state, $form) {
+  if (!empty($element['#value'])) {
+    form_set_value($element, array_filter($element['#value']), $form_state);
   }
 }
