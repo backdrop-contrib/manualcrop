@@ -232,7 +232,7 @@ function manualcrop_reuse_form($data) {
  * @return
  *   The form structure array.
  */
-function manualcrop_select_form($data) {
+function manualcrop_auto_reuse_form($data) {
   // Load all image styles that have a cropping effect and exclude the style
   // that's currently being edited.
   $styles = manualcrop_styles_with_crop();
@@ -246,13 +246,16 @@ function manualcrop_select_form($data) {
     drupal_goto('admin/config/media/image-styles/edit/' . $current);
   }
 
-  $form['manualcrop_select_styles'] = array(
+  $form['manualcrop_auto_reuse_styles'] = array(
     '#type' => 'item',
     '#title' => t('Image styles with crop effect'),
     'styles' =>  array('#theme' => 'item_list', '#items' => array_keys($styles)),
   );
 
-  $fallback_styles = array_merge(array('' => t('None')), drupal_map_assoc(array_diff(array_keys(image_styles()), array_keys(manualcrop_styles_with_crop(TRUE)))));
+  // Get a list of possible fallback styles.
+  $fallback_styles = array_diff_key(image_styles(), manualcrop_styles_with_crop(), array($current => ''));
+  $fallback_styles = drupal_map_assoc(array_keys($fallback_styles), '_manualcrop_image_style_name');
+  $fallback_styles = array('' => t('None')) + $fallback_styles;
 
   $form['fallback_style'] = array(
     '#type' => 'select',
@@ -282,15 +285,18 @@ function theme_manualcrop_reuse_summary($variables) {
 }
 
 /**
- * Returns HTML for a summary of an image crop selection select effect.
+ * Returns HTML for a summary of an image crop selection auto reuse effect.
  *
  * @param $variables
  *   An associative array containing:
  *   - data: The current configuration for this crop selection select effect.
  *
+ * @return
+ *   Summary HTML.
+ *
  * @ingroup themeable
  */
-function theme_manualcrop_select_summary($variables) {
+function theme_manualcrop_auto_reuse_summary($variables) {
   return '(' . t('using fallback style @style', array('@style' => _manualcrop_image_style_name($variables['data']['fallback_style']))) . ')';
 }
 

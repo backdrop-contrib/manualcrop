@@ -53,7 +53,7 @@ function manualcrop_theme() {
     'manualcrop_reuse_summary' => array(
       'variables' => array('data' => NULL),
     ),
-    'manualcrop_select_summary' => array(
+    'manualcrop_auto_reuse_summary' => array(
       'variables' => array('data' => NULL),
     ),
     'manualcrop_croptool_overlay' => array(
@@ -786,14 +786,14 @@ function manualcrop_preprocess_image(&$variables) {
             case 'manualcrop_reuse':
               $style_name = $styles[$style_name]['data']['reusestyle'];
               break;
-            case 'manualcrop_select':
-              // Get the list of all selections for the file
-              $selections = manualcrop_load_crop_selection($image_uri);
-              if (!empty($selections)) {
+            case 'manualcrop_auto_reuse':
+              // Get the list of applied crop selections for the file.
+              if ($selections = manualcrop_load_crop_selection($image_uri)) {
                 // Get the first selection
                 $selection = array_shift($selections);
-              } else {
-                // Since fallback style is not a manualcrop style.
+              }
+              else {
+                // Since fallback style is not a Manual Crop style.
                 $style_name = '';
               }
               break;
@@ -801,8 +801,7 @@ function manualcrop_preprocess_image(&$variables) {
         }
 
         // Load the cropping area.
-        if ((!empty($selection) && ($crop = $selection)) ||
-            ($style_name && ($crop = manualcrop_load_crop_selection($image_uri, $style_name)))) {
+        if ((!empty($selection) && ($crop = $selection)) || ($style_name && ($crop = manualcrop_load_crop_selection($image_uri, $style_name)))) {
           // Add a HTTP cache-controller to the image path.
           $variables['path'] .= (strpos($variables['path'], '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
 
@@ -986,12 +985,12 @@ function manualcrop_image_effect_info() {
       'form callback' => 'manualcrop_reuse_form',
       'summary theme' => 'manualcrop_reuse_summary',
     ),
-    'manualcrop_select' => array(
-      'label' => t('Select applied Manual Crop selection'),
-      'help' => 'Select applied crop selection from a set of Manual Crop enabled image styles.',
-      'effect callback' => 'manualcrop_select_effect',
-      'form callback' => 'manualcrop_select_form',
-      'summary theme' => 'manualcrop_select_summary',
+    'manualcrop_auto_reuse' => array(
+      'label' => t('Manual Crop: Automatically reuse cropped style'),
+      'help' => 'Load the first applied crop selection and reuse it.',
+      'effect callback' => 'manualcrop_auto_reuse_effect',
+      'form callback' => 'manualcrop_auto_reuse_form',
+      'summary theme' => 'manualcrop_auto_reuse_summary',
     ),
   );
 }
@@ -1119,21 +1118,22 @@ function manualcrop_reuse_effect(&$image, $data) {
 }
 
 /**
- * Image effect callback; Select applied Manual Crop effect.
+ * Image effect callback; Automatically reuse an applied Manual Crop effect.
  *
  * @param $image
  *   An image object returned by image_load().
  * @param $data
  *   An array of settings, needed to perform the select effect, with the
  *   following items:
- *   - "fallback_style": The image style to use when no crop effect is found for the image.
+ *   - "fallback_style": The image style to use when no crop selection for
+ *     the image was found.
  *
  * @return
  *   TRUE on success, FALSE on failure to select the effect.
  *
  * @see image_crop_effect()
  */
-function manualcrop_select_effect(&$image, $data) {
+function manualcrop_auto_reuse_effect(&$image, $data) {
   // Get the list of all selections for the file.
   $selections = manualcrop_load_crop_selection($image->source);
 
