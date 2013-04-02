@@ -192,6 +192,17 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
         origContainer.parent().append(ManualCrop.croptool);
       }
 
+      // Put our overlay on top.
+      if (cropType == 'overlay') {
+        var overlayContainer = $('#overlay-container', top.document);
+        if (overlayContainer.length) {
+          overlayContainer
+            .addClass('manualcrop-tweaked')
+            .data('old-z-index', overlayContainer.css('z-index'))
+            .css('z-index', '1000');
+        }
+      }
+
       // Create the crop widget.
       ManualCrop.widget = image.imgAreaSelect(options);
 
@@ -301,6 +312,16 @@ ManualCrop.closeCroptool = function(reset) {
     ManualCrop.oldSelection = null;
     ManualCrop.widget = null;
     ManualCrop.output = null;
+
+    // Restore the overlay z-index.
+    var overlayContainer = $('#overlay-container.manualcrop-tweaked', top.document);
+    if (overlayContainer.length) {
+      overlayContainer
+        .removeClass('manualcrop-tweaked')
+        .css('z-index', overlayContainer.data('old-z-index'));
+
+      $.removeData(overlayContainer, 'old-z-index');
+    }
 
     $('.manualcrop-style-button').show();
 
