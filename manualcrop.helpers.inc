@@ -340,14 +340,20 @@ function _manualcrop_image_style_name($style_name) {
  * @param $effect
  *   Image style effect information array.
  * @param $crop_effect
- *   Set to TRUE to require a cropping effect or set to FALSE to require the
- *   reuse effect.
+ *   Set to TRUE to require a cropping effect; set to FALSE to require
+ *   the reuse/select effect. Defaults to NULL, which ignores effect type.
  *
  * @return
- *   TRUE if this is a Manual Crop (cropping/reuse) effect, FALSE otherwise.
+ *   TRUE if this is a Manual Crop (cropping/reuse/select) effect, FALSE otherwise.
  */
 function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
-  return ($effect['module'] == 'manualcrop' && (is_null($crop_effect) || ($crop_effect ^ ($effect['name'] == 'manualcrop_reuse'))));
+  if ($effect['module'] == 'manualcrop') {
+    if (is_null($crop_effect)) {
+      return TRUE;
+    };
+    return $crop_effect ^ in_array($effect['name'], array('manualcrop_reuse', 'manualcrop_select'));
+  }
+  return FALSE;
 }
 
 /**
