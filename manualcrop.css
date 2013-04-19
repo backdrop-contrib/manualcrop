@@ -10,11 +10,11 @@
   height: 100%;
   position: absolute;
   z-index: 10001;
-  opacity: 0.90; /* Standard: FF gt 1.5, Opera, Safari */
-  filter: alpha(opacity=90); /* IE lt 8 */
-  -ms-filter: "alpha(opacity=90)"; /* IE 8 */
-  -khtml-opacity: 0.90; /* Safari 1.x */
-  -moz-opacity: 0.90; /* FF lt 1.5, Netscape */
+  opacity: 0.90;
+  filter: alpha(opacity=90);
+  -ms-filter: "alpha(opacity=90)";
+  -khtml-opacity: 0.90;
+  -moz-opacity: 0.90;
   background-color: #000000;
 }
 /* Croptool: image */
@@ -67,26 +67,82 @@
   width: 30%;
   float: left;
 }
-/* Croptool: selection details */
-.manualcrop-details {
+/* Croptool: selection info */
+.manualcrop-selection-info {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+  opacity: 0.70;
+}
+.manualcrop-selection-label {
+  height: 1em;
+  display: inline-block;
+}
+.manualcrop-selection-label-content {
+  padding: 1px 5px 2px 5px;
+  color: #FFFFFF;
+  font-size: 0.7em;
+  line-height: normal;
+  text-align: center;
+  background-color: #333333;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
+}
+.manualcrop-selection-xy {
+  position: absolute;
+  top: -3px;
+  left: 0px;
+}
+.manualcrop-selection-xy .manualcrop-selection-label-content {
+  position: relative;
+  top: -100%;
+  left: -50%;
+}
+.manualcrop-selection-width {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+}
+.manualcrop-selection-width .manualcrop-selection-label-content {
+  margin-top: 3px;
+  position: relative;
+  left: -50%;
+}
+.manualcrop-selection-height {
+  position: absolute;
+  top: 50%;
+  left: -3px;
+}
+.manualcrop-selection-height .manualcrop-selection-label-content {
+  position: relative;
+  top: -50%;
+  left: -100%;
+}
+/* Croptool: style info */
+.manualcrop-style-info {
   font-weight: bold;
 }
-.manualcrop-overlay .manualcrop-details {
+.manualcrop-overlay .manualcrop-style-info {
   position: absolute;
   left: 0.8em;
   bottom: 0.8em;
   z-index: 10003;
   color: #FFFFFF;
 }
-.manualcrop-inline .manualcrop-details {
+.manualcrop-inline .manualcrop-style-info {
   margin-right: 1em;
   padding-bottom: 1em;
   width: 33%;
   float: left;
 }
-.manualcrop-details-value {
-  font-style: italic;
+.manualcrop-style-info span {
   font-weight: normal;
+  font-style: italic;
 }
 /* Croptool: buttons */
 .manualcrop-overlay .manualcrop-buttons {

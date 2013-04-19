@@ -835,19 +835,29 @@ function theme_manualcrop_croptool_overlay($variables) {
   $output .= theme('image', $variables["image"]);
   $output .= '</div>';
 
+  if ($variables['crop_info']) {
+    $output .= '<div class="manualcrop-selection-info hidden">';
+    $output .= '<div class="manualcrop-selection-label manualcrop-selection-xy">';
+    $output .= '<div class="manualcrop-selection-label-content">';
+    $output .= '<span class="manualcrop-selection-x">-</span> x <span class="manualcrop-selection-y">-</span>';
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '<div class="manualcrop-selection-label manualcrop-selection-width">';
+    $output .= '<div class="manualcrop-selection-label-content">-</div>';
+    $output .= '</div>';
+    $output .= '<div class="manualcrop-selection-label manualcrop-selection-height">';
+    $output .= '<div class="manualcrop-selection-label-content">-</div>';
+    $output .= '</div>';
+    $output .= '</div>';
+  }
+
   if ($variables['instant_preview']) {
     $output .= '<div class="manualcrop-instantpreview"></div>';
   }
 
-  if ($variables['crop_info']) {
-    $output .= '<div class="manualcrop-details">';
-    $output .= t('Image style') . ': <span class="manualcrop-details-value manualcrop-image-style">&nbsp;</span>, ';
-    $output .= t('Selection x') . ': <span class="manualcrop-details-value manualcrop-selection-x">-</span>, ';
-    $output .= t('Selection y') . ': <span class="manualcrop-details-value manualcrop-selection-y">-</span>, ';
-    $output .= t('Selection width') . ': <span class="manualcrop-details-value manualcrop-selection-width">-</span>, ';
-    $output .= t('Selection height') . ': <span class="manualcrop-details-value manualcrop-selection-height">-</span>';
-    $output .= '</div>';
-  }
+  $output .= '<div class="manualcrop-style-info">';
+  $output .= t('Image style') . ': <span class="manualcrop-style-name">&nbsp;</span>';
+  $output .= '</div>';
 
   $output .= '<div class="manualcrop-buttons">';
   $output .= '<a class="manualcrop-button manualcrop-cancel" href="javascript:void(0);" onmousedown="ManualCrop.closeCroptool(true);">' . t('Cancel') . '</a>';
@@ -884,17 +894,29 @@ function theme_manualcrop_croptool_inline($variables) {
 
   $output .= '<div class="clearfix">';
 
+  if ($variables['crop_info']) {
+    $output .= '<div class="manualcrop-selection-info hidden">';
+    $output .= '<div class="manualcrop-selection-label manualcrop-selection-xy">';
+    $output .= '<div class="manualcrop-selection-label-content">';
+    $output .= '<span class="manualcrop-selection-x">-</span> x <span class="manualcrop-selection-y">-</span>';
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '<div class="manualcrop-selection-label manualcrop-selection-width">';
+    $output .= '<div class="manualcrop-selection-label-content">-</div>';
+    $output .= '</div>';
+    $output .= '<div class="manualcrop-selection-label manualcrop-selection-height">';
+    $output .= '<div class="manualcrop-selection-label-content">-</div>';
+    $output .= '</div>';
+    $output .= '</div>';
+  }
+
   if ($variables['instant_preview']) {
     $output .= '<div class="manualcrop-instantpreview"></div>';
   }
 
   if ($variables['crop_info']) {
-    $output .= '<div class="manualcrop-details">';
-    $output .= t('Image style') . ': <span class="manualcrop-details-value manualcrop-image-style">&nbsp;</span><br />';
-    $output .= t('Selection x') . ': <span class="manualcrop-details-value manualcrop-selection-x">-</span><br />';
-    $output .= t('Selection y') . ': <span class="manualcrop-details-value manualcrop-selection-y">-</span><br />';
-    $output .= t('Selection width') . ': <span class="manualcrop-details-value manualcrop-selection-width">-</span><br />';
-    $output .= t('Selection height') . ': <span class="manualcrop-details-value manualcrop-selection-height">-</span>';
+    $output .= '<div class="manualcrop-style-info">';
+    $output .= t('Image style') . ': <span class="manualcrop-style-name">&nbsp;</span><br />';
     $output .= '</div>';
   }
 

@@ -172,7 +172,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       // Set the image style name.
-      $('.manualcrop-image-style', ManualCrop.croptool).text(styleName);
+      $('.manualcrop-style-name', ManualCrop.croptool).text(styleName);
 
       if (typeof styleSelect != 'undefined') {
         // Reset the image style selection list.
@@ -184,7 +184,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
         $('.manualcrop-style-button-' + fid).hide();
       }
 
-      // Append the cropping area (last, to prevent that '_11' is undefined).
+      // Append the cropping area (last, to prevent that "_11" is undefined).
       if (cropType == 'overlay') {
         $('body').append(ManualCrop.croptool);
       }
@@ -210,6 +210,14 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       // so we set the options again to initialize it correctly.
       if ($.browser.msie) {
         ManualCrop.widget.setOptions(options);
+      }
+
+      // Move the selection info into the widget.
+      var selectionInfo = $('.manualcrop-selection-info', ManualCrop.croptool);
+      if (selectionInfo.length) {
+        $('.imgareaselect-selection', ManualCrop.croptool)
+          .after(selectionInfo)
+          .parent().css('overflow', 'visible');
       }
 
       // Insert the instant preview image.
@@ -431,7 +439,10 @@ ManualCrop.updateSelection = function(image, selection) {
 
     // Get the original width and height.
     var origWidth = ManualCrop.parseInt(image.get(0).getAttribute('width'));
-    var origHeight = ManualCrop.parseInt(image.get(0).getAttribute('height'))
+    var origHeight = ManualCrop.parseInt(image.get(0).getAttribute('height'));
+
+    // Get the selection info wrapper.
+    var selectionInfo = $('.manualcrop-selection-info', ManualCrop.croptool);
 
     // Get the instant preview.
     var instantPreview = $('.manualcrop-instantpreview', ManualCrop.croptool);
@@ -439,11 +450,15 @@ ManualCrop.updateSelection = function(image, selection) {
     if (selection && selection.width && selection.height && selection.x1 >= 0 && selection.y1 >= 0) {
       ManualCrop.output.val(selection.x1 + '|' + selection.y1 + '|' + selection.width + '|' + selection.height);
 
-      // Update the selection details.
-      $('.manualcrop-selection-x', ManualCrop.croptool).text(selection.x1);
-      $('.manualcrop-selection-y', ManualCrop.croptool).text(selection.y1);
-      $('.manualcrop-selection-width', ManualCrop.croptool).text(selection.width);
-      $('.manualcrop-selection-height', ManualCrop.croptool).text(selection.height);
+      // Update and show the selection info.
+      if (selectionInfo.length) {
+        $('.manualcrop-selection-x', ManualCrop.croptool).text(selection.x1);
+        $('.manualcrop-selection-y', ManualCrop.croptool).text(selection.y1);
+        $('.manualcrop-selection-width .manualcrop-selection-label-content', ManualCrop.croptool).text(selection.width);
+        $('.manualcrop-selection-height .manualcrop-selection-label-content', ManualCrop.croptool).text(selection.height);
+
+        selectionInfo.show();
+      }
 
       // Update the instant preview.
       if (instantPreview.length) {
@@ -472,10 +487,8 @@ ManualCrop.updateSelection = function(image, selection) {
     else {
       ManualCrop.output.val('');
 
-      $('.manualcrop-selection-x', ManualCrop.croptool).text('-');
-      $('.manualcrop-selection-y', ManualCrop.croptool).text('-');
-      $('.manualcrop-selection-width', ManualCrop.croptool).text('-');
-      $('.manualcrop-selection-height', ManualCrop.croptool).text('-');
+      // Hide the selection info.
+      selectionInfo.hide();
 
       // Reset the instant preview.
       if (instantPreview.length) {
