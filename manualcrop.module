@@ -655,62 +655,69 @@ function manualcrop_media_element_process($element) {
  */
 function manualcrop_croptool_validate($element, &$form_state) {
   if (!empty($form_state['manualcrop_data']['images']) && (!isset($form_state['clicked_button']) || !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove'))))) {
-    // Create a new key in the data array, this is to store processed selections.
+    // Create a new key, to store processed selections, in the data array.
     $form_state['manualcrop_data']['selections'] = array();
-    $save = &$form_state['manualcrop_data']['selections'];
+    $selections = &$form_state['manualcrop_data']['selections'];
 
-    // Loop trough the positions to get the manualcrop data.
+    // Loop trough the positions to get the Manual Crop data.
     foreach ($form_state['manualcrop_data']['images'] as $fid => $image) {
       $value = drupal_array_get_nested_value($form_state['values'], $image['element_parents']);
 
       if (isset($value['manualcrop_selections'])) {
-        // Create a selections array for the current image, the first element is
-        // the path to the original image, needed for flushing the cache.
-        $save[$fid] = array(
-          'path' => $image['uri'],
-          'styles' => array(),
-        );
+        $error_set = FALSE;
 
-        $first = TRUE;
-
-        foreach ($value['manualcrop_selections'] as $style_name => $selection) {
+        // Loop over the selections.
+        foreach ($value['manualcrop_selections'] as $style_name => $crop) {
+          // Get the clean style name.
           $clean_style_name = _manualcrop_image_style_name($style_name);
 
-          if ($first) {
+          // Get the element key.
+          if (!$error_set) {
             $element_key = implode('][', $image['element_parents']) . '][manualcrop_style';
           }
           else {
             $element_key = implode('][', $image['element_parents']) . '][manualcrop_selections][' . $style_name;
           }
 
-          if (!empty($selection)) {
-            if (preg_match('/^([0-9]+\|){3}[0-9]+$/', $selection)) {
-              $selection = array_map('intval', explode('|', $selection));
+          if (!empty($crop)) {
+            // Validate the crop selection format.
+            if (preg_match('/^([0-9]+\|){3}[0-9]+$/', $crop)) {
+              $crop = array_map('intval', explode('|', $crop));
 
               // Check position and minimum dimensions.
-              if ($selection[0] >= 0 && $selection[1] >= 0 && $selection[2] > 0 && $selection[3] > 0) {
+              if ($crop[0] >= 0 && $crop[1] >= 0 && $crop[2] > 0 && $crop[3] > 0) {
                 // Check if the selections fits on the image.
-                if (($selection[0] + $selection[2]) <= $image['width'] && ($selection[1] + $selection[3]) <= $image['height']) {
-                  $save[$fid]['styles'][$style_name] = array(
-                    'x' => $selection[0],
-                    'y' => $selection[1],
-                    'width' => $selection[2],
-                    'height' => $selection[3],
+                if (($crop[0] + $crop[2]) <= $image['width'] && ($crop[1] + $crop[3]) <= $image['height']) {
+                  if (!isset($selections[$fid])) {
+                    // Create a selections array for the current image, the first element is
+                    // the path to the original image, needed for flushing the cache.
+                    $selections[$fid] = array(
+                      'path' => $image['uri'],
+                      'styles' => array(),
+                    );
+                  }
+
+                  $selections[$fid]['styles'][$style_name] = array(
+                    'x' => $crop[0],
+                    'y' => $crop[1],
+                    'width' => $crop[2],
+                    'height' => $crop[3],
                   );
                   continue;
                 }
               }
             }
 
+            // Invalid crop selection.
+            $error_set = TRUE;
             form_set_error($element_key, t('The crop selection for %filename (@style image style) is invalid, please clear it or reselect.', array(
               '@style' => $clean_style_name,
               '%filename' => $image['filename']
             )));
-
-            $first = FALSE;
           }
           elseif (in_array($style_name, $image['required_styles'], TRUE)) {
             // Uncropped required style.
+            $error_set = TRUE;
             form_set_error($element_key, t('%filename must have a cropping selection for the @style image style.', array(
               '@style' => $clean_style_name,
               '%filename' => $image['filename']
@@ -732,8 +739,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
  */
 function manualcrop_croptool_submit($form, &$form_state) {
   if (!empty($form_state['manualcrop_data']['selections'])) {
-    // Loop trough the selections to save them. $data['styles'] can by an empty array,
-    // but we have to loop trough the whole array to delete old selections.
+    // Loop trough the selections to save them.
     foreach ($form_state['manualcrop_data']['selections'] as $fid => $data) {
       db_delete('manualcrop')
         ->condition('fid', $fid)
