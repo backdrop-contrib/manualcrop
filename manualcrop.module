@@ -110,6 +110,25 @@ function manualcrop_image_style_delete($style) {
 }
 
 /**
+ * Implements hook_image_style_flush().
+ */
+function manualcrop_image_style_flush($style) {
+  if (!empty($style['effects'])) {
+    $effect = reset($style['effects']);
+    if (_manualcrop_is_own_effect($effect)) {
+      // Leave if this style has a Manual Crop effect.
+      return;
+    }
+  }
+
+  // Delete all crop selections if the image style doesn't have a Manual Crop
+  // effect. We do this here because there's no image effect delete hook.
+  db_delete('manualcrop')
+    ->condition('style_name', $style['name'])
+    ->execute();
+}
+
+/**
  * Implements hook_file_delete().
  */
 function manualcrop_file_delete($file) {
@@ -718,6 +737,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
     foreach ($form_state['manualcrop_data']['selections'] as $fid => $data) {
       db_delete('manualcrop')
         ->condition('fid', $fid)
+        ->condition('style_name', array_keys($data['styles']))
         ->execute();
 
       foreach ($data['styles'] as $style_name => $selection) {
@@ -738,7 +758,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
       }
     }
 
-    // A success message is only shown when not using the FAPI.
+    // Show a success message when not using the FAPI.
     if (!empty($form['manualcrop'])) {
       drupal_set_message(t('The crop selections have been saved.'));
     }
