@@ -252,7 +252,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
             var minHeight = (typeof options.minHeight != 'undefined' ? options.minHeight : 0)
 
             // Set a width and height.
-            ManualCrop.oldSelection = {
+            var selection = {
               width: (minWidth ? minWidth * 100 : (width / 2)),
               height: (minHeight ? minHeight * 100 : (height / 2)),
               maxWidth: (width / 2),
@@ -260,37 +260,41 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
             };
 
             // Resize the selection.
-            ManualCrop.oldSelection = ManualCrop.resizeDimensions(ManualCrop.oldSelection);
+            selection = ManualCrop.resizeDimensions(selection);
 
             // Make sure we respect the minimum dimensions.
             if (minWidth || minHeight) {
-              if (minWidth && ManualCrop.oldSelection.width < minWidth) {
-                ManualCrop.oldSelection.width = minWidth;
+              if (minWidth && selection.width < minWidth) {
+                selection.width = minWidth;
 
                 if (minHeight) {
-                  ManualCrop.oldSelection.height = minHeight;
+                  selection.height = minHeight;
                 }
               }
-              else if (minHeight && ManualCrop.oldSelection.height < minHeight) {
-                ManualCrop.oldSelection.height = minHeight;
+              else if (minHeight && selection.height < minHeight) {
+                selection.height = minHeight;
 
                 if (minWidth) {
-                  ManualCrop.oldSelection.width = minWidth;
+                  selection.width = minWidth;
                 }
               }
             }
 
             // Center the selection.
-            ManualCrop.oldSelection.x1 = Math.round((width - ManualCrop.oldSelection.width) / 2);
-            ManualCrop.oldSelection.y1 = Math.round((height - ManualCrop.oldSelection.height) / 2);
-            ManualCrop.oldSelection.x2 = ManualCrop.oldSelection.x1 + ManualCrop.oldSelection.width;
-            ManualCrop.oldSelection.y2 = ManualCrop.oldSelection.y1 + ManualCrop.oldSelection.height;
+            selection.x1 = Math.round((width - selection.width) / 2);
+            selection.y1 = Math.round((height - selection.height) / 2);
+            selection.x2 = selection.x1 + selection.width;
+            selection.y2 = selection.y1 + selection.height;
+
+            // Set the selection.
+            ManualCrop.croptool.imagesLoaded(function() {
+              ManualCrop.setSelection(selection);
+            });
           }
         }
       }
-
-      // Set the initial selection.
-      if (ManualCrop.oldSelection) {
+      else {
+        // Set the initial selection.
         ManualCrop.croptool.imagesLoaded(ManualCrop.resetSelection);
       }
 
@@ -343,10 +347,7 @@ ManualCrop.closeCroptool = function(reset) {
 ManualCrop.resetSelection = function() {
   if (ManualCrop.croptool) {
     if (ManualCrop.oldSelection) {
-      ManualCrop.widget.setSelection(ManualCrop.oldSelection.x1, ManualCrop.oldSelection.y1, ManualCrop.oldSelection.x2, ManualCrop.oldSelection.y2);
-      ManualCrop.widget.setOptions({hide: false, show: true});
-      ManualCrop.widget.update();
-      ManualCrop.updateSelection(null, ManualCrop.oldSelection);
+      ManualCrop.setSelection(ManualCrop.oldSelection);
 
       // Hide reset button.
       $('.manualcrop-reset', ManualCrop.croptool).hide();
@@ -394,17 +395,44 @@ ManualCrop.maximizeSelection = function() {
       }
 
       // Set the new selection.
-      ManualCrop.widget.setSelection(x, y, (x + width), (y + height));
+      ManualCrop.setSelection(x, y, (x + width), (y + height));
     }
     else {
       // No ratio requirements, just select the whole image.
-      ManualCrop.widget.setSelection(0, 0, origWidth, origHeight);
+      ManualCrop.setSelection(0, 0, origWidth, origHeight);
     }
+  }
+}
 
-    // Update the widget and stored selection.
+/**
+ * Set a selection.
+ *
+ * @param x1
+ *   Left top X coordinate or a selection object with all parameters.
+ * @param y1
+ *   Left top Y coordinate.
+ * @param x2
+ *   Right bottom X coordinate.
+ * @param y2
+ *   Right bottom Y coordinate.
+ */
+ManualCrop.setSelection = function(x1, y1, x2, y2) {
+  if (typeof x1 == 'object') {
+    var selection = x1;
+  }
+  else {
+    var selection = {};
+    selection.x1 = x1;
+    selection.y1 = y1;
+    selection.x2 = x2;
+    selection.y2 = y2;
+  }
+
+  if (ManualCrop.croptool) {
+    ManualCrop.widget.setSelection(selection.x1, selection.y1, selection.x2, selection.y2);
     ManualCrop.widget.setOptions({hide: false, show: true});
     ManualCrop.widget.update();
-    ManualCrop.updateSelection(null, ManualCrop.widget.getSelection());
+    ManualCrop.updateSelection(null, selection);
   }
 }
 
