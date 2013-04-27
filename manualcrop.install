@@ -201,7 +201,7 @@ function manualcrop_update_7103(&$sandbox) {
         foreach ($bundles as $bundle_name) {
           // Get the field instance and its settings.
           $instance = field_info_instance($entity_type, $field_name, $bundle_name);
-          $settings = $instance['widget']['settings'];
+          $settings = &$instance['widget']['settings'];
 
           // Update the image styles settings.
           if (!empty($settings['manualcrop_styles_list']) || !empty($settings['manualcrop_require_cropping'])) {
