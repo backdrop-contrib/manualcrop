@@ -611,10 +611,13 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
 
           // Get the original image.
           var originalImage = $('#manualcrop-overlay-' + fid + ' img.manualcrop-image, #manualcrop-inline-' + fid + ' img.manualcrop-image');
+          var testImage = $('<img/>') // Make in memory copy of image to avoid css issues.
+            .attr('src', originalImage.attr('src'));
+          testImage = testImage.get(0); // Convert from jQuery object to raw DOM object.
 
           // Calculate the new width and height using the full image.
-          resized.width = Math.round(scaleX * ManualCrop.parseInt(originalImage.width()));
-          resized.height = Math.round(scaleY * ManualCrop.parseInt(originalImage.height()));
+          resized.width = Math.round(scaleX * ManualCrop.parseInt(testImage.width));
+          resized.height = Math.round(scaleY * ManualCrop.parseInt(testImage.height));
 
           // Create and insert the cropped preview.
           previewHolder.append(originalImage.clone().removeClass().css({
