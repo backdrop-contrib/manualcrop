@@ -529,7 +529,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
   $form['manualcrop']['manualcrop_enable'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable'),
-    '#description' => t('Enable the Manual Crop features.'),
+    '#description' => t('Enable the Manual Crop features. To enable Manual Crop for this field, you must configure a Manual Crop image effect on at least one image style.'),
     '#default_value' => ($settings['manualcrop_enable'] && !empty($style_options)),
     '#disabled' => empty($style_options),
   );
