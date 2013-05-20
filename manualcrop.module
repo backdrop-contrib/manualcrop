@@ -1120,12 +1120,12 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
  * @see image_crop_effect()
  */
 function manualcrop_crop_effect(&$image, $data) {
-  $crop = manualcrop_load_crop_selection($image->source, $data["style_name"]);
+  $crop = manualcrop_load_crop_selection($image->source, $data['style_name']);
 
   if ($crop) {
-    $data["width"] = $crop->width;
-    $data["height"] = $crop->height;
-    $data["anchor"] = $crop->x . "-" . $crop->y;
+    $data['width'] = $crop->width;
+    $data['height'] = $crop->height;
+    $data['anchor'] = $crop->x . '-' . $crop->y;
 
     return image_crop_effect($image, $data);
   }

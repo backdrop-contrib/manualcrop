@@ -118,14 +118,6 @@ function theme_manualcrop_crop_and_scale_summary($variables) {
  *   The form structure array.
  */
 function manualcrop_crop_form($data) {
-  // Load all image styles that have a cropping effect and exclude the style
-  // that's currently being edited.
-  $styles = manualcrop_styles_with_crop();
-  $current = arg(5);
-  if (isset($styles[$current])) {
-    unset($styles[$current]);
-  }
-
   $form = image_resize_form($data);
 
   $form['width']['#title'] = t('Minimum crop width');
@@ -150,9 +142,12 @@ function manualcrop_crop_form($data) {
     ),
   );
 
+  // Load the crop image styles and exclude the style that's being edited.
+  $styles = manualcrop_styles_with_crop(FALSE, 5);
+
   $form['reusestyle'] = array(
     '#type' => 'select',
-    '#title' => t('Fallback cropping from another image style'),
+    '#title' => t('Fallback cropping style'),
     '#description' => t('The image style whose cropping should be applied if none is given for this style.'),
     '#options' => array('' => '- ' . t('None (no crop)') . ' -') + drupal_map_assoc(array_keys($styles), '_manualcrop_image_style_name'),
     '#default_value' => isset($data['reusestyle']) ? $data['reusestyle'] : '',
@@ -187,24 +182,39 @@ function manualcrop_keepproportions_validate($element, $form_state) {
  */
 function theme_manualcrop_crop_summary($variables) {
   $data = $variables['data'];
+  $str = '';
 
-  $str = ' (';
   if ($data['width'] && $data['height']) {
     $str .= t('minimum crop dimensions ') . ' ' . check_plain($data['width']) . 'x' . check_plain($data['height']);
   }
-  elseif ($data['width'] || $data['height']) {
-    $str .= ($data['width']) ? t('minimum crop width @width', array('@width' => $data['width'])) : t('minimum crop height @height', array('@height' => $data['height']));
+  elseif ($data['width']) {
+    $str .= t('minimum crop width @width', array('@width' => $data['width']));
+  }
+  elseif ($data['height']) {
+    $str .= t('minimum crop height @height', array('@height' => $data['height']));
   }
 
   if (!empty($data['keepproportions'])) {
-    $str .= ' ' . t('and') . ' ' . ($data['keepproportions'] ? t('maintain proportions') : '');
+    if ($str) {
+      $str .= ' ' . t('and') . ' ';
+    }
+
+    $str .= t('maintain proportions');
   }
 
   if (!empty($data['reusestyle'])) {
-    $str .= ' ' . t('and use fallback cropping from style @style', array('@style' => _manualcrop_image_style_name($data['reusestyle'])));
+    if ($str) {
+      $str .= ' ' . t('and') . ' ';
+    }
+
+    $str .= t('use fallback cropping from style @style', array('@style' => _manualcrop_image_style_name($data['reusestyle'])));
   }
 
-  return $str . ')';
+  if ($str) {
+    $str = '(' . $str . ')';
+  }
+
+  return $str;
 }
 
 /**
@@ -217,17 +227,12 @@ function theme_manualcrop_crop_summary($variables) {
  *   The form structure array.
  */
 function manualcrop_reuse_form($data) {
-  // Load all image styles that have a cropping effect and exclude the style
-  // that's currently being edited.
-  $styles = manualcrop_styles_with_crop();
-  $current = arg(5);
-  if (isset($styles[$current])) {
-    unset($styles[$current]);
-  }
+  // Load the crop image styles and exclude the style that's being edited.
+  $styles = manualcrop_styles_with_crop(FALSE, 5);
 
   if (!count($styles)) {
     drupal_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
-    drupal_goto('admin/config/media/image-styles/edit/' . $current);
+    drupal_goto('admin/config/media/image-styles/edit/' . arg(5));
   }
 
   $form['reusestyle'] = array(
@@ -252,17 +257,12 @@ function manualcrop_reuse_form($data) {
  *   The form structure array.
  */
 function manualcrop_auto_reuse_form($data) {
-  // Load all image styles that have a cropping effect and exclude the style
-  // that's currently being edited.
-  $styles = manualcrop_styles_with_crop();
-  $current = arg(5);
-  if (isset($styles[$current])) {
-    unset($styles[$current]);
-  }
+  // Load the crop image styles and exclude the style that's being edited.
+  $styles = manualcrop_styles_with_crop(FALSE, 5);
 
   if (!count($styles)) {
     drupal_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
-    drupal_goto('admin/config/media/image-styles/edit/' . $current);
+    drupal_goto('admin/config/media/image-styles/edit/' . arg(5));
   }
 
   $form['manualcrop_auto_reuse_styles'] = array(
@@ -272,15 +272,15 @@ function manualcrop_auto_reuse_form($data) {
   );
 
   // Get a list of possible fallback styles.
-  $fallback_styles = array_diff_key(image_styles(), manualcrop_styles_with_crop(), array($current => ''));
-  $fallback_styles = drupal_map_assoc(array_keys($fallback_styles), '_manualcrop_image_style_name');
-  $fallback_styles = array('' => t('None')) + $fallback_styles;
+  $styles = array_diff_key(image_styles(), manualcrop_styles_with_crop(FALSE, 5));
+  $styles = drupal_map_assoc(array_keys($styles), '_manualcrop_image_style_name');
+  $styles = array('' => t('None')) + $styles;
 
   $form['fallback_style'] = array(
     '#type' => 'select',
     '#title' => t('Fallback image style'),
     '#description' => t('Image style to use if no cropping selections is found for an image.'),
-    '#options' => $fallback_styles,
+    '#options' => $styles,
     '#default_value' => (isset($data['fallback_style']) ? $data['fallback_style'] : ''),
   );
 
@@ -359,7 +359,7 @@ function manualcrop_image_effect_form_submit($form, &$form_state) {
   elseif (!isset($effect['ieid'])) {
     // New effect, the weight must be the weight of the first effect minus one.
     $first = reset($style['effects']);
-    $form_state['values']['weight'] = $first["weight"] - 1;
+    $form_state['values']['weight'] = $first['weight'] - 1;
   }
 }
 

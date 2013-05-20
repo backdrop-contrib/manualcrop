@@ -170,11 +170,13 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  *
  * @param $include_reuse
  *   Set to TRUE to include styles with a Manual Crop reuse effect.
+ * @param $exclude_arg
+ *   Exclude the style that is set as a menu argument on this index
  *
  * @return
  *   An array of styles with the style name as key and the effect data as value.
  */
-function manualcrop_styles_with_crop($include_reuse = FALSE) {
+function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL) {
   $hascrop = &drupal_static(__FUNCTION__);
 
   if (!is_array($hascrop)) {
@@ -196,7 +198,17 @@ function manualcrop_styles_with_crop($include_reuse = FALSE) {
     }
   }
 
-  return $hascrop[(int) $include_reuse];
+  $styles = $hascrop[(int) $include_reuse];
+
+  // Exclude a style by menu arument.
+  if (!is_null($exclude_arg)) {
+    $exclude_arg = arg($exclude_arg);
+    if (isset($styles[$exclude_arg])) {
+      unset($styles[$exclude_arg]);
+    }
+  }
+
+  return $styles;
 }
 
 /**
