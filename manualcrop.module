@@ -757,11 +757,11 @@ function manualcrop_croptool_submit($form, &$form_state) {
 
       // Clear the cached versions of this image.
       image_path_flush($data['path']);
+    }
 
-      if (variable_get('manualcrop_cache_control', TRUE)) {
-        // Clear the cached image paths.
-        cache_clear_all('manualcrop:', 'cache', TRUE);
-      }
+    if (variable_get('manualcrop_cache_control', TRUE)) {
+      // Clear the cached image paths.
+      cache_clear_all('manualcrop:', 'cache', TRUE);
     }
 
     // Show a success message when not using the FAPI.
