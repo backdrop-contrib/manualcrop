@@ -654,7 +654,7 @@ function manualcrop_media_element_process($element) {
  *   The form state array.
  */
 function manualcrop_croptool_validate($element, &$form_state) {
-  if (!empty($form_state['manualcrop_data']['images']) && (!isset($form_state['clicked_button']) || !in_array($form_state['clicked_button']['#value'], array(t('Upload'), t('Remove'))))) {
+  if (!empty($form_state['manualcrop_data']['images']) && (!isset($form_state['triggering_element']) || !in_array($form_state['triggering_element']['#value'], array(t('Upload'), t('Remove'))))) {
     // Create a new key, to store processed selections, in the data array.
     $form_state['manualcrop_data']['selections'] = array();
     $selections = &$form_state['manualcrop_data']['selections'];
@@ -663,7 +663,15 @@ function manualcrop_croptool_validate($element, &$form_state) {
     foreach ($form_state['manualcrop_data']['images'] as $fid => $image) {
       $value = drupal_array_get_nested_value($form_state['values'], $image['element_parents']);
 
-      if (isset($value['manualcrop_selections'])) {
+      if (!empty($value['manualcrop_selections'])) {
+        // Create a selections array for the current image, the first element is
+        // the path to the original image, needed for flushing the cache.
+        $selections[$fid] = array(
+          'path' => $image['uri'],
+          'styles' => array_fill_keys(array_keys($value['manualcrop_selections']), FALSE),
+        );
+
+        // Indicates if an error on the form element has been set.
         $error_set = FALSE;
 
         // Loop over the selections.
@@ -688,15 +696,6 @@ function manualcrop_croptool_validate($element, &$form_state) {
               if ($crop[0] >= 0 && $crop[1] >= 0 && $crop[2] > 0 && $crop[3] > 0) {
                 // Check if the selections fits on the image.
                 if (($crop[0] + $crop[2]) <= $image['width'] && ($crop[1] + $crop[3]) <= $image['height']) {
-                  if (!isset($selections[$fid])) {
-                    // Create a selections array for the current image, the first element is
-                    // the path to the original image, needed for flushing the cache.
-                    $selections[$fid] = array(
-                      'path' => $image['uri'],
-                      'styles' => array(),
-                    );
-                  }
-
                   $selections[$fid]['styles'][$style_name] = array(
                     'x' => $crop[0],
                     'y' => $crop[1],
@@ -747,12 +746,14 @@ function manualcrop_croptool_submit($form, &$form_state) {
         ->execute();
 
       foreach ($data['styles'] as $style_name => $selection) {
-        db_insert('manualcrop')
-          ->fields(array_merge($selection, array(
-            'fid' => $fid,
-            'style_name' => $style_name
-          )))
-          ->execute();
+        if ($selection) {
+          db_insert('manualcrop')
+            ->fields(array_merge($selection, array(
+              'fid' => $fid,
+              'style_name' => $style_name
+            )))
+            ->execute();
+        }
       }
 
       // Clear the cached versions of this image.
