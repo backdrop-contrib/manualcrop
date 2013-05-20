@@ -118,6 +118,14 @@ function theme_manualcrop_crop_and_scale_summary($variables) {
  *   The form structure array.
  */
 function manualcrop_crop_form($data) {
+  // Load all image styles that have a cropping effect and exclude the style
+  // that's currently being edited.
+  $styles = manualcrop_styles_with_crop();
+  $current = arg(5);
+  if (isset($styles[$current])) {
+    unset($styles[$current]);
+  }
+
   $form = image_resize_form($data);
 
   $form['width']['#title'] = t('Minimum crop width');
@@ -140,6 +148,14 @@ function manualcrop_crop_form($data) {
         'input[name="data[height]"]' => array('filled' => TRUE),
       ),
     ),
+  );
+
+  $form['reusestyle'] = array(
+    '#type' => 'select',
+    '#title' => t('Fallback cropping from another image style'),
+    '#description' => t('The image style whose cropping should be applied if none is given for this style.'),
+    '#options' => array('' => '- ' . t('None (no crop)') . ' -') + drupal_map_assoc(array_keys($styles), '_manualcrop_image_style_name'),
+    '#default_value' => isset($data['reusestyle']) ? $data['reusestyle'] : '',
   );
 
   return $form;
@@ -172,20 +188,23 @@ function manualcrop_keepproportions_validate($element, $form_state) {
 function theme_manualcrop_crop_summary($variables) {
   $data = $variables['data'];
 
+  $str = ' (';
   if ($data['width'] && $data['height']) {
-    $str = ' (' . t('minimum crop dimensions ') . ' ' . check_plain($data['width']) . 'x' . check_plain($data['height']);
-
-    if (!empty($data['keepproportions'])) {
-      $str .= ' ' . t('and') . ' ' . ($data['keepproportions'] ? t('maintain proportions') : '');
-    }
-
-    return $str . ')';
+    $str .= t('minimum crop dimensions ') . ' ' . check_plain($data['width']) . 'x' . check_plain($data['height']);
   }
   elseif ($data['width'] || $data['height']) {
-    return ' (' . ($data['width']) ? t('minimum crop width @width', array('@width' => $data['width'])) : t('minimum crop height @height', array('@height' => $data['height'])) . ')';
+    $str .= ($data['width']) ? t('minimum crop width @width', array('@width' => $data['width'])) : t('minimum crop height @height', array('@height' => $data['height']));
   }
 
+  if (!empty($data['keepproportions'])) {
+    $str .= ' ' . t('and') . ' ' . ($data['keepproportions'] ? t('maintain proportions') : '');
+  }
 
+  if (!empty($data['reusestyle'])) {
+    $str .= ' ' . t('and use fallback cropping from style @style', array('@style' => _manualcrop_image_style_name($data['reusestyle'])));
+  }
+
+  return $str . ')';
 }
 
 /**

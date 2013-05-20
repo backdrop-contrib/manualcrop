@@ -1129,6 +1129,9 @@ function manualcrop_crop_effect(&$image, $data) {
 
     return image_crop_effect($image, $data);
   }
+  elseif (!empty($data['reusestyle'])) {
+    return manualcrop_reuse_effect($image, $data);
+  }
 
   return TRUE;
 }
