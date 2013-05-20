@@ -1241,13 +1241,15 @@ function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
  * Additional submit handler to add the field info to redirect query array.
  */
 function manualcrop_form_file_entity_add_upload_submit($form, &$form_state) {
-  $arg = $form_state['build_info']['args'][0];
+  if (isset($form_state['build_info']['args'][0])) {
+    $arg = $form_state['build_info']['args'][0];
 
-  if (!empty($arg['manualcrop'])) {
-    if (isset($form_state['redirect'][1])) {
-      $form_state['redirect'][1]['query'] += array(
-        'manualcrop' => $arg['manualcrop'],
-      );
+    if (!empty($arg['manualcrop'])) {
+      if (isset($form_state['redirect'][1])) {
+        $form_state['redirect'][1]['query'] += array(
+          'manualcrop' => $arg['manualcrop'],
+        );
+      }
     }
   }
 }
