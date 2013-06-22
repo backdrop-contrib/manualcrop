@@ -704,7 +704,7 @@ ManualCrop.parseStringSelection = function(txtSelection) {
  *   The integer.
  */
 ManualCrop.parseInt = function(integer) {
-  return (parseInt(integer) || 0)
+  return (parseInt(integer) || 0);
 }
 
 /**

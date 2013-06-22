@@ -92,6 +92,92 @@ function manualcrop_views_api() {
 }
 
 /**
+ * Implements hook_libraries_info().
+ */
+function manualcrop_libraries_info() {
+  $libraries = array();
+
+  $libraries['jquery.imagesloaded'] = array(
+    'name' => 'jQuery imagesLoaded',
+    'vendor url' => 'http://desandro.github.io/imagesloaded',
+    'version callback' => 'manualcrop_library_get_version',
+    'version arguments' => array(
+      'file' => array(
+        'jquery.imagesloaded.js',
+        'jquery.imagesloaded.min.js',
+      ),
+      'pattern' => '# v([0-9\.]+)#',
+      'lines' => 5,
+      'cols' => 40,
+    ),
+    'files' => array(
+      'js' => array(
+        'jquery.imagesloaded.js',
+      ),
+    ),
+    'variants' => array(
+      'minified' => array(
+        'files' => array(
+          'js' => array(
+            'jquery.imagesloaded.min.js',
+          ),
+        ),
+        'variant callback' => 'manualcrop_library_detect_variant',
+        'variant arguments' => array(),
+      ),
+    ),
+  );
+
+  $libraries['jquery.imgareaselect'] = array(
+    'name' => 'jQuery imgAreaSelect',
+    'vendor url' => 'http://odyniec.net/projects/imgareaselect',
+    'version callback' => 'libraries_get_version',
+    'version arguments' => array(
+      'file' => 'scripts/jquery.imgareaselect.js',
+      'pattern' => '#version ([0-9\.]+)#',
+      'lines' => 10,
+      'cols' => 20,
+    ),
+    'files' => array(
+      'js' => array(
+        'scripts/jquery.imgareaselect.js',
+      ),
+      'css' => array(
+        'css/imgareaselect-animated.css',
+      ),
+    ),
+    'variants' => array(
+      'minified' => array(
+        'files' => array(
+          'js' => array(
+            'scripts/jquery.imgareaselect.min.js',
+          ),
+          'css' => array(
+            'css/imgareaselect-animated.css',
+          ),
+        ),
+        'variant callback' => 'manualcrop_library_detect_variant',
+        'variant arguments' => array(),
+      ),
+      'packed' => array(
+        'files' => array(
+          'js' => array(
+            'scripts/jquery.imgareaselect.pack.js',
+          ),
+          'css' => array(
+            'css/imgareaselect-animated.css',
+          ),
+        ),
+        'variant callback' => 'manualcrop_library_detect_variant',
+        'variant arguments' => array(),
+      ),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
  * Implements hook_image_style_delete().
  */
 function manualcrop_image_style_delete($style) {
@@ -271,7 +357,7 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, 
     // IE has problems with lazy loading of css files, see http://drupal.org/node/1071818
     if (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE) {
       $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/manualcrop.css';
-      $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css';
+      $form['#attached']['manualcrop_library_load'][] = array('jquery.imgareaselect');
     }
 
     // Reset the images array.
@@ -466,13 +552,14 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/css/imgareaselect-animated.css',
           ),
           'js' => array(
             drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-            drupal_get_path('module', 'manualcrop') . '/jquery.imgareaselect/scripts/jquery.imgareaselect.pack.js',
-            drupal_get_path('module', 'manualcrop') . '/jquery.imagesloaded/jquery.imagesloaded.min.js',
           ),
+          'manualcrop_library_load' => array(
+            array('jquery.imagesloaded'),
+            array('jquery.imgareaselect'),
+          )
         ),
       );
 

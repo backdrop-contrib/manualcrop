@@ -370,10 +370,9 @@ function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
 }
 
 /**
- * Helper function to determine if the form for a Field Collection field has
- * already been prepared. This function checks if the field instance is
- * attached to a Field Collection item entity, if so we'll store it and return
- * FALSE the next time.
+ * Determines if the form for a Field Collection field has been prepared.
+ * This function checks if the field instance is attached to a Field Collection
+ * item entity, if so we'll store it and return FALSE the next time.
  *
  * @param $instance
  *   Field instance array.
@@ -396,4 +395,108 @@ function _manualcrop_check_field_collection_form_prepare($instance) {
   }
 
   return TRUE;
+}
+
+/**
+ * Get the version of a library. This function uses libraries_get_version(),
+ * the only difference is that the $options['file'] key can be an array.
+ *
+ * @param $library
+ *   Library info array.
+ * @param $options
+ *   Options array as specified by libraries_get_version().
+ *
+ * @return
+ *   A string containing the version of the library.
+ *
+ * @see libraries_get_version().
+ */
+function manualcrop_library_get_version($library, $options) {
+  if (!empty($options['file'])) {
+    $files = (array) $options['file'];
+    foreach ($files as $file) {
+      $options['file'] = $file;
+      $version = libraries_get_version($library, $options);
+
+      if ($version) {
+        return $version;
+      }
+    }
+  }
+}
+
+/**
+ * Check if a library variant has been installed.
+ *
+ * @param $library
+ *   Library info array.
+ * @param $variant
+ *   Variant name.
+ *
+ * @return
+ *   TRUE if the variant exists, FALSE otherwise.
+ */
+function manualcrop_library_detect_variant($library, $variant) {
+  if (!empty($library['variants'][$variant]['files'])) {
+    $files = $library['variants'][$variant]['files'];
+
+    foreach (array('js', 'css') as $type) {
+      if (!empty($files[$type])) {
+        reset($files[$type]);
+        return file_exists(DRUPAL_ROOT . '/' . $library['library path'] . '/' . key($files[$type]));
+      }
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Smart library loader, it checks for a packed or minified version and falls back
+ * to the default version if neither of them were found.
+ *
+ * @param $name
+ *   Library name.
+ * @param $variants
+ *   Array of allowed variants.
+ *
+ * @return
+ *   An associative array of the library information as returned from libraries_info().
+ *
+ * @see libraries_load().
+ */
+function manualcrop_library_load($name, $variants = NULL) {
+  $loaded = &drupal_static(__FUNCTION__, array());
+
+  if (!isset($loaded[$name])) {
+    $loaded[$name] = array();
+
+    $library = cache_get($name, 'cache_libraries');
+    if ($library) {
+      $library = $library->data;
+    }
+    else {
+      $library = libraries_detect($name);
+      cache_set($name, $library, 'cache_libraries');
+    }
+
+    if (empty($variants)) {
+      $variants = array('packed', 'minified', NULL);
+    }
+
+    foreach ((array) $variants as $variant) {
+      if ($variant) {
+        if (!empty($library['variants'][$variant]['installed'])) {
+          $loaded[$name] = libraries_load($name, $variant);
+          break;
+        }
+      }
+      elseif ($library['installed']) {
+        $loaded[$name] = libraries_load($name, $variant);
+        break;
+      }
+    }
+
+    return $loaded[$name];
+  }
 }
