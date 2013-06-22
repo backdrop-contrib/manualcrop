@@ -424,6 +424,8 @@ ManualCrop.setSelection = function(x1, y1, x2, y2) {
     selection.y1 = y1;
     selection.x2 = x2;
     selection.y2 = y2;
+    selection.width = x2 - x1;
+    selection.height = y2 - y1;
   }
 
   if (ManualCrop.croptool) {
