@@ -395,6 +395,50 @@ function _manualcrop_check_field_collection_form_prepare($instance) {
 }
 
 /**
+ * Add the crop functionality to the File Entity form.
+ *
+ * @param $form
+ *   Complete form array.
+ * @param $form_state
+ *   Form state array.
+ * @param $instance_info
+ *   Field instance info, this array should contain 3 keys: entity_type, bundle
+ *   and field_name.
+ * @param $file
+ *   File object.
+ */
+function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_info, $file) {
+  // Get the field instance settings.
+  $settings = array();
+  if (!empty($instance_info['entity_type']) && !empty($instance_info['bundle']) && !empty($instance_info['field_name'])) {
+    // Get the field instance.
+    $instance = field_info_instance($instance_info['entity_type'], $instance_info['field_name'], $instance_info['bundle']);
+
+    if (!empty($instance)) {
+      // A field instance was found, use its settings.
+      $settings = $instance['widget']['settings'];
+
+      if (empty($settings['manualcrop_enable'])) {
+        // Manual Crop isn't enabled.
+        return;
+      }
+    }
+  }
+
+  // Build the javascript identifier.
+  $js_identifier = manualcrop_js_identifier($file);
+
+  // Prepare the form.
+  manualcrop_croptool_prepare_form($form, $form_state, $js_identifier, $settings);
+
+  // Add the croptool.
+  manualcrop_croptool_process($form, $form_state, $js_identifier, $file, NULL, $settings);
+
+  // Add the submit handler.
+  $form['#submit'][] = 'manualcrop_croptool_submit';
+}
+
+/**
  * Get the version of a library. This function uses libraries_get_version(),
  * the only difference is that the $options['file'] key can be an array.
  *

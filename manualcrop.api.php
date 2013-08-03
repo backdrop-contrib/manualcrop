@@ -9,11 +9,7 @@
  */
 function hook_manualcrop_supported_widgets() {
   return array(
-    'image_image' => array(
-      'thumblist',
-      'inline_crop',
-      'instant_crop',
-    ),
+    'image_image' => array('thumblist', 'inline_crop', 'instant_crop'),
   );
 }
 
@@ -24,7 +20,5 @@ function hook_manualcrop_supported_widgets() {
  * @see hook_manualcrop_supported_widgets()
  */
 function hook_manualcrop_supported_widgets_alter(&$widgets) {
-  $widgets['widget_name'] = array(
-    'thumblist',
-  );
+  $widgets['widget_name'] = array('thumblist');
 }

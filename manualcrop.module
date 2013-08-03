@@ -287,17 +287,10 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
  * Implements hook_manualcrop_supported_widgets().
  */
 function manualcrop_manualcrop_supported_widgets() {
-  // Settings that can differ from widget to widget.
-  $optional_settings = array(
-    'thumblist',
-    'inline_crop',
-    'instant_crop',
-  );
-
   return array(
-    'image_image' => $optional_settings,
-    'image_miw' => $optional_settings,
-    'media_generic' => array('thumblist'),
+    'image_image' => array('thumblist', 'inline_crop', 'instant_crop'),
+    'image_miw' => array('thumblist', 'inline_crop', 'instant_crop'),
+    'media_generic' => array('thumblist', 'inline_crop'),
   );
 }
 
@@ -1334,87 +1327,36 @@ function manualcrop_insert_styles() {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Adds a submit handler to the File Entity upload form for Media integration.
+ * Provides integration with the File Entity (and Media) module by adding the
+ * crop functionality to the file upload form.
  */
 function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
-  // For images uploaded using media browser / wysiwyg.
   if (isset($form['#step']) && $form['#step'] == 4) {
-    if (isset($form_state['#media_browser']) && $form_state['#media_browser'] == TRUE) {
-      $js_identifier = 'manualcrop-file-' . $form['#entity']->fid;
-      $settings = array();
-      // Attach all the javascript to the form.
-      manualcrop_croptool_prepare_form($form, $form_state, $js_identifier, $settings);
-      manualcrop_croptool_process($form, $form_state, $js_identifier, $form['#entity'], NULL, $settings);
-      $form['#submit'][] = 'manualcrop_croptool_submit';
+    // Get the field instance information.
+    $instance_info = array();
+    if (!empty($form_state['build_info']['args'][0]['manualcrop'])) {
+      $instance_info = $form_state['build_info']['args'][0]['manualcrop'];
     }
-  }
-  else {
-    // For imagefields.
-    $form['#submit'][] = 'manualcrop_form_file_entity_add_upload_submit';
+
+    // Process the form.
+    _manualcrop_process_file_entity_form($form, $form_state, $instance_info, $form['#entity']);
   }
 }
 
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Additional submit handler to add the field info to redirect query array.
- */
-function manualcrop_form_file_entity_add_upload_submit($form, &$form_state) {
-  if (isset($form_state['build_info']['args'][0])) {
-    $arg = $form_state['build_info']['args'][0];
-
-    if (!empty($arg['manualcrop'])) {
-      if (isset($form_state['redirect'][1])) {
-        $form_state['redirect'][1]['query'] += array(
-          'manualcrop' => $arg['manualcrop'],
-        );
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- *
- * Provides integration with the File Entity and Media modules.
+ * Provides integration with the File Entity (and Media) module by adding the
+ * crop functionality to the file edit form.
  */
 function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
   if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
-    $js_identifier = manualcrop_js_identifier($form['preview']['#file']);
-    $settings = array();
-
-    // If the parameters weren't correctly parsed, do it now.
+    // Try to parse the GET parameter if's missing.
     if (!isset($_GET['manualcrop']) && strpos($_GET['q'], '?') !== FALSE) {
       parse_str('q=' . str_replace('?', '&', $_GET['q']), $_GET);
     }
 
-    // Check if the field info is passed.
-    if (!empty($_GET['manualcrop']) && is_array($_GET['manualcrop'])) {
-      $manualcrop = $_GET['manualcrop'];
-
-      if (!empty($manualcrop['entity_type']) && !empty($manualcrop['bundle']) && !empty($manualcrop['field_name'])) {
-        // Get the field instance.
-        $instance = field_info_instance($manualcrop['entity_type'], $manualcrop['field_name'], $manualcrop['bundle']);
-
-        if (!empty($instance)) {
-          // A field instance was found, use its settings.
-          $settings = $instance['widget']['settings'];
-
-          if (empty($settings['manualcrop_enable'])) {
-            // Manual Crop isn't enabled.
-            return;
-          }
-        }
-      }
-    }
-
-    // Prepare the form.
-    manualcrop_croptool_prepare_form($form, $form_state, $js_identifier, $settings);
-
-    // Add the croptool.
-    manualcrop_croptool_process($form, $form_state, $js_identifier, $form['preview']['#file'], NULL, $settings);
-
-    // Add the submit handler.
-    $form['#submit'][] = 'manualcrop_croptool_submit';
+    // Process the form.
+    _manualcrop_process_file_entity_form($form, $form_state, (isset($_GET['manualcrop']) ? $_GET['manualcrop'] : array()), $form['preview']['#file']);
   }
 }
