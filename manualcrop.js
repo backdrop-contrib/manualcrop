@@ -728,8 +728,8 @@ ManualCrop.getImageDimensions = function(image) {
     .get(0);
 
   var dimensions = {
-    width: ManualCrop.parseInt(rawImage.width),
-    height: ManualCrop.parseInt(rawImage.height)
+    width: ManualCrop.parseInt(rawImage.width || image.width()),
+    height: ManualCrop.parseInt(rawImage.height || image.height())
   }
 
   return dimensions;
