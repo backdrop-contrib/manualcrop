@@ -5,13 +5,25 @@
  */
 
 /**
- * Implements hook_manualcrop_supported_widgets_alter().
+ * Inform Manual Crop about supported widgets and their settings.
+ */
+function hook_manualcrop_supported_widgets() {
+  return array(
+    'image_image' => array(
+      'thumblist',
+      'inline_crop',
+      'instant_crop',
+    ),
+  );
+}
+
+/**
+ * Allows other modules to change the list of Manual Crop supported widgets.
  *
- * Allow other modules to Manual Crop and extend supported widget types.
+ * @see hook_manualcrop_supported_widgets()
  */
 function hook_manualcrop_supported_widgets_alter(&$widgets) {
-  // Widget name + optional settings.
   $widgets['widget_name'] = array(
-    'thumbnails',
+    'thumblist',
   );
 }

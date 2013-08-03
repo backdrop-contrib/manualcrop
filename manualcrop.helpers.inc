@@ -17,20 +17,13 @@
  *   Array of widget types.
  */
 function manualcrop_supported_widgets($widget_type = NULL, $settings = array()) {
-  // List settings that can differ from widget to widget.
-  $optional_settings = array(
-    'thumblist',
-    'inline_crop',
-    'instant_crop',
-  );
+  $widgets = &drupal_static(__FUNCTION__);
 
-  // List all widgets and the optional settings they support.
-  $widgets = array(
-    'image_image' => $optional_settings,
-    'image_miw' => $optional_settings,
-    'media_generic' => array('thumblist'),
-  );
-  drupal_alter('manualcrop_supported_widgets', $widgets);
+  if (!isset($widgets)) {
+    // Collect information about the supported widgets.
+    $widgets = module_invoke_all('manualcrop_supported_widgets');
+    drupal_alter('manualcrop_supported_widgets', $widgets);
+  }
 
   // Make sure $settings contains only valid entries.
   if (!empty($settings)) {
@@ -38,7 +31,10 @@ function manualcrop_supported_widgets($widget_type = NULL, $settings = array()) 
       $settings = array($settings);
     }
 
-    $settings = array_intersect($settings, $optional_settings);
+    $widget_settings = manualcrop_manualcrop_supported_widgets();
+    $widget_settings = $widget_settings['image_image'];
+
+    $settings = array_intersect($settings, $widget_settings);
   }
 
   if (empty($settings)) {

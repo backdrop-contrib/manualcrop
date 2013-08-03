@@ -284,6 +284,24 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
 }
 
 /**
+ * Implements hook_manualcrop_supported_widgets().
+ */
+function manualcrop_manualcrop_supported_widgets() {
+  // Settings that can differ from widget to widget.
+  $optional_settings = array(
+    'thumblist',
+    'inline_crop',
+    'instant_crop',
+  );
+
+  return array(
+    'image_image' => $optional_settings,
+    'image_miw' => $optional_settings,
+    'media_generic' => array('thumblist'),
+  );
+}
+
+/**
  * Process function for Manual Crop enabled widgets.
  *
  * @param $element
