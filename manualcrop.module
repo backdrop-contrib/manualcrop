@@ -488,7 +488,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
           '#type' => 'value',
           '#default_value' => array(),
           '#element_validate' => array('manualcrop_croptool_validate'),
-          '#array_parents' => array('manualcrop', 'file_' . $file->fid),
+          '#parents' => array('manualcrop', 'file_' . $file->fid),
         );
 
         // Link to the newly created container and item.
@@ -511,7 +511,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
         'filename' => $file->filename,
         'width' => $image['width'],
         'height' => $image['height'],
-        'element_parents' => $container['#array_parents'],
+        'element_parents' => $container['#parents'],
         'required_styles' => $required,
       );
 
