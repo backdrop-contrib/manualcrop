@@ -18,7 +18,8 @@ function hook_manualcrop_supported_widgets() {
 }
 
 /**
- * Allows other modules to change the list of Manual Crop supported widgets.
+ * Allows other modules to alter the list of Manual Crop supported widgets
+ * and their settings.
  *
  * @see hook_manualcrop_supported_widgets()
  */
