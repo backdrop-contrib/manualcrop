@@ -1337,7 +1337,21 @@ function manualcrop_insert_styles() {
  * Adds a submit handler to the File Entity upload form for Media integration.
  */
 function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
-  $form['#submit'][] = 'manualcrop_form_file_entity_add_upload_submit';
+  // For images uploaded using media browser / wysiwyg.
+  if (isset($form['#step']) && $form['#step'] == 4) {
+    if (isset($form_state['#media_browser']) && $form_state['#media_browser'] == TRUE) {
+      $js_identifier = 'manualcrop-file-' . $form['#entity']->fid;
+      $settings = array();
+      // Attach all the javascript to the form.
+      manualcrop_croptool_prepare_form($form, $form_state, $js_identifier, $settings);
+      manualcrop_croptool_process($form, $form_state, $js_identifier, $form['#entity'], NULL, $settings);
+      $form['#submit'][] = 'manualcrop_croptool_submit';
+    }
+  }
+  else {
+    // For imagefields.
+    $form['#submit'][] = 'manualcrop_form_file_entity_add_upload_submit';
+  }
 }
 
 /**
@@ -1400,7 +1414,7 @@ function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
     // Add the croptool.
     manualcrop_croptool_process($form, $form_state, $js_identifier, $form['preview']['#file'], NULL, $settings);
 
-    // Add the submit handler
+    // Add the submit handler.
     $form['#submit'][] = 'manualcrop_croptool_submit';
   }
 }
