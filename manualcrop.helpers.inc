@@ -30,6 +30,7 @@ function manualcrop_supported_widgets($widget_type = NULL, $settings = array()) 
     'image_miw' => $optional_settings,
     'media_generic' => array('thumblist'),
   );
+  drupal_alter('manualcrop_supported_widgets', $widgets);
 
   // Make sure $settings contains only valid entries.
   if (!empty($settings)) {
