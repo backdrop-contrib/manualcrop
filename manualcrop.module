@@ -509,8 +509,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
       );
 
       // Get the crop selections for this file.
-      // Support inline entity form.
-      $submitted = isset($form_state['inline_entity_form']) ? FALSE : $form_state['submitted'];
+      $submitted = (isset($form_state['inline_entity_form']) ? FALSE : $form_state['submitted']);
       if (!$submitted && !isset($item['manualcrop_selections'])) {
         $item['manualcrop_selections'] = array();
         foreach (manualcrop_load_crop_selection($file->uri) as $data) {
