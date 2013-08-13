@@ -509,7 +509,9 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
       );
 
       // Get the crop selections for this file.
-      if (!$form_state['submitted'] && !isset($item['manualcrop_selections'])) {
+      // Support inline entity form.
+      $submitted = isset($form_state['inline_entity_form']) ? FALSE : $form_state['submitted'];
+      if (!$submitted && !isset($item['manualcrop_selections'])) {
         $item['manualcrop_selections'] = array();
         foreach (manualcrop_load_crop_selection($file->uri) as $data) {
           $item['manualcrop_selections'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
