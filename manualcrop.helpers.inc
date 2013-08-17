@@ -168,12 +168,19 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  * @param $include_reuse
  *   Set to TRUE to include styles with a Manual Crop reuse effect.
  * @param $exclude_arg
- *   Exclude the style that is set as a menu argument on this index
+ *   Exclude the style that is set as a menu argument on this index.
+ * @param $label
+ *   Set to TRUE to return the label instead of an array.
  *
  * @return
- *   An array of styles with the style name as key and the effect data as value.
+ *   If $label is set to TRUE, this function will return an array of style labels
+ *   keyed by style name. Otherwise an array of crop-enabled styles will be
+ *   returned. This array is also keyed by style name and each element in this
+ *   array is also an array with 2 elements:
+ *   - "label": Human readable style label.
+ *   - "effect": Manual Crop effect data.
  */
-function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL) {
+function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL, $label = FALSE) {
   $hascrop = &drupal_static(__FUNCTION__);
 
   if (!is_array($hascrop)) {
@@ -185,16 +192,25 @@ function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL
         $effect = reset($style['effects']);
 
         if (_manualcrop_is_own_effect($effect)) {
-          $hascrop[1][$style_name] = $effect;
+          $label = _manualcrop_image_style_label($style);
+
+          $hascrop[1][$style_name] = array(
+            'label' => $label,
+            'effect' => $effect,
+          );
 
           if (_manualcrop_is_own_effect($effect, TRUE)) {
-            $hascrop[0][$style_name] = $effect;
+            $hascrop[0][$style_name] = array(
+              'label' => $label,
+              'effect' => $effect,
+            );
           }
         }
       }
     }
   }
 
+  // With or without reuse effects.
   $styles = $hascrop[(int) $include_reuse];
 
   // Exclude a style by menu arument.
@@ -202,6 +218,13 @@ function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL
     $exclude_arg = arg($exclude_arg);
     if (isset($styles[$exclude_arg])) {
       unset($styles[$exclude_arg]);
+    }
+  }
+
+  // Only the labels should be returned.
+  if ($label) {
+    foreach ($styles as $style_name => $style) {
+      $styles[$style_name] = $style['label'];
     }
   }
 
@@ -317,29 +340,48 @@ function _manualcrop_reuse_effect_update_names_in_settings($style_name, $new_sty
 /**
  * Transform a style name into a more readable variant.
  *
- * @param $style_name
- *   Image style name.
+ * @param $style
+ *   Image style info array or style name.
  *
  * @return
  *   Cleaned-up image style name.
  */
-function _manualcrop_image_style_name($style_name) {
+function _manualcrop_image_style_label($style) {
   global $language;
   static $custom_strings;
 
-  $langcode = (isset($language->language) ? $language->language : 'en');
-
-  // Load custom string for overriding.
-  if (!isset($custom_strings[$langcode])) {
-    $custom_strings[$langcode] = variable_get('locale_custom_strings_' . $langcode, array());
+  // Get the image style info.
+  if (!is_array($style)) {
+    $styles = image_styles();
+    if (isset($styles[$style])) {
+      $style = $styles[$style];
+    }
+    else {
+      // Normally we shouldn't be here...
+      $style = array('name' => $style);
+    }
   }
 
-  // Get the human readable name from the custom strings or make it ourself.
-  if (isset($custom_strings[$langcode]['']['image-style-' . $style_name])) {
-    return $custom_strings[$langcode]['']['image-style-' . $style_name];
+  // The label is only available in Drupal 7.23 and up.
+  if (isset($style['label'])) {
+    return $style['label'];
   }
   else {
-    return ucwords(str_replace('_', ' ', $style_name));
+    $style_name = $style['name'];
+    $langcode = (isset($language->language) ? $language->language : 'en');
+
+    // Load custom string for overriding.
+    if (!isset($custom_strings[$langcode])) {
+      $custom_strings[$langcode] = variable_get('locale_custom_strings_' . $langcode, array());
+    }
+
+    // Get the human readable name from the custom strings or make it ourself.
+    if (isset($custom_strings[$langcode]['']['image-style-' . $style_name])) {
+      return $custom_strings[$langcode]['']['image-style-' . $style_name];
+    }
+    else {
+      return ucwords(str_replace('_', ' ', $style_name));
+    }
   }
 }
 

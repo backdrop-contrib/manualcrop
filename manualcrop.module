@@ -341,8 +341,8 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, 
       // Generate image style settings.
       foreach (manualcrop_styles_with_crop() as $style_name => $data) {
         $styles[$style_name] = array(
-          'effect' => $data['name'],
-          'data' => $data['data']
+          'effect' => $data['effect']['name'],
+          'data' => $data['effect']['data']
         );
       }
     }
@@ -436,7 +436,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
         }
 
         if (empty($styles)) {
-          // Leave if all styles where filtered.
+          // Leave if all styles were filtered.
           return FALSE;
         }
       }
@@ -544,7 +544,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
       $style_options = array('' => t('Select a style to crop'));
 
       // Hidden fields to save the crop selection, one for each image style.
-      foreach ($styles as $style_name => $data) {
+      foreach ($styles as $style_name => $info) {
         $container['manualcrop_selections'][$style_name] = array(
           '#type' => 'hidden',
           '#default_value' => (isset($item['manualcrop_selections'][$style_name]) ? $item['manualcrop_selections'][$style_name] : ''),
@@ -555,7 +555,7 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
           ),
         );
 
-        $style_options[$style_name] = _manualcrop_image_style_name($style_name);
+        $style_options[$style_name] = $info['label'];
       }
 
       // Default form element options.
@@ -776,7 +776,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
         // Loop over the selections.
         foreach ($value['manualcrop_selections'] as $style_name => $crop) {
           // Get the clean style name.
-          $clean_style_name = _manualcrop_image_style_name($style_name);
+          $clean_style_name = _manualcrop_image_style_label($style_name);
 
           // Get the element key.
           if (!$error_set) {
@@ -908,9 +908,9 @@ function manualcrop_preprocess_image(&$variables) {
 
         // Use the reuse style to load the crop selection.
         if (_manualcrop_is_own_effect($styles[$style_name], FALSE)) {
-          switch ($styles[$style_name]['name']) {
+          switch ($styles[$style_name]['effect']['name']) {
             case 'manualcrop_reuse':
-              $style_name = $styles[$style_name]['data']['reusestyle'];
+              $style_name = $styles[$style_name]['effect']['data']['reusestyle'];
               break;
             case 'manualcrop_auto_reuse':
               // Get the list of applied crop selections for the file.
@@ -1315,9 +1315,9 @@ function manualcrop_insert_styles() {
   if (is_null($insert_styles)) {
     $insert_styles = array();
 
-    foreach (manualcrop_styles_with_crop() as $style_name => $effect) {
+    foreach (manualcrop_styles_with_crop() as $style_name => $info) {
       $insert_styles['image_' . $style_name] = array(
-        'label' => _manualcrop_image_style_name($style_name),
+        'label' => $info['label'],
       );
     }
   }
