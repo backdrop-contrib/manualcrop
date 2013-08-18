@@ -275,9 +275,14 @@ function manualcrop_auto_reuse_form($data) {
   );
 
   // Get a list of possible fallback styles.
-  $styles = array_diff_key(image_styles(), $styles);
+  $styles = array_diff_key(image_styles(), manualcrop_styles_with_crop(TRUE));
   $styles = array_map('_manualcrop_image_style_label', $styles);
   $styles = array('' => t('None')) + $styles;
+
+  // Remove the current style.
+  if (isset($styles[arg(5)])) {
+    unset($styles[arg(5)]);
+  }
 
   $form['fallback_style'] = array(
     '#type' => 'select',

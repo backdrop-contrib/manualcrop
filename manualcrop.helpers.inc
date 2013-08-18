@@ -323,14 +323,19 @@ function _manualcrop_reuse_effect_update_names_in_settings($style_name, $new_sty
       // Check if the first effect is a Manual Crop effect.
       $effect = reset($style['effects']);
 
-      // Check if this is a Manual Crop reuse effect that needs to be updated.
-      if (_manualcrop_is_own_effect($effect, FALSE) && $effect['data']['reusestyle'] == $style_name) {
-        if (is_null($new_style_name)) {
-          image_effect_delete($effect);
-        }
-        else {
-          $effect['data']['reusestyle'] = $new_style_name;
-          image_effect_save($effect);
+      // Check if this is a Manual Crop reuse effect.
+      if (_manualcrop_is_own_effect($effect, FALSE)) {
+        $data = $effect['data'];
+
+        // Only update if needed.
+        if (isset($data['reusestyle']) && $data['reusestyle'] == $style_name) {
+          if (is_null($new_style_name)) {
+            image_effect_delete($effect);
+          }
+          else {
+            $effect['data']['reusestyle'] = $new_style_name;
+            image_effect_save($effect);
+          }
         }
       }
     }

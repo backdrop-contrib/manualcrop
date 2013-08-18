@@ -914,7 +914,7 @@ function manualcrop_preprocess_image(&$variables) {
               $style_name = $effect['data']['reusestyle'];
               break;
             case 'manualcrop_auto_reuse':
-              // On failure, there isn't a Manual Crop fallback.
+              // The fallback style doesn't have a crop selection.
               unset($style_name);
 
               // Get the first applied crop selection.
@@ -926,7 +926,7 @@ function manualcrop_preprocess_image(&$variables) {
         }
 
         // Load the cropping area.
-        if (empty($crop) && !empty($style_name)) {
+        if (empty($crop) && isset($style_name)) {
           $crop = manualcrop_load_crop_selection($image_uri, $style_name);
         }
 
