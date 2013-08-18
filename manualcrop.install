@@ -275,3 +275,31 @@ function manualcrop_update_7103(&$sandbox) {
 
   field_cache_clear();
 }
+
+/**
+ * Rename the "reusestyle" effect setting to "reuse_crop_style".
+ */
+function manualcrop_update_7104(&$sandbox) {
+  require_once 'manualcrop.helpers.inc';
+
+  foreach (manualcrop_styles_with_crop(TRUE) as $info) {
+    $effect = $info['effect'];
+    $save = FALSE;
+
+    // Unset the style_name key, we don't need it for reuse effects.
+    if (!_manualcrop_is_own_effect($effect, TRUE) && isset($effect['data']['style_name'])) {
+      unset($effect['data']['style_name']);
+      $save = TRUE;
+    }
+
+    if (isset($effect['data']['reusestyle'])) {
+      $effect['data']['reuse_crop_style'] = $effect['data']['reusestyle'];
+      unset($effect['data']['reusestyle']);
+      $save = TRUE;
+    }
+
+    if ($save) {
+      image_effect_save($effect);
+    }
+  }
+}

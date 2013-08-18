@@ -262,7 +262,7 @@ function manualcrop_instance_required_styles($settings) {
  * @param $new_style_name
  *   New image style name if renamed, a NULL value will remove the style from the settings.
  */
-function _manualcrop_field_widget_update_names_in_settings($style_name, $new_style_name = NULL) {
+function _manualcrop_update_style_name_in_field_widget($style_name, $new_style_name = NULL) {
   foreach (field_info_fields() as $field) {
     if ($field['module'] == 'image') {
       foreach ($field['bundles'] as $entity_type => $bundles) {
@@ -317,23 +317,25 @@ function _manualcrop_field_widget_update_names_in_settings($style_name, $new_sty
  * @param $new_style_name
  *   New image style name if renamed, a NULL value will remove the effect from the style.
  */
-function _manualcrop_reuse_effect_update_names_in_settings($style_name, $new_style_name = NULL) {
+function _manualcrop_update_style_name_in_image_effect($style_name, $new_style_name = NULL) {
   foreach (image_styles() as $style) {
     if (!empty($style['effects'])) {
       // Check if the first effect is a Manual Crop effect.
       $effect = reset($style['effects']);
 
       // Check if this is a Manual Crop reuse effect.
-      if (_manualcrop_is_own_effect($effect, FALSE)) {
+      if (_manualcrop_is_own_effect($effect)) {
         $data = $effect['data'];
+        $key = (isset($data['reuse_crop_style']) ? 'reuse_crop_style' : 'fallback_style');
 
         // Only update if needed.
-        if (isset($data['reusestyle']) && $data['reusestyle'] == $style_name) {
-          if (is_null($new_style_name)) {
+        if (isset($data[$key]) && $data[$key] == $style_name) {
+          if (is_null($new_style_name) && $effect['name'] == 'manualcrop_reuse') {
+            // The reuse effect requires an image style.
             image_effect_delete($effect);
           }
           else {
-            $effect['data']['reusestyle'] = $new_style_name;
+            $effect['data'][$key] = $new_style_name;
             image_effect_save($effect);
           }
         }

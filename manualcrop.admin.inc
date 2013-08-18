@@ -145,12 +145,12 @@ function manualcrop_crop_form($data) {
   // Load the crop image styles and exclude the style that's being edited.
   $styles = manualcrop_styles_with_crop(FALSE, 5, TRUE);
 
-  $form['reusestyle'] = array(
+  $form['reuse_crop_style'] = array(
     '#type' => 'select',
     '#title' => t('Fallback cropping style'),
     '#description' => t('The image style whose cropping should be applied if none is given for this style.'),
     '#options' => array('' => '- ' . t('None (no crop)') . ' -') + $styles,
-    '#default_value' => isset($data['reusestyle']) ? $data['reusestyle'] : '',
+    '#default_value' => isset($data['reuse_crop_style']) ? $data['reuse_crop_style'] : '',
   );
 
   return $form;
@@ -202,12 +202,12 @@ function theme_manualcrop_crop_summary($variables) {
     $str .= t('maintain proportions');
   }
 
-  if (!empty($data['reusestyle'])) {
+  if (!empty($data['reuse_crop_style'])) {
     if ($str) {
       $str .= ' ' . t('and') . ' ';
     }
 
-    $str .= t('use fallback cropping from style @style', array('@style' => _manualcrop_image_style_label($data['reusestyle'])));
+    $str .= t('using the crop of @style as fallback', array('@style' => _manualcrop_image_style_label($data['reuse_crop_style'])));
   }
 
   if ($str) {
@@ -235,16 +235,32 @@ function manualcrop_reuse_form($data) {
     drupal_goto('admin/config/media/image-styles/edit/' . arg(5));
   }
 
-  $form['reusestyle'] = array(
+  $form['reuse_crop_style'] = array(
     '#type' => 'select',
     '#title' => t('Base image style'),
     '#description' => t('Base this image style upon the crop selection of the selected style.'),
     '#options' => $styles,
-    '#default_value' => (isset($data['reusestyle']) ? $data['reusestyle'] : ''),
+    '#default_value' => (isset($data['reuse_crop_style']) ? $data['reuse_crop_style'] : ''),
     '#required' => TRUE,
   );
 
   return $form;
+}
+
+/**
+ * Returns HTML for a summary of an image crop selection reuse effect.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - data: The current configuration for this crop selection reuse effect.
+ *
+ * @return
+ *   Summary HTML.
+ *
+ * @ingroup themeable
+ */
+function theme_manualcrop_reuse_summary($variables) {
+  return '(' . t('using the crop of @style', array('@style' => _manualcrop_image_style_label($variables['data']['reuse_crop_style']))) . ')';
 }
 
 /**
@@ -296,22 +312,6 @@ function manualcrop_auto_reuse_form($data) {
 }
 
 /**
- * Returns HTML for a summary of an image crop selection reuse effect.
- *
- * @param $variables
- *   An associative array containing:
- *   - data: The current configuration for this crop selection reuse effect.
- *
- * @return
- *   Summary HTML.
- *
- * @ingroup themeable
- */
-function theme_manualcrop_reuse_summary($variables) {
-  return '(' . t('using @style', array('@style' => _manualcrop_image_style_label($variables['data']['reusestyle']))) . ')';
-}
-
-/**
  * Returns HTML for a summary of an image crop selection auto reuse effect.
  *
  * @param $variables
@@ -324,8 +324,8 @@ function theme_manualcrop_reuse_summary($variables) {
  * @ingroup themeable
  */
 function theme_manualcrop_auto_reuse_summary($variables) {
-  if ($variables['data']['fallback_style']) {
-    return '(' . t('using fallback style @style', array('@style' => _manualcrop_image_style_label($variables['data']['fallback_style']))) . ')';
+  if (!empty($variables['data']['fallback_style'])) {
+    return '(' . t('using @style as fallback style', array('@style' => _manualcrop_image_style_label($variables['data']['fallback_style']))) . ')';
   }
 
   return '';
@@ -339,8 +339,8 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
     $form['#submit'] = array('image_effect_form_submit');
   }
 
-  // If it's a Manual Crop effect do a custom submit handler first.
-  // Otherwise reorder the effects after the submit.
+  // Add an additonal submit handler to alter the Manual Crop effect or to
+  // re-order all effects (if the new effect isn't provided by Manual Crop).
   if (_manualcrop_is_own_effect($form_state['image_effect'])) {
     array_unshift($form['#submit'], 'manualcrop_image_effect_form_submit');
   }
@@ -361,10 +361,12 @@ function manualcrop_image_effect_form_submit($form, &$form_state) {
   $style = $form_state['image_style'];
   $effect = $form_state['image_effect'];
 
-  // Set style name so the effect can use it.
-  $form_state['values']['data']['style_name'] = $style['name'];
+  if (_manualcrop_is_own_effect($form_state['image_effect'], TRUE)) {
+    // Set style name so the effect can use it.
+    $form_state['values']['data']['style_name'] = $style['name'];
+  }
 
-  if (count($style['effects']) == 0) {
+  if (empty($style['effects'])) {
     // First effect, so weight is 0.
     $form_state['values']['weight'] = 0;
   }
@@ -419,7 +421,7 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
     $form['#submit'][] = 'manualcrop_update_style_name';
 
     // If there's already a Manual Crop effect we have to filter all
-    // Manual Crop effects from the add new effect list.
+    // our effects from the add new effect list.
     if (isset($form['effects']['new']['new'])) {
       foreach ($style['effects'] as $effect) {
         if (_manualcrop_is_own_effect($effect)) {
@@ -484,24 +486,28 @@ function manualcrop_update_style_name($form, &$form_state) {
   $style = $form_state['image_style'];
 
   // Check if the style name should be updated.
-  if (!empty($style['effects']) && isset($form_state['values']['name']) && $style['name'] != $form_state['values']['name']) {
-    $effect = reset($style['effects']);
+  if (isset($form_state['values']['name']) && $style['name'] != $form_state['values']['name']) {
+    if (!empty($style['effects'])) {
+      $effect = reset($style['effects']);
 
-    if (_manualcrop_is_own_effect($effect, TRUE)) {
-      // Change the style name in the effect data and save it.
-      $effect['data']['style_name'] = $form_state['values']['name'];
-      image_effect_save($effect);
+      if (_manualcrop_is_own_effect($effect, TRUE)) {
+        // Change the style name in the effect data and save it.
+        $effect['data']['style_name'] = $form_state['values']['name'];
+        image_effect_save($effect);
 
-      // Update all widgets and reuse effects.
-      _manualcrop_field_widget_update_names_in_settings($style['name'], $form_state['values']['name']);
-      _manualcrop_reuse_effect_update_names_in_settings($style['name'], $form_state['values']['name']);
+        // Update the crop selections.
+        db_update('manualcrop')
+          ->fields(array('style_name' => $form_state['values']['name']))
+          ->condition('style_name', $style['name'])
+          ->execute();
 
-      // Update all saved crop selections.
-      db_update('manualcrop')
-        ->fields(array('style_name' => $form_state['values']['name']))
-        ->condition('style_name', $style['name'])
-        ->execute();
+        // Update the style name in the field widgets.
+        _manualcrop_update_style_name_in_field_widget($style['name'], $form_state['values']['name']);
+      }
     }
+
+    // Update the style name in the image effects.
+    _manualcrop_update_style_name_in_image_effect($style['name'], $form_state['values']['name']);
   }
 }
 

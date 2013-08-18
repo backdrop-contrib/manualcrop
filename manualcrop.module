@@ -181,18 +181,24 @@ function manualcrop_libraries_info() {
  * Implements hook_image_style_delete().
  */
 function manualcrop_image_style_delete($style) {
+  $style_name = (isset($style['old_name']) ? $style['old_name'] : $style['name']);
+
   if (!empty($style['effects'])) {
     $effect = reset($style['effects']);
 
-    if (_manualcrop_is_own_effect($effect)) {
+    if (_manualcrop_is_own_effect($effect, TRUE)) {
+      // Delete the crop selections.
       db_delete('manualcrop')
-        ->condition('style_name', $style['name'])
+        ->condition('style_name', $style_name)
         ->execute();
 
-      _manualcrop_field_widget_update_names_in_settings($style['name']);
-      _manualcrop_reuse_effect_update_names_in_settings($style['name']);
+      // Update the style name in the field widgets.
+      _manualcrop_update_style_name_in_field_widget($style_name);
     }
   }
+
+  // Update the style name in the image effects.
+  _manualcrop_update_style_name_in_image_effect($style_name);
 }
 
 /**
@@ -210,7 +216,7 @@ function manualcrop_image_style_flush($style) {
   // Delete all crop selections if the image style doesn't have a Manual Crop
   // effect. We do this here because there's no image effect delete hook.
   db_delete('manualcrop')
-    ->condition('style_name', $style['name'])
+    ->condition('style_name', (isset($style['old_name']) ? $style['old_name'] : $style['name']))
     ->execute();
 }
 
@@ -911,7 +917,7 @@ function manualcrop_preprocess_image(&$variables) {
         if (_manualcrop_is_own_effect($effect, FALSE)) {
           switch ($effect['name']) {
             case 'manualcrop_reuse':
-              $style_name = $effect['data']['reusestyle'];
+              $style_name = $effect['data']['reuse_crop_style'];
               break;
             case 'manualcrop_auto_reuse':
               // The fallback style doesn't have a crop selection.
@@ -1231,7 +1237,7 @@ function manualcrop_crop_effect(&$image, $data) {
 
     return image_crop_effect($image, $data);
   }
-  elseif (!empty($data['reusestyle'])) {
+  elseif (!empty($data['reuse_crop_style'])) {
     return manualcrop_reuse_effect($image, $data);
   }
 
@@ -1239,31 +1245,30 @@ function manualcrop_crop_effect(&$image, $data) {
 }
 
 /**
- * Image effect callback; Reuse a Manual Crop effect.
+ * Image effect callback; Reuse the crop effect of another image style.
  *
  * @param $image
  *   An image object returned by image_load().
  * @param $data
  *   An array of settings, needed to perform the reuse effect, with the
  *   following items:
- *   - "reusestyle": The image style to reuse.
+ *   - "reuse_crop_style": Name of the image style to reuse the crop effect of.
  *
  * @return
- *   TRUE on success, FALSE on failure to reuse the effect.
+ *   TRUE on success, FALSE when the crop effect couldn't be reused.
  *
  * @see image_crop_effect()
  */
 function manualcrop_reuse_effect(&$image, $data) {
-  if (empty($data['reusestyle'])) {
+  if (empty($data['reuse_crop_style'])) {
     return FALSE;
   }
 
-  // Load the selected image style and gat the first effect.
-  $style = image_style_load($data['reusestyle']);
+  // Get the first image style effect.
+  $style = image_style_load($data['reuse_crop_style']);
   $effect = reset($style['effects']);
 
-  if (_manualcrop_is_own_effect($effect, TRUE)) {
-    // Apply the Manual Crop cropping effect.
+  if ($effect) {
     image_effect_apply($image, $effect);
     return TRUE;
   }
@@ -1272,15 +1277,15 @@ function manualcrop_reuse_effect(&$image, $data) {
 }
 
 /**
- * Image effect callback; Automatically reuse an applied Manual Crop effect.
+ * Image effect callback; Search for a Manual Crop effect with a crop selection
+ * and reuse it.
  *
  * @param $image
  *   An image object returned by image_load().
  * @param $data
  *   An array of settings, needed to perform the select effect, with the
  *   following items:
- *   - "fallback_style": The image style to use when no crop selection for
- *     the image was found.
+ *   - "fallback_style": The image style to use when no crop selection was found.
  *
  * @return
  *   TRUE on success, FALSE on failure to select the effect.
@@ -1288,39 +1293,42 @@ function manualcrop_reuse_effect(&$image, $data) {
  * @see image_crop_effect()
  */
 function manualcrop_auto_reuse_effect(&$image, $data) {
-  // Get the list of all selections for the file.
-  $selections = manualcrop_load_crop_selection($image->source);
+  // Get the crop selections for this file.
+  $crop = manualcrop_load_crop_selection($image->source);
 
-  if (!empty($selections)) {
-    $selection = array_shift($selections);
-    $style = image_style_load($selection->style_name);
+  if ($crop) {
+    // Load and apply the Manual Crop effect.
+    $style = image_style_load(reset($crop)->style_name);
+    $effect = reset($style['effects']);
+
+    return image_effect_apply($image, $effect);
   }
   elseif (!empty($data['fallback_style'])) {
+    // Load and apply all effects of the fallback style.
     $style = image_style_load($data['fallback_style']);
+    foreach ($style['effects'] as $effect) {
+      if (!image_effect_apply($image, $effect)) {
+        return FALSE;
+      }
+    }
   }
 
-  if (isset($style)) {
-    $effect = reset($style['effects']);
-    // Apply the Manual Crop cropping effect.
-    image_effect_apply($image, $effect);
-    return TRUE;
-  }
-
-  return FALSE;
+  return TRUE;
 }
 
 /**
  * Implements hook_insert_styles().
  */
 function manualcrop_insert_styles() {
-  $insert_styles = drupal_static(__FUNCTION__);
+  $insert_styles = &drupal_static(__FUNCTION__);
 
   if (is_null($insert_styles)) {
+    $styles = manualcrop_styles_with_crop(FALSE, NULL, TRUE);
     $insert_styles = array();
 
-    foreach (manualcrop_styles_with_crop() as $style_name => $info) {
+    foreach ($styles as $style_name => $label) {
       $insert_styles['image_' . $style_name] = array(
-        'label' => $info['label'],
+        'label' => $label,
       );
     }
   }
