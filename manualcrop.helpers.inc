@@ -169,7 +169,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  *   Set to TRUE to include styles with a Manual Crop reuse effect.
  * @param $exclude_arg
  *   Exclude the style that is set as a menu argument on this index.
- * @param $label
+ * @param $return_label
  *   Set to TRUE to return the label instead of an array.
  *
  * @return
@@ -180,7 +180,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  *   - "label": Human readable style label.
  *   - "effect": Manual Crop effect data.
  */
-function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL, $label = FALSE) {
+function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL, $return_label = FALSE) {
   $hascrop = &drupal_static(__FUNCTION__);
 
   if (!is_array($hascrop)) {
@@ -222,7 +222,7 @@ function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL
   }
 
   // Only the labels should be returned.
-  if ($label) {
+  if ($return_label) {
     foreach ($styles as $style_name => $style) {
       $styles[$style_name] = $style['label'];
     }

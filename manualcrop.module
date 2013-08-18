@@ -907,27 +907,30 @@ function manualcrop_preprocess_image(&$variables) {
         $image_uri = $scheme . '://' . urldecode($target);
 
         // Use the reuse style to load the crop selection.
-        if (_manualcrop_is_own_effect($styles[$style_name], FALSE)) {
-          switch ($styles[$style_name]['effect']['name']) {
+        $effect = $styles[$style_name]['effect'];
+        if (_manualcrop_is_own_effect($effect, FALSE)) {
+          switch ($effect['name']) {
             case 'manualcrop_reuse':
-              $style_name = $styles[$style_name]['effect']['data']['reusestyle'];
+              $style_name = $effect['data']['reusestyle'];
               break;
             case 'manualcrop_auto_reuse':
-              // Get the list of applied crop selections for the file.
-              if ($selections = manualcrop_load_crop_selection($image_uri)) {
-                // Get the first selection
-                $selection = array_shift($selections);
-              }
-              else {
-                // Since fallback style is not a Manual Crop style.
-                $style_name = '';
+              // On failure, there isn't a Manual Crop fallback.
+              unset($style_name);
+
+              // Get the first applied crop selection.
+              if ($crop = manualcrop_load_crop_selection($image_uri)) {
+                $crop = reset($crop);
               }
               break;
           }
         }
 
         // Load the cropping area.
-        if ((!empty($selection) && ($crop = $selection)) || ($style_name && ($crop = manualcrop_load_crop_selection($image_uri, $style_name)))) {
+        if (empty($crop) && !empty($style_name)) {
+          $crop = manualcrop_load_crop_selection($image_uri, $style_name);
+        }
+
+        if (!empty($crop)) {
           // Add a HTTP cache-controller to the image path.
           $variables['path'] .= (strpos($variables['path'], '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
 
