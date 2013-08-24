@@ -8,29 +8,31 @@ Dependencies
 ------------
 - Libraries 2.x
 - jQuery plugins:
-    - imagesLoaded: http://desandro.github.io/imagesloaded
-    - imgAreaSelect: http://odyniec.net/projects/imgareaselect
+    - imagesLoaded:
+        + Website: http://desandro.github.io/imagesloaded
+        + Download: https://github.com/desandro/imagesloaded/archive/v2.1.2.tar.gz
+    - imgAreaSelect:
+        + Website: http://odyniec.net/projects/imgareaselect
+        + Download: http://odyniec.net/projects/imgareaselect/jquery.imgareaselect-0.9.10.zip
 
 Installation
 ------------
 Start by downoading and installing the Libraries 2.x module.
 
-Next download the imagesLoaded plugin and rename it to "jquery.imagesloaded.min.js"
-or "jquery.imagesloaded.js" if you chose the uncompressed version. Copy this file
-to "sites/all/libraries/jquery.imagesloaded".
+Next download and extract the imagesLoaded plugin, rename the extracted folder to
+"jquery.imagesloaded" and place it under "sites/all/libraries". The plugin should
+now be located at "sites/all/libraries/jquery.imagesloaded/jquery.imagesloaded.js".
 
-Please note that the 3.x version depends on jQuery 1.5, so because Drupal ships
-with jQuery 1.4 you can either update jQuery with the jQuery update module or
-download an older plugin version. You can find the lastest 2.x version here:
-https://github.com/desandro/imagesloaded/tree/0e68c8ea901cdec8844d4ceca2df8efb8a7a75a5
+Please note that the 3.x version can also be used, but it depends on jQuery 1.5
+which can only be obtained by installing the jQuery Update module. It's also worth
+menioning that the plugin must have a valid file header (which includes a version
+number) and must be named "jquery.imagesloaded.js" or "jquery.imagesloaded.min.js".
 
-If you're using the minified 2.x version, you'll need to copy the file header from
-the uncompressed or the Libraries module won't be able to detect the plugin version.
+Now download and extract the imgAreaSelect plugin, rename extracted folder to
+"jquery.imgareaselect" and copy it into "sites/all/libraries". The plugin should
+now be located at "sites/all/libraries/jquery.imgareaselect/scripts/jquery.imgareaselect.min.js".
 
-Now download and extract the imgAreaSelect plugin, rename the newly created folder
-to "jquery.imgareaselect" and copy it to "sites/all/libraries".
-
-When finished you can finally activate the module via the Modules page!
+When finished you can activate the module via the Modules page!
 
 Configuration
 -------------
