@@ -67,7 +67,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
     styleName = styleSelect.val();
   }
 
-  $('.manualcrop-file-' + fid + '-holder img').imagesLoaded(function() {
+  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder img'), function() {
     // IE executes this callback twice, so we check if the ManualCrop.croptool
     // has already been set and skip the rest if this is the case.
     if (!ManualCrop.croptool) {
@@ -244,7 +244,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
         // Create a default crop area.
         if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
           if (fields[identifier].maximizeDefaultCropArea) {
-            ManualCrop.croptool.imagesLoaded(ManualCrop.maximizeSelection);
+            ManualCrop.isLoaded(ManualCrop.croptool, ManualCrop.maximizeSelection);
           }
           else {
             var minWidth = (typeof options.minWidth != 'undefined' ? options.minWidth : 0);
@@ -286,7 +286,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
             selection.y2 = selection.y1 + selection.height;
 
             // Set the selection.
-            ManualCrop.croptool.imagesLoaded(function() {
+            ManualCrop.isLoaded(ManualCrop.croptool, function() {
               ManualCrop.setSelection(selection);
             });
           }
@@ -294,7 +294,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
       else {
         // Set the initial selection.
-        ManualCrop.croptool.imagesLoaded(ManualCrop.resetSelection);
+        ManualCrop.isLoaded(ManualCrop.croptool, ManualCrop.resetSelection);
       }
 
       // Handle keyboard shortcuts.
@@ -561,7 +561,7 @@ ManualCrop.updateSelection = function(image, selection) {
 ManualCrop.selectionStored = function(element, fid, styleName) {
   var selection = $(element).val();
 
-  $('.manualcrop-file-' + fid + '-holder img').imagesLoaded(function() {
+  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder img'), function() {
     var previewHolder = $('.manualcrop-preview-' + fid + '-' + styleName + ' .manualcrop-preview-cropped');
     if (!previewHolder.length) {
       previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
@@ -793,6 +793,20 @@ ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
     'width': width,
     'height': height
   };
+}
+
+/**
+ * Execute a callback if images were loaded.
+ *
+ * @param object
+ *   jQuery object with one or more images within.
+ * @param callback
+ *   Callback function to execute once the image is loaded.
+ */
+ManualCrop.isLoaded = function(object, callback) {
+  object.imagesLoaded(function() {
+    setTimeout(callback, 10);
+  });
 }
 
 $(document).ready(function() {
