@@ -8,7 +8,7 @@
  * Implements hook_views_data().
 */
 function manualcrop_views_data() {
-  $data['manualcrop']['table']['group'] = t('Manual crop');
+  $data['manualcrop']['table']['group'] = t('Manual Crop');
 
   // File id.
   $data['manualcrop']['fid'] = array(
