@@ -723,7 +723,7 @@ ManualCrop.getImageDimensions = function(image) {
     image = $(image).first();
   }
 
-  var rawImage = $('<img />')
+  var rawImage = $('<img style="width: auto !important; height: auto !important; min-width: auto !important; min-height: auto !important; max-width: auto !important; max-height: auto !important;" />')
     .attr('src', image.attr('src'))
     .get(0);
 
@@ -796,16 +796,44 @@ ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
 }
 
 /**
- * Execute a callback if images were loaded.
+ * Execute a callback if one or more images are loaded.
  *
  * @param object
  *   jQuery object with one or more images within.
  * @param callback
  *   Callback function to execute once the image is loaded.
+ * @param recursive
+ *   For internal usage, recursive call counter.
  */
-ManualCrop.isLoaded = function(object, callback) {
-  object.imagesLoaded(function() {
-    setTimeout(callback, 10);
+ManualCrop.isLoaded = function(object, callback, recursive) {
+  var images = $('img', object);
+
+  images.imagesLoaded(function() {
+    // Count the number of images with proper dimensions.
+    var hasDimensions = 0;
+    images.each(function() {
+      var dimensions = ManualCrop.getImageDimensions(this);
+      if (dimensions.width && dimensions.height) {
+        hasDimensions++;
+      }
+    });
+
+    // Execute the callback if all images have a proper width and height,
+    // otherwise we'll do a recursive call (after a short delay).
+    if (hasDimensions == images.length) {
+      callback();
+    }
+    else {
+      if (++recursive > 100) {
+        // This is getting an endless loop.
+        alert(Drupal.t('Some images could not be loaded, please try again in another browser.'));
+        return;
+      }
+
+      setTimeout(function() {
+        ManualCrop.isLoaded(object, callback, recursive);
+      }, 100);
+    }
   });
 }
 
