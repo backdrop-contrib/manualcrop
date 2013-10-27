@@ -61,8 +61,11 @@ function manualcrop_requirements($phase) {
  * Implements hook_install().
  */
 function manualcrop_install() {
-  // Hooks have to run after the Insert module.
+  // Our hooks should run after the Insert module.
   db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
+
+  // Grant the crop permission to all user roles.
+  _manualcrop_grant_crop_permission();
 }
 
 /**
@@ -301,5 +304,24 @@ function manualcrop_update_7104(&$sandbox) {
     if ($save) {
       image_effect_save($effect);
     }
+  }
+}
+
+/**
+ * Grant the "Crop images" pemission to all user roles.
+ */
+function manualcrop_update_7105(&$sandbox) {
+  _manualcrop_grant_crop_permission();
+}
+
+/**
+ * Grant the crop permission to all user roles.
+ */
+function _manualcrop_grant_crop_permission() {
+  $role_premissions = user_role_permissions(user_roles());
+
+  foreach ($role_premissions as $rid => $premissions) {
+    $premissions['use manualcrop'] = 1;
+    user_role_grant_permissions($rid, array_keys($premissions));
   }
 }

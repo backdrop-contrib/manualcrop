@@ -12,9 +12,14 @@ require_once 'manualcrop.admin.inc';
  */
 function manualcrop_permission() {
   return array(
+    'use manualcrop' => array(
+      'title' => t('Crop images'),
+      'description' => t('Crop images using Manual Crop.'),
+      'restrict access' => FALSE,
+    ),
     'administer manualcrop settings' => array(
       'title' => t('Administer Manual Crop'),
-      'description' => t('Allows users to change the global Manual Crop settings.'),
+      'description' => t('Access and change the global Manual Crop settings.'),
       'restrict access' => FALSE,
     ),
   );
@@ -253,30 +258,32 @@ function manualcrop_field_widget_info_alter(&$info) {
  * Implements hook_field_widget_form_alter().
  */
 function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
-  $widget = $context['instance']['widget'];
+  if (user_access('use manualcrop')) {
+    $widget = $context['instance']['widget'];
 
-  if (manualcrop_supported_widgets($widget['type'])) {
-    if ($widget['type'] == 'media_generic') {
-      // We don't check if Manual Crop is enabled, this happens in the file
-      // enntity edit form.
-      $element['#after_build'][] = 'manualcrop_media_element_process';
-    }
-    elseif (!empty($widget['settings']['manualcrop_enable'])) {
-      // Check if this field instance is attached to a Field Collection item
-      // entity, if so we prepare the form only once.
-      if (_manualcrop_check_field_collection_form_prepare($context['instance'])) {
-        manualcrop_croptool_prepare_form($element, $form_state, manualcrop_js_identifier($context['instance']), $widget['settings']);
+    if (manualcrop_supported_widgets($widget['type'])) {
+      if ($widget['type'] == 'media_generic') {
+        // We don't check if Manual Crop is enabled, this happens in the file
+        // enntity edit form.
+        $element['#after_build'][] = 'manualcrop_media_element_process';
       }
+      elseif (!empty($widget['settings']['manualcrop_enable'])) {
+        // Check if this field instance is attached to a Field Collection item
+        // entity, if so we prepare the form only once.
+        if (_manualcrop_check_field_collection_form_prepare($context['instance'])) {
+          manualcrop_croptool_prepare_form($element, $form_state, manualcrop_js_identifier($context['instance']), $widget['settings']);
+        }
 
-      // Default, add a process and validate callback for each child.
-      foreach (element_children($element) as $key) {
-        $element[$key]['#process'][] = 'manualcrop_widget_process';
-        $element[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
-        $element[$key]['#element_validate'][] = 'file_managed_file_validate';
-      }
+        // Default, add a process and validate callback for each child.
+        foreach (element_children($element) as $key) {
+          $element[$key]['#process'][] = 'manualcrop_widget_process';
+          $element[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
+          $element[$key]['#element_validate'][] = 'file_managed_file_validate';
+        }
 
-      if (module_exists('insert')) {
-        $element['#after_build'][] = 'manualcrop_insert_element_process';
+        if (module_exists('insert')) {
+          $element['#after_build'][] = 'manualcrop_insert_element_process';
+        }
       }
     }
   }
@@ -286,7 +293,9 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
  * Implements hook_field_attach_submit().
  */
 function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
-  manualcrop_croptool_submit($form, $form_state);
+  if (user_access('use manualcrop')) {
+    manualcrop_croptool_submit($form, $form_state);
+  }
 }
 
 /**
@@ -314,7 +323,7 @@ function manualcrop_manualcrop_supported_widgets() {
  *   Altered widget element.
  */
 function manualcrop_widget_process($element, &$form_state, $form) {
-  if (!empty($element['#file'])) {
+  if (user_access('use manualcrop') && !empty($element['#file'])) {
     // Get the field instance.
     $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
 
@@ -338,7 +347,7 @@ function manualcrop_widget_process($element, &$form_state, $form) {
  *   Widget settings.
  */
 function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, $settings = array()) {
-  if (!empty($_COOKIE['has_js']) || variable_get('manualcrop_skip_js_check', FALSE)) {
+  if (user_access('use manualcrop') && (!empty($_COOKIE['has_js']) || variable_get('manualcrop_skip_js_check', FALSE))) {
     $styles = &drupal_static(__FUNCTION__);
 
     if (!is_array($styles)) {
@@ -1343,7 +1352,7 @@ function manualcrop_insert_styles() {
  * crop functionality to the file upload form.
  */
 function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
-  if (isset($form['#step']) && $form['#step'] == 4) {
+  if (user_access('use manualcrop') && isset($form['#step']) && $form['#step'] == 4) {
     // Get the field instance information.
     $instance_info = array();
     if (!empty($form_state['build_info']['args'][0]['manualcrop'])) {
@@ -1362,7 +1371,7 @@ function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
  * crop functionality to the file edit form.
  */
 function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
-  if ($form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
+  if (user_access('use manualcrop') && $form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
     // Try to parse the GET parameter if's missing.
     if (!isset($_GET['manualcrop']) && strpos($_GET['q'], '?') !== FALSE) {
       parse_str('q=' . str_replace('?', '&', $_GET['q']), $_GET);
