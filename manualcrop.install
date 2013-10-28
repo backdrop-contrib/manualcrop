@@ -318,10 +318,15 @@ function manualcrop_update_7105(&$sandbox) {
  * Grant the crop permission to all user roles.
  */
 function _manualcrop_grant_crop_permission() {
-  $role_premissions = user_role_permissions(user_roles());
-
-  foreach ($role_premissions as $rid => $premissions) {
-    $premissions['use manualcrop'] = 1;
-    user_role_grant_permissions($rid, array_keys($premissions));
+  foreach (user_roles() as $rid => $role) {
+    db_merge('role_permission')
+      ->key(array(
+        'rid' => $rid,
+        'permission' => 'use manualcrop',
+      ))
+      ->fields(array(
+        'module' => 'manualcrop',
+      ))
+      ->execute();
   }
 }
