@@ -264,7 +264,7 @@ function theme_manualcrop_reuse_summary($variables) {
 }
 
 /**
- * Form Builder; Configuration settings for the select effect.
+ * Form Builder; Configuration settings for the auto reuse effect.
  *
  * @param $data
  *   The current configuration for this effect.
@@ -281,16 +281,52 @@ function manualcrop_auto_reuse_form($data) {
     drupal_goto('admin/config/media/image-styles/edit/' . arg(5));
   }
 
-  $form['manualcrop_auto_reuse_styles'] = array(
-    '#type' => 'item',
-    '#title' => t('Image styles with crop effect'),
-    'styles' =>  array(
-      '#theme' => 'item_list',
-      '#items' => $styles,
+  // Table with all crop image styles.
+  $form['style_priority'] = array(
+    '#tree' => TRUE,
+    '#header' => array(
+      t('Image style'),
+      t('Weight'),
+    ),
+    '#rows' => array(),
+    '#theme' => 'table',
+    '#attributes' => array(
+      'id' => 'manualcrop-style-priority',
     ),
   );
 
-  // Get a list of possible fallback styles.
+  // Get the styles in their correct order.
+  $styles = array_merge(array_fill_keys($data['style_priority'], 0), $styles);
+  $styles = array_filter($styles);
+
+  // Add each crop image style as row with a weight (priority) element.
+  $maxweight = count($data['style_priority']);
+  foreach ($styles as $style_name => $label) {
+    $weight = array_search($style_name, $data['style_priority']);
+    $weight = array(
+      '#type' => 'weight',
+      '#default_value' => ($weight === FALSE ? $maxweight : $weight),
+      '#attributes' => array(
+        'class' => array('manualcrop-style-priority-weight'),
+      ),
+    );
+
+    $form['style_priority'][$style_name] = &$weight;
+    $form['style_priority']['#rows'][] = array(
+      'data' => array(
+        array('data' => $label),
+        array('data' => &$weight),
+      ),
+      'class' => array('draggable'),
+    );
+
+    unset($weight);
+  }
+
+  // Add aa tabledrag for a cleaner interface.
+  drupal_add_tabledrag('manualcrop-style-priority', 'order', 'sibling', 'manualcrop-style-priority-weight');
+
+  // Get a list of allowed fallback styles.
   $styles = array_diff_key(image_styles(), manualcrop_styles_with_crop(TRUE));
   $styles = array_map('_manualcrop_image_style_label', $styles);
   $styles = array('' => t('None')) + $styles;
@@ -309,6 +345,18 @@ function manualcrop_auto_reuse_form($data) {
   );
 
   return $form;
+}
+
+/**
+ * Form submit handler for the auto reuse effect; Sorts and prepares the styles
+ * priority array for saving.
+ */
+function manualcrop_auto_reuse_form_submit($form, &$form_state) {
+  $data = &$form_state['values']['data'];
+
+  // Sort by weight and use the keys as values.
+  asort($data['style_priority']);
+  $data['style_priority'] = array_keys($data['style_priority']);
 }
 
 /**
@@ -335,29 +383,29 @@ function theme_manualcrop_auto_reuse_summary($variables) {
  * Implements hook_form_FORM_ID_alter().
  */
 function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
-  if (!is_array($form['#submit'])) {
-    $form['#submit'] = array('image_effect_form_submit');
-  }
+  $style = $form_state['image_style'];
+  $effect = $form_state['image_effect'];
 
-  // Add an additonal submit handler to alter the Manual Crop effect or to
-  // re-order all effects (if the new effect isn't provided by Manual Crop).
-  if (_manualcrop_is_own_effect($form_state['image_effect'])) {
-    array_unshift($form['#submit'], 'manualcrop_image_effect_form_submit');
+  if (_manualcrop_is_own_effect($effect)) {
+    // Effect specific submit handler.
+    if (function_exists($effect['form callback'] . '_submit')) {
+      array_unshift($form['#submit'], $effect['form callback'] . '_submit');
+    }
+
+    // Add the effect info on submit.
+    array_unshift($form['#submit'], 'manualcrop_add_effect_info');
   }
-  elseif (!empty($form_state['image_style']['effects'])) {
+  elseif (!empty($style['effects'])) {
+    // Force the effect order for none-Manual Crop effects.
     $form['#submit'][] = 'manualcrop_force_effect_order';
   }
 }
 
 /**
- * Effect form submit handler; Sets the image style name and weight of the effect.
- *
- * @param $form
- *   Effect form array.
- * @param $form_state
- *   Form state array.
+ * Effect form submit handler; Adds some extra info (style name and weight)
+ * to the effect.
  */
-function manualcrop_image_effect_form_submit($form, &$form_state) {
+function manualcrop_add_effect_info($form, &$form_state) {
   $style = $form_state['image_style'];
   $effect = $form_state['image_effect'];
 
@@ -393,11 +441,6 @@ function manualcrop_form_image_effect_delete_form_alter(&$form, &$form_state) {
 
 /**
  * Effect deletion form submit handler; Cleanup old selections.
- *
- * @param $form
- *   Effect form array.
- * @param $form_state
- *   Form state array.
  */
 function manualcrop_image_effect_delete_form_submit($form, &$form_state) {
   manualcrop_image_style_delete($form_state['image_style']);
@@ -438,11 +481,6 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
 
 /**
  * Effect and style form submit handler; Force the Manual Crop effect to be the first one.
- *
- * @param $form
- *   Effect or style form array.
- * @param $form_state
- *   Form state array.
  */
 function manualcrop_force_effect_order($form, &$form_state) {
   // In both forms (style and effect) we find the style in the same key.
@@ -476,11 +514,6 @@ function manualcrop_force_effect_order($form, &$form_state) {
 
 /**
  * Style form submit handler; Update the style name in the effect data and in the widgets.
- *
- * @param $form
- *   Style form array.
- * @param $form_state
- *   Form state array.
  */
 function manualcrop_update_style_name($form, &$form_state) {
   $style = $form_state['image_style'];

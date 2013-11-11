@@ -126,16 +126,17 @@ function manualcrop_js_identifier($data) {
  * @param $file
  *   Path to an image file.
  * @param $style_name
- *   Image style machine name, or empty for all styles.
+ *   Image style machine name, leave empty for all styles.
  *
  * @return
- *   An object defining the cropping area with following items:
+ *   When $style_name is set, a single crop selection will be returned. Otherwise
+ *   the result is an array of crop selection objects keyed by style name.
+ *   Each object contains following items:
  *   - "style_name": The machine name of the image style this cropping area applies on.
  *   - "x": An integer representing the top left corner's x-position in pixels.
  *   - "y": An integer representing the top left corner's y-position in pixels.
  *   - "width": An integer representing the width in pixels.
  *   - "height": An integer representing the height in pixels.
- *   If the style machine name was empty an object with all the styles is returned.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
   // Remove any query string (e.g., the security token used by the Image module)
@@ -148,7 +149,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
       ':uri' => $file,
     ));
 
-    return $result->fetchAll();
+    return $result->fetchAllAssoc('style_name');
   }
   else {
     $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.style_name = :name AND f.uri = :uri', array(
@@ -412,6 +413,36 @@ function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
 
     return $crop_effect ^ in_array($effect['name'], array('manualcrop_reuse', 'manualcrop_auto_reuse'));
   }
+  return FALSE;
+}
+
+/**
+ * Get the image style name that should be used when processing the auto reuse effect.
+ *
+ * @param $file
+ *   Path to an image file.
+ * @param $data
+ *   Auto reuse effect data.
+ *
+ * @return
+ *   Image style name taht can be reused or FALSE if no crop selection was found.
+ */
+function _manualcrop_get_auto_reuse_style_name($file, $data) {
+  // Get the crop selections.
+  $crop = manualcrop_load_crop_selection($file);
+
+  if ($crop) {
+    // Get a list of existing crop styles (keys) ordered by priority.
+    if (!empty($data['style_priority'])) {
+      $styles = array_flip($data['style_priority']) + $crop;
+      $crop = array_intersect_key($styles, $crop);
+    }
+
+    // Return the first crop selection style name.
+    reset($crop);
+    return key($crop);
+  }
+
   return FALSE;
 }
 

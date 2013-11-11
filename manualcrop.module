@@ -760,12 +760,7 @@ function manualcrop_media_element_process($element) {
 }
 
 /**
- * Validation handler to validate each cropping selection.
- *
- * @param $element
- *   The element array.
- * @param $form_state
- *   The form state array.
+ * Element validation handler; Validates each crop selection.
  */
 function manualcrop_croptool_validate($element, &$form_state) {
   if (!empty($form_state['manualcrop_data']['images']) && (!isset($form_state['triggering_element']) || !in_array($form_state['triggering_element']['#value'], array(t('Upload'), t('Remove'))))) {
@@ -843,12 +838,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
 }
 
 /**
- * Submit handler to save each crop selection.
- *
- * @param $form
- *   The form structure array.
- * @param $form_state
- *   The form state array.
+ * Form submit handler; Saves each crop selection.
  */
 function manualcrop_croptool_submit($form, &$form_state) {
   if (!empty($form_state['manualcrop_data']['selections'])) {
@@ -1302,12 +1292,12 @@ function manualcrop_reuse_effect(&$image, $data) {
  * @see image_crop_effect()
  */
 function manualcrop_auto_reuse_effect(&$image, $data) {
-  // Get the crop selections for this file.
-  $crop = manualcrop_load_crop_selection($image->source);
+  // Get the style to reuse.
+  $style_name = _manualcrop_get_auto_reuse_style_name($image->source, $data);
 
-  if ($crop) {
+  if ($style_name) {
     // Load and apply the Manual Crop effect.
-    $style = image_style_load(reset($crop)->style_name);
+    $style = image_style_load($style_name);
     $effect = reset($style['effects']);
 
     return image_effect_apply($image, $effect);
