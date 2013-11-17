@@ -290,20 +290,23 @@ function manualcrop_update_7104(&$sandbox) {
     $effect = $info['effect'];
     $save = FALSE;
 
-    // Unset the style_name key, we don't need it for reuse effects.
-    if (_manualcrop_is_own_effect($effect, FALSE) && isset($effect['data']['style_name'])) {
-      unset($effect['data']['style_name']);
-      $save = TRUE;
-    }
+    if (_manualcrop_is_own_effect($effect, FALSE)) {
+      // Remove the style_name setting.
+      if (isset($effect['data']['style_name'])) {
+        unset($effect['data']['style_name']);
+        $save = TRUE;
+      }
 
-    if (isset($effect['data']['reusestyle'])) {
-      $effect['data']['reuse_crop_style'] = $effect['data']['reusestyle'];
-      unset($effect['data']['reusestyle']);
-      $save = TRUE;
-    }
+      // Rename the reusestyle setting.
+      if (isset($effect['data']['reusestyle'])) {
+        $effect['data']['reuse_crop_style'] = $effect['data']['reusestyle'];
+        unset($effect['data']['reusestyle']);
+        $save = TRUE;
+      }
 
-    if ($save) {
-      image_effect_save($effect);
+      if ($save) {
+        image_effect_save($effect);
+      }
     }
   }
 }
