@@ -823,7 +823,7 @@ ManualCrop.isLoaded = function(object, callback) {
       callback();
     }
     else {
-      alert(Drupal.t('It appears the some images could not be loaded for cropping, please try again in another browser.'));
+      alert(Drupal.t('It appears that some of the images could not be loaded for cropping, please try again in another browser.'));
     }
   });
 }
