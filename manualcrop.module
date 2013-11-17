@@ -368,7 +368,7 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, 
     }
 
     // Add the javascript settings.
-    $form['#attached']['js'][] = array('data' => array('manualCrop' => array(
+    $form['#attached']['js'][] = array('data' => array('manualcrop' => array(
       'styles' => $styles,
       'fields' => array(
         $js_identifier => array(

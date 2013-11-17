@@ -8,7 +8,7 @@ var ManualCrop = {croptool: null, oldSelection: null, widget: null, output: null
  * image preview will be changed to the cropped image.
  */
 ManualCrop.init = function() {
-  var fields = Drupal.settings.manualCrop.fields;
+  var fields = Drupal.settings.manualcrop.fields;
 
   for (var identifier in fields) {
     for (var k in fields[identifier].required) {
@@ -29,7 +29,7 @@ ManualCrop.init = function() {
 ManualCrop.afterUpload = function(context) {
   ManualCrop.init();
 
-  var fields = Drupal.settings.manualCrop.fields;
+  var fields = Drupal.settings.manualcrop.fields;
 
   for (var identifier in fields) {
     if (fields[identifier].instantCrop) {
@@ -82,7 +82,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       // Get the crop settings.
-      var settings = Drupal.settings.manualCrop.styles[styleName] || {};
+      var settings = Drupal.settings.manualcrop.styles[styleName] || {};
 
       // Get the destination field and the current selection.
       ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
@@ -239,7 +239,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       if (!ManualCrop.oldSelection) {
-        var fields = Drupal.settings.manualCrop.fields;
+        var fields = Drupal.settings.manualcrop.fields;
 
         // Create a default crop area.
         if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
@@ -846,7 +846,7 @@ $(document).ready(function() {
   });
 
   // Attach behaviors to execute after an ajax call.
-  Drupal.behaviors.manualCrop = {
+  Drupal.behaviors.manualcrop = {
     attach: function(context, settings) {
       // After upload function on image upload.
       $('.ajax-new-content', context).once('manualcrop', function() {
