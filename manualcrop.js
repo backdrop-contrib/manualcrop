@@ -802,11 +802,10 @@ ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
  *   jQuery object with one or more images within.
  * @param callback
  *   Callback function to execute once the image is loaded.
- * @param recursive
- *   For internal usage, recursive call counter.
  */
-ManualCrop.isLoaded = function(object, callback, recursive) {
-  var images = $('img', object);
+ManualCrop.isLoaded = function(object, callback) {
+  // Get all images in the object.
+  var images = object.filter('img').add(object.find('img'));
 
   images.imagesLoaded(function() {
     // Count the number of images with proper dimensions.
@@ -819,20 +818,12 @@ ManualCrop.isLoaded = function(object, callback, recursive) {
     });
 
     // Execute the callback if all images have a proper width and height,
-    // otherwise we'll do a recursive call (after a short delay).
+    // otherwise we'll show an error message.
     if (hasDimensions == images.length) {
       callback();
     }
     else {
-      if (++recursive > 100) {
-        // This is getting an endless loop.
-        alert(Drupal.t('Some images could not be loaded, please try again in another browser.'));
-        return;
-      }
-
-      setTimeout(function() {
-        ManualCrop.isLoaded(object, callback, recursive);
-      }, 100);
+      alert(Drupal.t('It appears the some images could not be loaded for cropping, please try again in another browser.'));
     }
   });
 }
