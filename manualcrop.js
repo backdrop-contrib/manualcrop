@@ -67,7 +67,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
     styleName = styleSelect.val();
   }
 
-  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder img'), function() {
+  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder'), function() {
     // IE executes this callback twice, so we check if the ManualCrop.croptool
     // has already been set and skip the rest if this is the case.
     if (!ManualCrop.croptool) {
@@ -561,7 +561,7 @@ ManualCrop.updateSelection = function(image, selection) {
 ManualCrop.selectionStored = function(element, fid, styleName) {
   var selection = $(element).val();
 
-  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder img'), function() {
+  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder'), function() {
     var previewHolder = $('.manualcrop-preview-' + fid + '-' + styleName + ' .manualcrop-preview-cropped');
     if (!previewHolder.length) {
       previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
