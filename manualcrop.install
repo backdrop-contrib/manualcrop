@@ -280,7 +280,8 @@ function manualcrop_update_7103(&$sandbox) {
 }
 
 /**
- * Rename the "reusestyle" effect setting to "reuse_crop_style".
+ * Remove unneeded image effect data and rename the "reusestyle" setting
+ * to "reuse_crop_style".
  */
 function manualcrop_update_7104(&$sandbox) {
   require_once 'manualcrop.helpers.inc';
@@ -290,7 +291,7 @@ function manualcrop_update_7104(&$sandbox) {
     $save = FALSE;
 
     // Unset the style_name key, we don't need it for reuse effects.
-    if (!_manualcrop_is_own_effect($effect, TRUE) && isset($effect['data']['style_name'])) {
+    if (_manualcrop_is_own_effect($effect, FALSE) && isset($effect['data']['style_name'])) {
       unset($effect['data']['style_name']);
       $save = TRUE;
     }
@@ -312,6 +313,22 @@ function manualcrop_update_7104(&$sandbox) {
  */
 function manualcrop_update_7105(&$sandbox) {
   _manualcrop_grant_crop_permission();
+}
+
+/**
+ * Add the style_priority setting to all auto reuse image effects.
+ */
+function manualcrop_update_7106(&$sandbox) {
+  require_once 'manualcrop.helpers.inc';
+
+  foreach (manualcrop_styles_with_crop(TRUE) as $info) {
+    $effect = $info['effect'];
+
+    if (_manualcrop_is_own_effect($effect, FALSE) && $effect['name'] == 'manualcrop_auto_reuse') {
+      $effect['data'] += array('style_priority' => array());
+      image_effect_save($effect);
+    }
+  }
 }
 
 /**

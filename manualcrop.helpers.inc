@@ -425,7 +425,7 @@ function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
  *   Auto reuse effect data.
  *
  * @return
- *   Image style name taht can be reused or FALSE if no crop selection was found.
+ *   Image style name that can be reused or FALSE if no crop selection was found.
  */
 function _manualcrop_get_auto_reuse_style_name($file, $data) {
   // Get the crop selections.
@@ -433,10 +433,8 @@ function _manualcrop_get_auto_reuse_style_name($file, $data) {
 
   if ($crop) {
     // Get a list of existing crop styles (keys) ordered by priority.
-    if (!empty($data['style_priority'])) {
-      $styles = array_flip($data['style_priority']) + $crop;
-      $crop = array_intersect_key($styles, $crop);
-    }
+    $styles = array_flip($data['style_priority']) + $crop;
+    $crop = array_intersect_key($styles, $crop);
 
     // Return the first crop selection style name.
     reset($crop);
