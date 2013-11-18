@@ -67,7 +67,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
     styleName = styleSelect.val();
   }
 
-  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder'), function() {
+  ManualCrop.isLoaded('.manualcrop-file-' + fid + '-holder', function() {
     // IE executes this callback twice, so we check if the ManualCrop.croptool
     // has already been set and skip the rest if this is the case.
     if (!ManualCrop.croptool) {
@@ -561,7 +561,7 @@ ManualCrop.updateSelection = function(image, selection) {
 ManualCrop.selectionStored = function(element, fid, styleName) {
   var selection = $(element).val();
 
-  ManualCrop.isLoaded($('.manualcrop-file-' + fid + '-holder'), function() {
+  ManualCrop.isLoaded('.manualcrop-file-' + fid + '-holder', function() {
     var previewHolder = $('.manualcrop-preview-' + fid + '-' + styleName + ' .manualcrop-preview-cropped');
     if (!previewHolder.length) {
       previewHolder = $('.manualcrop-preview-' + fid + ' .manualcrop-preview-cropped');
@@ -796,36 +796,49 @@ ManualCrop.resizeDimensions = function(width, height, maxWidth, maxHeight) {
 }
 
 /**
- * Execute a callback if one or more images are loaded.
+ * Execute a callback if one or more images are succesfully loaded.
  *
- * @param object
- *   jQuery object with one or more images within.
+ * @param selector
+ *   jQuery selector or object for one or more images.
  * @param callback
- *   Callback function to execute once the image is loaded.
+ *   Callback function to execute when all images are loaded.
  */
-ManualCrop.isLoaded = function(object, callback) {
-  // Get all images in the object.
-  var images = object.filter('img').add(object.find('img'));
+ManualCrop.isLoaded = function(selector, callback) {
+  if (!(selector instanceof jQuery)) {
+    selector = $(selector);
+  }
 
-  images.imagesLoaded(function() {
-    // Count the number of images with proper dimensions.
-    var hasDimensions = 0;
-    images.each(function() {
-      var dimensions = ManualCrop.getImageDimensions(this);
-      if (dimensions.width && dimensions.height) {
-        hasDimensions++;
+  // Collect all images.
+  var images = selector.filter('img');
+  if (images.length != selector.length) {
+    images = images.add(selector.find('img'));
+  }
+
+  if (!images.length) {
+    // No images found, execute the callback right away.
+    callback();
+  }
+  else {
+    images.imagesLoaded(function() {
+      // Count the number of images with proper dimensions.
+      var hasDimensions = 0;
+      images.each(function() {
+        var dimensions = ManualCrop.getImageDimensions(this);
+        if (dimensions.width && dimensions.height) {
+          hasDimensions++;
+        }
+      });
+
+      // Execute the callback if all images have a proper width and height,
+      // otherwise we'll show an error message.
+      if (hasDimensions == images.length) {
+        callback();
+      }
+      else {
+        alert(Drupal.t('It appears that some of the images could not be loaded for cropping, please try again in another browser.'));
       }
     });
-
-    // Execute the callback if all images have a proper width and height,
-    // otherwise we'll show an error message.
-    if (hasDimensions == images.length) {
-      callback();
-    }
-    else {
-      alert(Drupal.t('It appears that some of the images could not be loaded for cropping, please try again in another browser.'));
-    }
-  });
+  }
 }
 
 $(document).ready(function() {
