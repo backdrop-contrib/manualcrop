@@ -1302,7 +1302,7 @@ function manualcrop_insert_styles() {
  * crop functionality to the file upload form.
  */
 function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
-  if (user_access('use manualcrop') && isset($form['#step']) && $form['#step'] == 4) {
+  if ($form['#step'] == 4 && $form['#entity']->type == 'image' && user_access('use manualcrop')) {
     // Get the field instance information.
     $instance_info = array();
     if (!empty($form_state['build_info']['args'][0]['manualcrop'])) {
@@ -1310,7 +1310,7 @@ function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
     }
 
     // Process the form.
-    _manualcrop_process_file_entity_form($form, $form_state, $instance_info, $form['#entity']);
+    _manualcrop_process_file_entity_form($form, $form_state, $instance_info);
   }
 }
 
@@ -1321,13 +1321,13 @@ function manualcrop_form_file_entity_add_upload_alter(&$form, &$form_state) {
  * crop functionality to the file edit form.
  */
 function manualcrop_form_file_entity_edit_alter(&$form, &$form_state) {
-  if (user_access('use manualcrop') && $form['type']['#value'] == 'image' && !empty($form['preview']['#file'])) {
+  if ($form['#entity']->type == 'image' && user_access('use manualcrop')) {
     // Try to parse the GET parameter if's missing.
     if (!isset($_GET['manualcrop']) && strpos($_GET['q'], '?') !== FALSE) {
       parse_str('q=' . str_replace('?', '&', $_GET['q']), $_GET);
     }
 
     // Process the form.
-    _manualcrop_process_file_entity_form($form, $form_state, (isset($_GET['manualcrop']) ? $_GET['manualcrop'] : array()), $form['preview']['#file']);
+    _manualcrop_process_file_entity_form($form, $form_state, (isset($_GET['manualcrop']) ? $_GET['manualcrop'] : array()));
   }
 }

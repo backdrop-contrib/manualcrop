@@ -553,10 +553,8 @@ function _manualcrop_check_field_collection_form_prepare($instance) {
  * @param $instance_info
  *   Field instance info, this array should contain 3 keys: entity_type, bundle
  *   and field_name.
- * @param $file
- *   File object.
  */
-function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_info, $file) {
+function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_info) {
   // Get the field instance settings.
   $settings = array();
   if (!empty($instance_info['entity_type']) && !empty($instance_info['bundle']) && !empty($instance_info['field_name'])) {
@@ -575,13 +573,13 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
   }
 
   // Build the javascript identifier.
-  $js_identifier = manualcrop_js_identifier($file);
+  $js_identifier = manualcrop_js_identifier($form['#entity']);
 
   // Prepare the form.
   manualcrop_croptool_prepare_form($form, $form_state, $js_identifier, $settings);
 
   // Add the croptool.
-  manualcrop_croptool_process($form, $form_state, $js_identifier, $file, NULL, $settings);
+  manualcrop_croptool_process($form, $form_state, $js_identifier, $form['#entity'], NULL, $settings);
 
   // Add the submit handler.
   $form['#submit'][] = 'manualcrop_croptool_submit';
