@@ -139,14 +139,7 @@ function manualcrop_js_identifier($data) {
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
-  if (empty($style_name)) {
-    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
-      ':uri' => $file,
-    ));
-
-    return $result->fetchAllAssoc('style_name');
-  }
-  else {
+  if (isset($style_name)) {
     $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.style_name = :name AND f.uri = :uri', array(
       ':name' => $style_name,
       ':uri' => $file,
@@ -154,8 +147,13 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
 
     return $result->fetchObject();
   }
+  else {
+    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
+      ':uri' => $file,
+    ));
 
-  return NULL;
+    return $result->fetchAllAssoc('style_name');
+  }
 }
 
 /**
