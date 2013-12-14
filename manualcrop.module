@@ -886,24 +886,29 @@ function manualcrop_croptool_submit($form, &$form_state) {
  *   Image template variables.
  */
 function manualcrop_preprocess_image(&$variables) {
+  $style_name = empty($variables['style_name']) ? '': $variables['style_name'];
+  $rewritten = _manualcrop_do_preprocess($style_name, $variables['path']);
+  if ($rewritten) {
+	$variables['path'] = $rewritten;
+  }
+}
+
+
+function _manualcrop_do_preprocess($style_name, $original_path) {
   // Is cache control enabled?
-  if (!empty($variables['style_name']) && variable_get('manualcrop_cache_control', TRUE)) {
+  if (!empty($style_name) && variable_get('manualcrop_cache_control', TRUE)) {
     $styles = manualcrop_styles_with_crop(TRUE);
-    $style_name = $variables['style_name'];
 
     // Does this image style have a Manual Crop effect?
     if (isset($styles[$style_name])) {
-      $original_path = $variables['path'];
-
       // Attempt to load the HTTP cache-controller from cache.
       $cache_key = 'manualcrop:' . md5($original_path);
       if ($cached_path = cache_get($cache_key)) {
-        $variables['path'] = $cached_path->data;
-      }
-      else {
+        return $cached_path->data;
+      } else {
         // No HTTP cache-controller in cache, get the image path.
         $match = '/styles/' . $style_name . '/';
-        $path = substr($variables['path'], (strrpos($variables['path'], $match) + drupal_strlen($match)));
+        $path = substr($original_path, (strrpos($original_path, $match) + drupal_strlen($match)));
         $path = explode('/', $path);
 
         // Build the image URI.
@@ -936,16 +941,33 @@ function manualcrop_preprocess_image(&$variables) {
         }
 
         if (!empty($crop)) {
-          // Add a HTTP cache-controller to the image path.
-          $variables['path'] .= (strpos($variables['path'], '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
-
-          // Cache the the updated image path.
-          cache_set($cache_key, $variables['path']);
+	  $result = $original_path . (strpos($original_path, '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+	  cache_set($cache_key, $result);
+	  return $result;
         }
       }
     }
   }
+  return NULL;
 }
+
+function manualcrop_preprocess_image_url_formatter(&$variables) {
+  $image_style = $variables['image_style'];
+  $original_path = $variables['item']['uri'];
+   
+  if ($image_style) {
+    $original_path = image_style_url($image_style, $original_path);
+  } else {
+    $original_path = file_create_url($original_path);
+  }
+
+  $rewritten = _manualcrop_do_preprocess($image_style, $original_path);
+  if ($rewritten) {
+	  $variables['item']['uri'] = $rewritten;
+	  $variables['image_style'] = '';
+  }
+}
+
 
 /**
  * Returns HTML for the overlay crop area of an image.
