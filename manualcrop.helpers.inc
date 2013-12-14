@@ -139,11 +139,6 @@ function manualcrop_js_identifier($data) {
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
-  // Remove any query string (e.g., the security token used by the Image module)
-  // to get the correct file uri as stored in the {file_managed} table.
-  $parts = explode('?', $file);
-  $file = reset($parts);
-
   if (empty($style_name)) {
     $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
       ':uri' => $file,
@@ -466,52 +461,54 @@ function _manualcrop_add_cache_control($style_name, $url) {
       $cache_key = 'manualcrop:' . md5($url);
 
       // Attempt to load the HTTP cache-controller from cache.
-      if ($cached_path = cache_get($cache_key)) {
-        return $cached_path->data;
+      if ($cached_url = cache_get($cache_key)) {
+        return $cached_url->data;
       }
-      else {
-        // No HTTP cache-controller in cache, get the image path from the URL.
-        $match = '/styles/' . $style_name . '/';
-        $path = substr($url, (strrpos($url, $match) + drupal_strlen($match)));
-        $path = explode('/', $path);
 
-        // Build the image URI.
-        $scheme = array_shift($path);
-        $target = implode('/', $path);
-        $image_uri = $scheme . '://' . urldecode($target);
+      // Get the image path from the URL.
+      $match = '/styles/' . $style_name . '/';
+      $path = parse_url($url, PHP_URL_PATH);
+      $path = drupal_substr($path, (strrpos($path, $match) + drupal_strlen($match)));
+      $path = explode('/', $path);
 
+      // Build the local image URI.
+      $scheme = array_shift($path);
+      $target = implode('/', $path);
+      $image_uri = $scheme . '://' . urldecode($target);
+
+      // Get the image effect.
+      $effect = $styles[$style_name]['effect'];
+
+      if (_manualcrop_is_own_effect($effect, FALSE)) {
         // Use the reuse style to load the crop selection.
-        $effect = $styles[$style_name]['effect'];
-        if (_manualcrop_is_own_effect($effect, FALSE)) {
-          switch ($effect['name']) {
-            case 'manualcrop_reuse':
-              $style_name = $effect['data']['reuse_crop_style'];
-              break;
+        switch ($effect['name']) {
+          case 'manualcrop_reuse':
+            $style_name = $effect['data']['reuse_crop_style'];
+            break;
 
-            case 'manualcrop_auto_reuse':
-              // The fallback style doesn't have a crop selection.
-              unset($style_name);
+          case 'manualcrop_auto_reuse':
+            // The fallback style doesn't have a crop selection.
+            unset($style_name);
 
-              // Get the first applied crop selection.
-              if ($crop = manualcrop_load_crop_selection($image_uri)) {
-                $crop = reset($crop);
-              }
-              break;
-          }
+            // Get the first applied crop selection.
+            if ($crop = manualcrop_load_crop_selection($image_uri)) {
+              $crop = reset($crop);
+            }
+            break;
         }
+      }
 
-        // Load the crop selection.
-        if (empty($crop) && isset($style_name)) {
-          $crop = manualcrop_load_crop_selection($image_uri, $style_name);
-        }
+      // Load the crop selection.
+      if (isset($style_name)) {
+        $crop = manualcrop_load_crop_selection($image_uri, $style_name);
+      }
 
-        // Add the cache controller and cache it.
-        if (!empty($crop)) {
-          $result = $url . (strpos($url, '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
-          cache_set($cache_key, $result);
+      // Add the cache controller and cache the new URL.
+      if (!empty($crop)) {
+        $url .= (strpos($url, '?') ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+        cache_set($cache_key, $url);
 
-          return $result;
-        }
+        return $url;
       }
     }
   }
