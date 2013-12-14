@@ -478,16 +478,17 @@ function _manualcrop_add_cache_control($style_name, $url) {
       $effect = $styles[$style_name]['effect'];
 
       if (_manualcrop_is_own_effect($effect, FALSE)) {
-        // Use the reuse style to load the crop selection.
+        unset($style_name);
+
         switch ($effect['name']) {
           case 'manualcrop_reuse':
-            $style_name = $effect['data']['reuse_crop_style'];
+            // Use the reuse style to load the crop selection.
+            if (!empty($effect['data']['reuse_crop_style'])) {
+              $style_name = $effect['data']['reuse_crop_style'];
+            }
             break;
 
           case 'manualcrop_auto_reuse':
-            // The fallback style doesn't have a crop selection.
-            unset($style_name);
-
             // Get the first applied crop selection.
             if ($crop = manualcrop_load_crop_selection($image_uri)) {
               $crop = reset($crop);
