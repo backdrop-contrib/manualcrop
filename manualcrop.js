@@ -723,13 +723,13 @@ ManualCrop.getImageDimensions = function(image) {
     image = $(image).first();
   }
 
-  var rawImage = $('<img style="width: auto !important; height: auto !important; min-width: auto !important; min-height: auto !important; max-width: auto !important; max-height: auto !important;" />')
-    .attr('src', image.attr('src'))
-    .get(0);
+  var rawImage = new Image();
+  rawImage.src = image.attr('src');
+  rawImage.style = 'width: auto !important; height: auto !important; min-width: 0 !important; min-height: 0 !important; max-width: none !important; max-height: none !important;';
 
   var dimensions = {
-    width: ManualCrop.parseInt(rawImage.width || image.width()),
-    height: ManualCrop.parseInt(rawImage.height || image.height())
+    width: ManualCrop.parseInt(rawImage.naturalWidth || rawImage.width),
+    height: ManualCrop.parseInt(rawImage.naturalHeight || rawImage.height)
   }
 
   return dimensions;
