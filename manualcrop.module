@@ -901,7 +901,7 @@ function manualcrop_preprocess_image_url_formatter(&$variables) {
     $url = _manualcrop_add_cache_control($variables['image_style'], $url);
 
     if ($url) {
-      $variables['item']['uri'] = $uri;
+      $variables['item']['uri'] = $url;
       $variables['image_style'] = '';
     }
   }
