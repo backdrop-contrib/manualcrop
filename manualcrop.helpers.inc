@@ -445,6 +445,81 @@ function _manualcrop_get_auto_reuse_style_name($file, $data) {
 }
 
 /**
+ * Adds a cache control parameter to the image URI so the image will be reloaded
+ * if the crop selection was changed since it was last feched by the browser.
+ *
+ * @param $style_name
+ *   Image style name.
+ * @param $path
+ *   The absolute URL where the styled image can be downloaded.
+ *
+ * @return
+ *   The altered image URL or NULL if the URL wasn't changed.
+ */
+function _manualcrop_add_cache_control($style_name, $url) {
+  // Is cache control enabled?
+  if (variable_get('manualcrop_cache_control', TRUE)) {
+    $styles = manualcrop_styles_with_crop(TRUE);
+
+    // Does this image style have a Manual Crop effect?
+    if (isset($styles[$style_name])) {
+      $cache_key = 'manualcrop:' . md5($url);
+
+      // Attempt to load the HTTP cache-controller from cache.
+      if ($cached_path = cache_get($cache_key)) {
+        return $cached_path->data;
+      }
+      else {
+        // No HTTP cache-controller in cache, get the image path from the URL.
+        $match = '/styles/' . $style_name . '/';
+        $path = substr($url, (strrpos($url, $match) + drupal_strlen($match)));
+        $path = explode('/', $path);
+
+        // Build the image URI.
+        $scheme = array_shift($path);
+        $target = implode('/', $path);
+        $image_uri = $scheme . '://' . urldecode($target);
+
+        // Use the reuse style to load the crop selection.
+        $effect = $styles[$style_name]['effect'];
+        if (_manualcrop_is_own_effect($effect, FALSE)) {
+          switch ($effect['name']) {
+            case 'manualcrop_reuse':
+              $style_name = $effect['data']['reuse_crop_style'];
+              break;
+
+            case 'manualcrop_auto_reuse':
+              // The fallback style doesn't have a crop selection.
+              unset($style_name);
+
+              // Get the first applied crop selection.
+              if ($crop = manualcrop_load_crop_selection($image_uri)) {
+                $crop = reset($crop);
+              }
+              break;
+          }
+        }
+
+        // Load the crop selection.
+        if (empty($crop) && isset($style_name)) {
+          $crop = manualcrop_load_crop_selection($image_uri, $style_name);
+        }
+
+        // Add the cache controller and cache it.
+        if (!empty($crop)) {
+          $result = $url . (strpos($url, '?') !== FALSE ? '&' : '?') . 'c=' . md5($crop->x . '|' . $crop->y . '|' . $crop->width . '|' . $crop->height);
+          cache_set($cache_key, $result);
+
+          return $result;
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
  * Determines if the form for a Field Collection field has been prepared.
  * This function checks if the field instance is attached to a Field Collection
  * item entity, if so we'll store it and return FALSE the next time.
