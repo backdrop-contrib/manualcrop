@@ -1161,7 +1161,7 @@ function manualcrop_image_effect_info() {
  *   the following items:
  *   - "width": An integer representing the desired width in pixels.
  *   - "height": An integer representing the desired height in pixels.
- *   - "upscale": A boolean indicating that the image should be upscalled if
+ *   - "upscale": A boolean indicating that the image should be upscaled if
  *     the dimensions are larger than the original image.
  *   - "onlyscaleifcrop": A boolean indicating that the image should only be scaled
  *     if it was cropped.
