@@ -725,7 +725,6 @@ ManualCrop.getImageDimensions = function(image) {
 
   var rawImage = new Image();
   rawImage.src = image.attr('src');
-  rawImage.style = 'width: auto !important; height: auto !important; min-width: 0 !important; min-height: 0 !important; max-width: none !important; max-height: none !important;';
 
   var dimensions = {
     width: ManualCrop.parseInt(rawImage.naturalWidth || rawImage.width),
