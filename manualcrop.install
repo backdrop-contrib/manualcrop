@@ -335,6 +335,13 @@ function manualcrop_update_7106(&$sandbox) {
 }
 
 /**
+ * Re-run update 7103 to remove all styles that weren't selected in the interface.
+ */
+function manualcrop_update_7107(&$sandbox) {
+  manualcrop_update_7103($sandbox);
+}
+
+/**
  * Grant the crop permission to all user roles.
  */
 function _manualcrop_grant_crop_permission() {

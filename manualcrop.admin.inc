@@ -750,7 +750,7 @@ function manualcrop_field_widget_settings_form_alter(&$form, $settings) {
  * from the #value array.
  */
 function manualcrop_checkboxes_filter($element, &$form_state, $form) {
-  if (!empty($element['#value'])) {
+  if (isset($element['#value'])) {
     form_set_value($element, array_filter($element['#value']), $form_state);
   }
 }
