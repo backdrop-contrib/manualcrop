@@ -603,6 +603,13 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     '#disabled' => empty($style_options),
   );
 
+  $form['manualcrop']['manualcrop_keyboard'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Keyboard shortcuts'),
+    '#description' => t('Enable the keyboard shortcuts.'),
+    '#default_value' => $settings['manualcrop_keyboard'],
+  );
+
   if (manualcrop_supported_widgets($widget_type, 'thumblist')) {
     $form['manualcrop']['manualcrop_thumblist'] = array(
       '#type' => 'checkbox',

@@ -68,7 +68,7 @@ ManualCrop.init = function(context) {
  * Open the cropping tool for an image.
  *
  * @param identifier
- *    Unique crop settings identifier.
+ *    Unique field settings identifier.
  * @param style
  *   The image style name or selection list triggering this event.
  * @param fid
@@ -105,8 +105,9 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
         origContainer = $('#manualcrop-inline-' + fid);
       }
 
-      // Get the crop settings.
-      var settings = Drupal.settings.manualcrop.styles[styleName] || {};
+      // Get the settings.
+      var styleSettings = Drupal.settings.manualcrop.styles[styleName] || null;
+      var fieldSettings = Drupal.settings.manualcrop.fields[identifier] || null;
 
       // Get the destination field and the current selection.
       ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
@@ -155,7 +156,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       var options = {
         handles: true,
         instance: true,
-        keys: true,
+        keys: (!fieldSettings || fieldSettings.keyboard),
         movable: true,
         resizable: true,
         parent: image.parent(),
@@ -165,31 +166,31 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       };
 
       // Additional options based upon the effect.
-      if (settings) {
-        switch (settings.effect) {
+      if (styleSettings) {
+        switch (styleSettings.effect) {
           // Crop and scale effect.
           case 'manualcrop_crop_and_scale':
-            options.aspectRatio = settings.data.width + ':' + settings.data.height;
+            options.aspectRatio = styleSettings.data.width + ':' + styleSettings.data.height;
 
-            if (settings.data.respectminimum) {
+            if (styleSettings.data.respectminimum) {
               // Crop at least the minimum.
-              options.minWidth = ManualCrop.parseInt(settings.data.width);
-              options.minHeight = ManualCrop.parseInt(settings.data.height);
+              options.minWidth = ManualCrop.parseInt(styleSettings.data.width);
+              options.minHeight = ManualCrop.parseInt(styleSettings.data.height);
             }
             break;
 
           // Crop effect.
           case 'manualcrop_crop':
-            if (settings.data.width) {
-              options.minWidth = ManualCrop.parseInt(settings.data.width);
+            if (styleSettings.data.width) {
+              options.minWidth = ManualCrop.parseInt(styleSettings.data.width);
             }
 
-            if (settings.data.height) {
-              options.minHeight = ManualCrop.parseInt(settings.data.height);
+            if (styleSettings.data.height) {
+              options.minHeight = ManualCrop.parseInt(styleSettings.data.height);
             }
 
-            if (typeof settings.data.keepproportions != 'undefined' && settings.data.keepproportions) {
-              options.aspectRatio = settings.data.width + ':' + settings.data.height;
+            if (typeof styleSettings.data.keepproportions != 'undefined' && styleSettings.data.keepproportions) {
+              options.aspectRatio = styleSettings.data.width + ':' + styleSettings.data.height;
             }
         }
       }
@@ -263,11 +264,9 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       if (!ManualCrop.oldSelection) {
-        var fields = Drupal.settings.manualcrop.fields;
-
         // Create a default crop area.
-        if (typeof fields[identifier] == 'object' && fields[identifier].defaultCropArea) {
-          if (fields[identifier].maximizeDefaultCropArea) {
+        if (fieldSettings && fieldSettings.defaultCropArea) {
+          if (fieldSettings.maximizeDefaultCropArea) {
             ManualCrop.isLoaded(ManualCrop.croptool, ManualCrop.maximizeSelection);
           }
           else {
@@ -322,7 +321,9 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       // Handle keyboard shortcuts.
-      $(document).keyup(ManualCrop.handleKeyboard);
+      if (!fieldSettings || fieldSettings.keyboard) {
+        $(document).keyup(ManualCrop.handleKeyboard);
+      }
     }
   });
 }
@@ -683,7 +684,7 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
  */
 ManualCrop.handleKeyboard = function(e) {
   if (ManualCrop.croptool) {
-    if(e.keyCode == 13) {
+    if (e.keyCode == 13) {
       // Enter
       ManualCrop.closeCroptool();
     }

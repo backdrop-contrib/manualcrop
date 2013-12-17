@@ -69,6 +69,8 @@ function manualcrop_default_widget_settings() {
   $defaults = array(
     // Enable Manual Crop?
     'manualcrop_enable' => FALSE,
+    // Enable keyboard shortcuts?
+    'manualcrop_keyboard' => TRUE,
     // Show a list of thubnails instead of a selection list or button?
     'manualcrop_thumblist' => FALSE,
     // Enable inline cropping?

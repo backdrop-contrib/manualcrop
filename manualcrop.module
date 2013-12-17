@@ -372,6 +372,7 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, 
       'styles' => $styles,
       'fields' => array(
         $js_identifier => array(
+          'keyboard' => !empty($settings['manualcrop_keyboard']),
           'required' => manualcrop_instance_required_styles($settings),
           'instantCrop' => !empty($settings['manualcrop_instant_crop']),
           'defaultCropArea' => !empty($settings['manualcrop_default_crop_area']),
