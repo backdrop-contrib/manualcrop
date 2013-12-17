@@ -1,43 +1,67 @@
-var ManualCrop = {croptool: null, oldSelection: null, widget: null, output: null};
+var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: null };
 
 (function ($) {
 
 /**
- * Mark required image styles and trigger the onchange event of all (hidden) fields that store
- * crop data. This way all css classes for the crop lists/buttons will be updated and the default
- * image preview will be changed to the cropped image.
- */
-ManualCrop.init = function() {
-  var fields = Drupal.settings.manualcrop.fields;
-
-  for (var identifier in fields) {
-    for (var k in fields[identifier].required) {
-      $('.manualcrop-identifier-' + identifier + ' option[value="' + fields[identifier].required[k] + '"]')
-        .addClass('manualcrop-style-required');
-    }
-  }
-
-  $('.manualcrop-cropdata').trigger('change');
-}
-
-/**
- * Callback triggerd after an image upload.
+ * Initialize the Manual Crop widgets within a context.
  *
  * @param context
- *    Container of the uploaded image widget.
+ *   Current context as DOM object.
  */
-ManualCrop.afterUpload = function(context) {
-  ManualCrop.init();
-
+ManualCrop.init = function(context) {
   var fields = Drupal.settings.manualcrop.fields;
 
+  // Add a css class to the select options of required crop styles.
   for (var identifier in fields) {
-    if (fields[identifier].instantCrop) {
-      if ($('.manualcrop-cropdata', context).length == 1) {
-        $('.manualcrop-style-button, .manualcrop-style-thumb', context).trigger('mousedown');
+    var required = fields[identifier].required;
+
+    $('.manualcrop-identifier-' + identifier, context).once('manualcrop-init', function() {
+      for (var k in required) {
+        $('option[value="' + required[k] + '"]', this).addClass('manualcrop-style-required');
+      }
+    });
+  }
+
+  // Trigger the change event of the crop data storage fields to set all css
+  // classes for the crop lists/buttons and to update the default image
+  // so it reflects the cropped image.
+  $('.manualcrop-cropdata', context).once('manualcrop-init', function() {
+    $(this).trigger('change');
+  });
+
+  // Blur the buttons on mousedown.
+  $('.manualcrop-button', context).once('manualcrop-init', function() {
+    $(this).mousedown(function() {
+      this.blur();
+    });
+  });
+
+  // Open, if enabled in the settings, the crop tool when a new file is uploaded.
+  $('.ajax-new-content', context).once('manualcrop-init', function() {
+    var content = $(this);
+
+    if (!content.html().length) {
+      // If the $form['#file_upload_delta'] is not set or invalid the file module
+      // will add an empty <span> as .ajax-new-content element, so we need the
+      // previous element to execute the after upload function.
+      content = content.prev();
+    }
+
+    if ($('.manualcrop-cropdata', content).length == 1) {
+      for (var identifier in fields) {
+        if (fields[identifier].instantCrop) {
+          $('.manualcrop-style-button, .manualcrop-style-thumb', content).trigger('mousedown');
+        }
       }
     }
-  }
+  });
+
+  // Trigger the init handler if a Media modal was opened.
+  $('.modal-content', context).once('manualcrop-init', function() {
+    $(this).ready(function() {
+      ManualCrop.init(this);
+    });
+  });
 }
 
 /**
@@ -840,38 +864,20 @@ ManualCrop.isLoaded = function(selector, callback) {
   }
 }
 
-$(document).ready(function() {
-  ManualCrop.init();
-
-  // Add a blur action to all buttons.
-  $('.manualcrop-button').live('mousedown', function() {
-    this.blur();
-  });
-
-  // Attach behaviors to execute after an ajax call.
-  Drupal.behaviors.manualcrop = {
-    attach: function(context, settings) {
-      // After upload function on image upload.
-      $('.ajax-new-content', context).once('manualcrop', function() {
-        var element = $(this);
-
-        if (!element.html().length) {
-          // If the $form['#file_upload_delta'] is not set or invalid the file module
-          // will add an empty <span> as .ajax-new-content element, so we need the
-          // previous element to execute the after upload function.
-          ManualCrop.afterUpload(element.prev().get(0));
-        }
-        else {
-          ManualCrop.afterUpload(this);
-        }
-      });
-
-      // Init function if a modal (Media module) was opened.
-      $('.modal-content', context).ready(function() {
-        ManualCrop.init();
-      });
+Drupal.behaviors.manualcrop = {
+  attach: function(context, settings) {
+    // Extract the DOM element.
+    if (context instanceof jQuery) {
+      context = context.get(0);
     }
-  };
-});
+
+    // Only continue if context equals the javascript document object, which is
+    // the case on the inital page load, or if context was already added to the
+    // document body.
+    if (context == document || $.contains(document.body, context)) {
+      ManualCrop.init(context);
+    }
+  }
+};
 
 })(jQuery);
