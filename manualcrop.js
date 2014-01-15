@@ -1,4 +1,4 @@
-var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: null };
+var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: null, loadErrorShown: false };
 
 (function ($) {
 
@@ -748,12 +748,11 @@ ManualCrop.getImageDimensions = function(image) {
     image = $(image).first();
   }
 
-  var rawImage = new Image();
-  rawImage.src = image.attr('src');
+  image = image.get(0);
 
   var dimensions = {
-    width: ManualCrop.parseInt(rawImage.naturalWidth || rawImage.width),
-    height: ManualCrop.parseInt(rawImage.naturalHeight || rawImage.height)
+    width: ManualCrop.parseInt(image.naturalWidth || image.width),
+    height: ManualCrop.parseInt(image.naturalHeight || image.height)
   }
 
   return dimensions;
@@ -858,7 +857,8 @@ ManualCrop.isLoaded = function(selector, callback) {
       if (hasDimensions == images.length) {
         callback();
       }
-      else {
+      else if (!ManualCrop.loadErrorShown) {
+        ManualCrop.loadErrorShown = true;
         alert(Drupal.t('It appears that some of the images could not be loaded for cropping, please try again in another browser.'));
       }
     });

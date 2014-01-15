@@ -323,7 +323,7 @@ function manualcrop_auto_reuse_form($data) {
     unset($weight);
   }
 
-  // Add aa tabledrag for a cleaner interface.
+  // Add a tabledrag for a cleaner interface.
   drupal_add_tabledrag('manualcrop-style-priority', 'order', 'sibling', 'manualcrop-style-priority-weight');
 
   // Get a list of allowed fallback styles.
