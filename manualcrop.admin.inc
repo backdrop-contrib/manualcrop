@@ -13,7 +13,7 @@ function manualcrop_global_settings_form() {
   $form['manualcrop_cache_control'] = array(
     '#type' => 'checkbox',
     '#title' => t('Reload cache-control'),
-    '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image, this way the visitor his/her browser will reload the image.'),
+    '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image and provide the user with the latest, re-cropped version of the image when the image is reloaded.'),
     '#default_value' => variable_get('manualcrop_cache_control', TRUE),
   );
 
