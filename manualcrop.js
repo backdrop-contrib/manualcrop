@@ -750,12 +750,25 @@ ManualCrop.getImageDimensions = function(image) {
 
   image = image.get(0);
 
-  var dimensions = {
-    width: ManualCrop.parseInt(image.naturalWidth || image.width),
-    height: ManualCrop.parseInt(image.naturalHeight || image.height)
+  if (image.naturalWidth && image.naturalHeight) {
+    return {
+      width: ManualCrop.parseInt(image.naturalWidth),
+      height: ManualCrop.parseInt(image.naturalHeight)
+    }
   }
+  else {
+    var rawImage = new Image();
+    rawImage.src = image.src;
 
-  return dimensions;
+    if (rawImage.width && rawImage.height) {
+      image = rawImage;
+    }
+
+    return {
+      width: ManualCrop.parseInt(image.width),
+      height: ManualCrop.parseInt(image.height)
+    }
+  }
 }
 
 /**
