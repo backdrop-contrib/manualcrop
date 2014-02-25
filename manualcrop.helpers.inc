@@ -588,6 +588,31 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
 }
 
 /**
+ * Attach the required css, javascript and libraries to the passed form element.
+ *
+ * @param $element
+ *   The form element on which the files should be attached.
+ * @param $is_form
+ *   Set to TRUE if $element should be treated as a form array.
+ */
+function _manualcrop_attach_form_files(&$element, $is_form = FALSE) {
+  // The files are only attached to actual form elements ($is_form is FALSE),
+  // or if we're dealing with IE, which has some issues with the lazy loading
+  // of CSS files. See http://drupal.org/node/1071818 for more information.
+  if (!$is_form || (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)) {
+    $path = drupal_get_path('module', 'manualcrop');
+
+    $element['#attached']['css'][] = $path . '/manualcrop.css';
+    $element['#attached']['manualcrop_library_load'][] = array('jquery.imgareaselect');
+
+    if (!$is_form) {
+      $element['#attached']['js'][] = $path . '/manualcrop.js';
+      $element['#attached']['manualcrop_library_load'][] = array('jquery.imagesloaded');
+    }
+  }
+}
+
+/**
  * Get the version of a library. This function uses libraries_get_version(),
  * the only difference is that the $options['file'] key can be an array.
  *

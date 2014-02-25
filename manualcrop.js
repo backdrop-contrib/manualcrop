@@ -8,7 +8,7 @@ var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: nul
  * @param context
  *   Current context as DOM object.
  */
-ManualCrop.init = function(context) {
+ManualCrop.init = function(context) {return;
   var fields = Drupal.settings.manualcrop.fields;
 
   // Add a css class to the select options of required crop styles.

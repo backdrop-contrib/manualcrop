@@ -266,6 +266,7 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
         // We don't check if Manual Crop is enabled, this happens in the file
         // enntity edit form.
         $element['#after_build'][] = 'manualcrop_media_element_process';
+        _manualcrop_attach_form_files($element, TRUE);
       }
       elseif (!empty($widget['settings']['manualcrop_enable'])) {
         // Check if this field instance is attached to a Field Collection item
@@ -381,11 +382,8 @@ function manualcrop_croptool_prepare_form(&$form, &$form_state, $js_identifier, 
       ),
     )), 'type' => 'setting');
 
-    // IE has problems with lazy loading of css files, see http://drupal.org/node/1071818
-    if (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE) {
-      $form['#attached']['css'][] = drupal_get_path('module', 'manualcrop') . '/manualcrop.css';
-      $form['#attached']['manualcrop_library_load'][] = array('jquery.imgareaselect');
-    }
+    // Attach the required files.
+    _manualcrop_attach_form_files($form, TRUE);
 
     // Reset the images array.
     if (!isset($form_state['manualcrop_data'])) {
@@ -575,21 +573,8 @@ function manualcrop_croptool_process(&$element, &$form_state, $js_identifier, $f
       }
 
       // Default form element options.
-      $defaults = array(
-        '#weight' => (isset($container['title']['#weight']) ? $element['title']['#weight'] : 1),
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'manualcrop') . '/manualcrop.css',
-          ),
-          'js' => array(
-            drupal_get_path('module', 'manualcrop') . '/manualcrop.js',
-          ),
-          'manualcrop_library_load' => array(
-            array('jquery.imagesloaded'),
-            array('jquery.imgareaselect'),
-          )
-        ),
-      );
+      $defaults = array('#weight' => (isset($container['title']['#weight']) ? $element['title']['#weight'] : 1));
+      _manualcrop_attach_form_files($defaults);
 
       // Element to open the croptool.
       if (!empty($settings['manualcrop_thumblist'])) {
@@ -749,8 +734,12 @@ function manualcrop_media_element_process($element) {
   $element['#media_options']['global'] += $data;
 
   // Attach the options as javascript settings.
-  $media = &$element['#attached']['js'][1]['data']['media'];
-  $media['elements'][$element['#id']]['global'] += $data;
+  foreach ($element['#attached']['js'] as &$js) {
+    if (isset($js['data']['media'])) {
+      $js['data']['media']['elements'][$element['#id']]['global'] += $data;
+      break;
+    }
+  }
 
   // Modify the "Edit" link.
   if (!empty($element['edit'])) {
