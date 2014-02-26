@@ -8,7 +8,7 @@ var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: nul
  * @param context
  *   Current context as DOM object.
  */
-ManualCrop.init = function(context) {return;
+ManualCrop.init = function(context) {
   var fields = Drupal.settings.manualcrop.fields;
 
   // Add a css class to the select options of required crop styles.
@@ -881,6 +881,10 @@ ManualCrop.isLoaded = function(selector, callback) {
 Drupal.behaviors.manualcrop = {
   attach: function(context, settings) {
     // Extract the DOM element.
+    if (typeof context == 'string') {
+      context = $(context);
+    }
+
     if (context instanceof jQuery) {
       context = context.get(0);
     }
@@ -888,7 +892,7 @@ Drupal.behaviors.manualcrop = {
     // Only continue if context equals the javascript document object, which is
     // the case on the inital page load, or if context was already added to the
     // document body.
-    if (context == document || $.contains(document.body, context)) {
+    if (context && (context == document || $.contains(document.body, context))) {
       ManualCrop.init(context);
     }
   }
