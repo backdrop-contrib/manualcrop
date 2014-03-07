@@ -9,11 +9,11 @@ var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: nul
  *   Current context as DOM object.
  */
 ManualCrop.init = function(context) {
-  var fields = Drupal.settings.manualcrop.fields;
+  var elements = Drupal.settings.manualcrop.elements;
 
   // Add a css class to the select options of required crop styles.
-  for (var identifier in fields) {
-    var required = fields[identifier].required;
+  for (var identifier in elements) {
+    var required = elements[identifier].required;
 
     $('.manualcrop-identifier-' + identifier, context).once('manualcrop-init', function() {
       for (var k in required) {
@@ -48,8 +48,8 @@ ManualCrop.init = function(context) {
     }
 
     if ($('.manualcrop-cropdata', content).length == 1) {
-      for (var identifier in fields) {
-        if (fields[identifier].instantCrop) {
+      for (var identifier in elements) {
+        if (elements[identifier].instantCrop) {
           $('.manualcrop-style-button, .manualcrop-style-thumb', content).trigger('mousedown');
         }
       }
@@ -68,7 +68,7 @@ ManualCrop.init = function(context) {
  * Open the cropping tool for an image.
  *
  * @param identifier
- *    Unique field settings identifier.
+ *   Unique form element settings identifier.
  * @param style
  *   The image style name or selection list triggering this event.
  * @param fid
@@ -107,9 +107,9 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
 
       // Get the settings.
       var styleSettings = Drupal.settings.manualcrop.styles[styleName] || null;
-      var fieldSettings = Drupal.settings.manualcrop.fields[identifier] || null;
+      var elementSettings = Drupal.settings.manualcrop.elements[identifier] || null;
 
-      // Get the destination field and the current selection.
+      // Get the destination element and the current selection.
       ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
       ManualCrop.oldSelection = ManualCrop.parseStringSelection(ManualCrop.output.val());
 
@@ -156,7 +156,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       var options = {
         handles: true,
         instance: true,
-        keys: (!fieldSettings || fieldSettings.keyboard),
+        keys: (!elementSettings || elementSettings.keyboard),
         movable: true,
         resizable: true,
         parent: image.parent(),
@@ -265,8 +265,8 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
 
       if (!ManualCrop.oldSelection) {
         // Create a default crop area.
-        if (fieldSettings && fieldSettings.defaultCropArea) {
-          if (fieldSettings.maximizeDefaultCropArea) {
+        if (elementSettings && elementSettings.defaultCropArea) {
+          if (elementSettings.maximizeDefaultCropArea) {
             ManualCrop.isLoaded(ManualCrop.croptool, ManualCrop.maximizeSelection);
           }
           else {
@@ -321,7 +321,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       // Handle keyboard shortcuts.
-      if (!fieldSettings || fieldSettings.keyboard) {
+      if (!elementSettings || elementSettings.keyboard) {
         $(document).keyup(ManualCrop.handleKeyboard);
       }
     }
