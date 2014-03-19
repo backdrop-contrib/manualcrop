@@ -265,7 +265,10 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
       if ($widget['type'] == 'media_generic') {
         // We don't check if Manual Crop is enabled, this happens in the file
         // enntity edit form.
-        $element['#after_build'][] = 'manualcrop_media_element_process';
+        // @todo This is a temporary hack
+        foreach (element_children($element) as $key) {
+          $element[$key]['#after_build'][] = 'manualcrop_media_element_process';
+        }
         _manualcrop_attach_files();
       }
       elseif (!empty($widget['settings']['manualcrop_enable'])) {
@@ -391,6 +394,9 @@ function manualcrop_media_element_process($element) {
   // Attach the options as javascript settings.
   foreach ($element['#attached']['js'] as &$js) {
     if (isset($js['data']['media'])) {
+      if (!isset($js['data']['media']['elements'][$element['#id']]['global'])) {
+        $js['data']['media']['elements'][$element['#id']]['global'] = array();
+      }
       $js['data']['media']['elements'][$element['#id']]['global'] += $data;
       break;
     }
