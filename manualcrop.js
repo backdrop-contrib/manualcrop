@@ -889,11 +889,13 @@ Drupal.behaviors.manualcrop = {
       context = context.get(0);
     }
 
-    // Only continue if context equals the javascript document object, which is
-    // the case on the inital page load, or if context was already added to the
-    // document body.
-    if (context && (context == document || $.contains(document.body, context))) {
-      ManualCrop.init(context);
+    if (context && typeof context == 'object' && typeof context.nodeName != 'undefined') {
+      // Only continue if context equals the javascript document object, which is
+      // the case on the inital page load, or if context was already added to the
+      // document body.
+      if (context == document || $.contains(document.body, context)) {
+        ManualCrop.init(context);
+      }
     }
   }
 };
