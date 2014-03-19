@@ -265,10 +265,10 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
       if ($widget['type'] == 'media_generic') {
         // We don't check if Manual Crop is enabled, this happens in the file
         // enntity edit form.
-        // @todo This is a temporary hack
         foreach (element_children($element) as $key) {
           $element[$key]['#after_build'][] = 'manualcrop_media_element_process';
         }
+
         _manualcrop_attach_files();
       }
       elseif (!empty($widget['settings']['manualcrop_enable'])) {
