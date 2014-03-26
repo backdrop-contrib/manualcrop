@@ -128,7 +128,7 @@ function manualcrop_instance_required_styles($settings) {
  * Add a croptool to the form element. This extends the FAPI widget or simply adds
  * a new form item to enable cropping in a regular form.
  *
- * @param $form_state
+ * @param $form
  *   The form array.
  * @param $form_state
  *   The form state array.
@@ -148,7 +148,7 @@ function manualcrop_instance_required_styles($settings) {
  * @return
  *    Returns TRUE if a croptool has been added, FALSE otherwise.
  */
-function manualcrop_croptool_process($form, &$form_state, &$element, $file, $settings = array(), $instance = NULL, $preview = 'preview') {
+function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $settings = array(), $instance = NULL, $preview = 'preview') {
   static $processed_forms;
 
   if (user_access('use manualcrop') && (!empty($_COOKIE['has_js']) || variable_get('manualcrop_skip_js_check', FALSE))) {
@@ -180,6 +180,11 @@ function manualcrop_croptool_process($form, &$form_state, &$element, $file, $set
 
       // Required image styles.
       $required = manualcrop_instance_required_styles($settings);
+
+      // Make sure the build id exists.
+      if (!isset($form['#build_id'])) {
+        $form['#build_id'] = 'form-' . drupal_random_key();
+      }
 
       // Reset the images array.
       if (!isset($processed_forms[$form['#build_id']])) {
