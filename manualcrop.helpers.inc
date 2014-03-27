@@ -568,8 +568,15 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
   // Add the croptool.
   manualcrop_croptool_process($form, $form_state, $form, $form['#entity'], $settings);
 
-  // Add the submit handler.
-  $form['#submit'][] = 'manualcrop_croptool_submit';
+  // Add the submit handler. Sometimes we have to add it to the action button
+  // and sometimes we have to add it to the general #submit, based on whether
+  // or not the submit button already has a handler.
+  if (!empty($form['actions']['submit']['#submit'])) {
+    $form['actions']['submit']['#submit'][] = 'manualcrop_croptool_submit';
+  }
+  else {
+    $form['#submit'][] = 'manualcrop_croptool_submit';
+  }
 }
 
 /**
@@ -591,8 +598,17 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
+  // Choose which table to use based on whether or not file_entity_revisions module is enabled.
+  if (module_exists('file_entity_revisions')) {
+    $table = 'file_managed_revisions';
+    $key = 'vid';
+  }
+  else {
+    $table = 'file_managed';
+    $key = 'fid';
+  }
   if (isset($style_name)) {
-    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE c.style_name = :name AND f.uri = :uri', array(
+    $result = db_query("SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {$table} f ON c.$key = f.$key WHERE c.style_name = :name AND f.uri = :uri", array(
       ':name' => $style_name,
       ':uri' => $file,
     ));
@@ -600,7 +616,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
     return $result->fetchObject();
   }
   else {
-    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {file_managed} f ON c.fid = f.fid WHERE f.uri = :uri', array(
+    $result = db_query("SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {$table} f ON c.$key = f.$key WHERE f.uri = :uri", array(
       ':uri' => $file,
     ));
 

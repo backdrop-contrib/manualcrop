@@ -291,7 +291,10 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
  * Implements hook_field_attach_submit().
  */
 function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
-  if (user_access('use manualcrop')) {
+  // We don't do this to file_entity_edit because that form can use revisions
+  // if file_entity_revisions is enabled, and we want to save our crop data
+  // AFTER we know the revision id.
+  if (user_access('use manualcrop') && $form['#form_id'] != 'file_entity_edit') {
     manualcrop_croptool_submit($form, $form_state);
   }
 }
@@ -495,21 +498,10 @@ function manualcrop_croptool_submit($form, &$form_state) {
   if (!empty($form_state['manualcrop_data']['selections'])) {
     // Loop trough the selections to save them.
     foreach ($form_state['manualcrop_data']['selections'] as $fid => $data) {
-      db_delete('manualcrop')
-        ->condition('fid', $fid)
-        ->condition('style_name', array_keys($data['styles']))
-        ->execute();
-
-      foreach ($data['styles'] as $style_name => $selection) {
-        if ($selection) {
-          db_insert('manualcrop')
-            ->fields(array_merge($selection, array(
-              'fid' => $fid,
-              'style_name' => $style_name
-            )))
-            ->execute();
-        }
-      }
+      // In general this $file entity should be loaded from a cache, so this
+      // should not cost any performance.
+      $file = file_load($fid);
+      manualcrop_update_data($file, $data['styles']);
 
       // Clear the cached versions of this image.
       image_path_flush($data['path']);
@@ -528,6 +520,72 @@ function manualcrop_croptool_submit($form, &$form_state) {
     // Unset the form state data to prevent submitting twice.
     unset($form_state['manualcrop_data']);
   }
+}
+
+/**
+ * Update the manualcrop data for the file.
+ *
+ * @param $file
+ *   The file entity being saved to.
+ * @param $data
+ *   The manualcrop data as it is to be written, keyed by style name.
+ */
+function manualcrop_update_data($file, $data) {
+  // If file_entity_revisions isn't enabled, use 0.
+  $vid = isset($file->vid) ? $file->vid : 0;
+  db_delete('manualcrop')
+    ->condition('fid', $file->fid)
+    ->condition('vid', $vid)
+    ->condition('style_name', array_keys($data))
+    ->execute();
+
+  foreach ($data as $style_name => $selection) {
+    if ($selection) {
+      $record = array_merge($selection, array(
+        'fid' => $file->fid,
+        'vid' => $vid,
+        'style_name' => $style_name
+      ));
+      drupal_write_record('manualcrop', $record);
+    }
+  }
+}
+
+/**
+ * Implements hook_file_presave().
+ */
+function manualcrop_file_presave($file) {
+  if (!module_exists('file_entity_revisions')) {
+    return;
+  }
+
+  // If there will be a new revision, load the manualcrop data so we can write it
+  // once the new revision is set.
+  if (!empty($file->vid) && !empty($file->new_revision)) {
+    $file->manualcrop_data = manualcrop_load_crop_selection($file->uri);
+  }
+}
+
+/**
+ * Implements hook_file_entity_update().
+ */
+function manualcrop_entity_update($file, $type) {
+  // This uses hook_entity_update to guarantee it comes after the revision has
+  // been saved, which uses hook_file_update().
+
+  // Bail if it's not a file or presave() did not give us new data to write.
+  if ($type != 'file' || empty($file->manualcrop_data)) {
+    return;
+  }
+
+  // Make a copy of revisioned data when the new revision is created so that it
+  // can be cropped without harming the prior revision.
+  manualcrop_update_data($file, $file->manualcrop_data);
+  if (variable_get('manualcrop_cache_control', TRUE)) {
+    // Clear the cached image paths.
+    cache_clear_all('manualcrop:', 'cache', TRUE);
+  }
+
 }
 
 /**
