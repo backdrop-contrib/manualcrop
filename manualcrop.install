@@ -90,9 +90,11 @@ function manualcrop_schema() {
         'not null' => TRUE
       ),
       'vid' => array(
-        'description' => 'The vid of the file if file_entity_revisions is in use.',
+        'description' => 'The {file_managed_revisions}.vid (if it exists) of the file.',
         'type' => 'int',
         'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
       ),
       'style_name' => array(
         'description' => 'The machine name of the style.',
@@ -347,6 +349,24 @@ function manualcrop_update_7107(&$sandbox) {
 }
 
 /**
+ * Add the vid field.
+ */
+function manualcrop_update_7108() {
+  // Add the vid field.
+  db_add_field('manualcrop', 'vid', array(
+    'description' => 'The {file_managed_revisions}.vid (if it exists) of the file.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+
+  // Update the primary key so it includes teh vid field.
+  db_drop_primary_key('manualcrop');
+  db_add_primary_key('manualcrop', array('fid', 'vid', 'style_name'));
+}
+
+/**
  * Grant the crop permission to all user roles.
  */
 function _manualcrop_grant_crop_permission() {
@@ -361,21 +381,4 @@ function _manualcrop_grant_crop_permission() {
       ))
       ->execute();
   }
-}
-
-/**
- * Add vid field to manualcrop
- */
-function manualcrop_update_7108() {
-  $field = array(
-    'description' => 'The vid of the file if file_entity_revisions is in use.',
-    'type' => 'int',
-    'unsigned' => TRUE,
-  );
-
-  db_add_field('manualcrop', 'vid', $field);
-
-  // Update primary key to include new vid field.
-  db_drop_primary_key('manualcrop');
-  db_add_primary_key('manualcrop', array('fid', 'vid', 'style_name'));
 }

@@ -580,6 +580,38 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
 }
 
 /**
+ * Save the Manual Crop data for a file.
+ *
+ * @param $file
+ *   The file entity being saved for.
+ * @param $data
+ *   The data as it is to be written, keyed by style name.
+ */
+function manualcrop_save_crop_data($file, $data) {
+  // If file_entity_revisions isn't enabled, use 0.
+  $vid = (isset($file->vid) ? $file->vid : 0);
+
+  // Delete the existing data.
+  db_delete('manualcrop')
+    ->condition('fid', $file->fid)
+    ->condition('vid', $vid)
+    ->condition('style_name', array_keys($data))
+    ->execute();
+
+  // Save the new crop selections.
+  foreach ($data as $style_name => $selection) {
+    if ($selection) {
+      $record = array_merge($selection, array(
+        'fid' => $file->fid,
+        'vid' => $vid,
+        'style_name' => $style_name
+      ));
+      drupal_write_record('manualcrop', $record);
+    }
+  }
+}
+
+/**
  * Gets the crop area for an image.
  *
  * @param $file
@@ -607,8 +639,9 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
     $table = 'file_managed';
     $key = 'fid';
   }
+
   if (isset($style_name)) {
-    $result = db_query("SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {$table} f ON c.$key = f.$key WHERE c.style_name = :name AND f.uri = :uri", array(
+    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE c.style_name = :name AND f.uri = :uri', array(
       ':name' => $style_name,
       ':uri' => $file,
     ));
@@ -616,7 +649,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
     return $result->fetchObject();
   }
   else {
-    $result = db_query("SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {$table} f ON c.$key = f.$key WHERE f.uri = :uri", array(
+    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE f.uri = :uri', array(
       ':uri' => $file,
     ));
 
