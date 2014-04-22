@@ -232,7 +232,7 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
 
       // IE seems to have some issues with the imgAreaSelect $parent variable,
       // so we set the options again to initialize it correctly.
-      if ($.browser.msie) {
+      if (navigator.userAgent.toLowerCase().indexOf('msie ') != -1) {
         ManualCrop.widget.setOptions(options);
       }
 
