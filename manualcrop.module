@@ -183,6 +183,13 @@ function manualcrop_libraries_info() {
 }
 
 /**
+ * Implements hook_file_type_delete().
+ */
+function manualcrop_file_type_delete($type) {
+  variable_del('manualcrop_file_entity_settings_' . $type->type);
+}
+
+/**
  * Implements hook_image_style_delete().
  */
 function manualcrop_image_style_delete($style) {

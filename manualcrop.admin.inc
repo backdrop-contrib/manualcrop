@@ -568,6 +568,37 @@ function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Adds manualcrop settings to the 'image' entity's configuration form.
+ */
+function manualcrop_form_file_entity_file_type_form_alter(&$form, &$form_state) {
+  if (isset($form['#file_type']) && $form['#file_type']->type == 'image') {
+    $file_type = $form['#file_type'];
+    $widget_type = 'image_image';
+
+    $settings = variable_get('manualcrop_file_entity_settings_' . $file_type->type, manualcrop_default_widget_settings());
+    $form += manualcrop_field_widget_settings_form($widget_type, $settings);
+    $form['manualcrop']['#tree'] = TRUE;
+    unset($form['manualcrop']['#parents']);
+
+    $form['#submit'][] = '_manualcrop_form_file_entity_file_type_form_submit';
+  }
+}
+
+/**
+ * Submit callback for file_entity_file_type_form() form.
+ *
+ * @see manualcrop_form_file_entity_file_type_form_alter()
+ */
+function _manualcrop_form_file_entity_file_type_form_submit($form, &$form_state) {
+  if (!empty($form_state['values']['manualcrop'])) {
+    $file_type = $form['#file_type'];
+    variable_set('manualcrop_file_entity_settings_' . $file_type->type, $form_state['values']['manualcrop']);
+  }
+}
+
+/**
  * Add the Manual Crop field widget settings.
  *
  * @param $widget_type

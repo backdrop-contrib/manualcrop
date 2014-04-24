@@ -564,6 +564,10 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
       }
     }
   }
+  else {
+    // Get the widget settings for the file entity.
+    $settings = variable_get('manualcrop_file_entity_settings_' . $form['#entity']->type, manualcrop_default_widget_settings());
+  }
 
   // Add the croptool.
   manualcrop_croptool_process($form, $form_state, $form, $form['#entity'], $settings);
