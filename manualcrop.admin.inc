@@ -569,32 +569,27 @@ function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
 
 /**
  * Implements hook_form_FORM_ID_alter().
- *
- * Adds manualcrop settings to the 'image' entity's configuration form.
  */
 function manualcrop_form_file_entity_file_type_form_alter(&$form, &$form_state) {
   if (isset($form['#file_type']) && $form['#file_type']->type == 'image') {
-    $file_type = $form['#file_type'];
-    $widget_type = 'image_image';
+    // Get the previously saved or default settings.
+    $settings = variable_get('manualcrop_file_entity_settings_' . $form['#file_type']->type, manualcrop_default_widget_settings());
 
-    $settings = variable_get('manualcrop_file_entity_settings_' . $file_type->type, manualcrop_default_widget_settings());
-    $form += manualcrop_field_widget_settings_form($widget_type, $settings);
+    // Add the settings form elements.
+    $form += manualcrop_field_widget_settings_form('image_image', $settings);
     $form['manualcrop']['#tree'] = TRUE;
     unset($form['manualcrop']['#parents']);
 
-    $form['#submit'][] = '_manualcrop_form_file_entity_file_type_form_submit';
+    $form['#submit'][] = 'manualcrop_form_file_entity_file_type_form_submit';
   }
 }
 
 /**
- * Submit callback for file_entity_file_type_form() form.
- *
- * @see manualcrop_form_file_entity_file_type_form_alter()
+ * Form submit handler; Saves the Manual Crop settings of a File Entity type.
  */
-function _manualcrop_form_file_entity_file_type_form_submit($form, &$form_state) {
+function manualcrop_form_file_entity_file_type_form_submit($form, &$form_state) {
   if (!empty($form_state['values']['manualcrop'])) {
-    $file_type = $form['#file_type'];
-    variable_set('manualcrop_file_entity_settings_' . $file_type->type, $form_state['values']['manualcrop']);
+    variable_set('manualcrop_file_entity_settings_' . $form['#file_type']->type, $form_state['values']['manualcrop']);
   }
 }
 

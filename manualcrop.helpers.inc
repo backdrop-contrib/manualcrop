@@ -548,10 +548,11 @@ function _manualcrop_add_croptool(&$element, $value, &$form_state, $fid, $js_ide
  *   and field_name.
  */
 function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_info) {
-  // Get the field instance settings.
-  $settings = array();
+  // Get the FIle Entity widget settings.
+  $settings = variable_get('manualcrop_file_entity_settings_' . $form['#entity']->type, manualcrop_default_widget_settings());
+
+  // Try to get the field instance settings.
   if (!empty($instance_info['entity_type']) && !empty($instance_info['bundle']) && !empty($instance_info['field_name'])) {
-    // Get the field instance.
     $instance = field_info_instance($instance_info['entity_type'], $instance_info['field_name'], $instance_info['bundle']);
 
     if (!empty($instance)) {
@@ -563,10 +564,6 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
         return;
       }
     }
-  }
-  else {
-    // Get the widget settings for the file entity.
-    $settings = variable_get('manualcrop_file_entity_settings_' . $form['#entity']->type, manualcrop_default_widget_settings());
   }
 
   // Add the croptool.
