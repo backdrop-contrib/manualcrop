@@ -321,6 +321,7 @@ function manualcrop_manualcrop_supported_widgets() {
     'image_image' => array('thumblist', 'inline_crop', 'instant_crop'),
     'image_miw' => array('thumblist', 'inline_crop', 'instant_crop'),
     'media_generic' => array('thumblist', 'inline_crop'),
+    'linkimagefield_widget' => array('thumblist', 'inline_crop', 'instant_crop'),
   );
 }
 
