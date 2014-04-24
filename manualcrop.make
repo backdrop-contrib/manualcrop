@@ -13,7 +13,7 @@ api = 2
 
 ; jQuery imagesLoaded.
 libraries[jquery.imagesloaded][download][type] = file
-libraries[jquery.imagesloaded][download][url] = http://github.com/desandro/imagesloaded/archive/v2.1.2.tar.gz
+libraries[jquery.imagesloaded][download][url] = https://github.com/desandro/imagesloaded/archive/v2.1.2.tar.gz
 libraries[jquery.imagesloaded][download][subtree] = imagesloaded-2.1.2
 
 ; jQuery imgAreaSelect.
