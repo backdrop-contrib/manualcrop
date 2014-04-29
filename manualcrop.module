@@ -265,7 +265,7 @@ function manualcrop_field_widget_info_alter(&$info) {
  * Implements hook_field_widget_form_alter().
  */
 function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
-  static $media_gt_alpha3;
+  static $media_process_children;
 
   if (user_access('use manualcrop')) {
     $widget = $context['instance']['widget'];
@@ -274,12 +274,12 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
       if ($widget['type'] == 'media_generic') {
         // We don't check if Manual Crop is enabled, this happens in the file
         // entity edit form.
-        if (!isset($media_gt_alpha3)) {
+        if (!isset($media_process_children)) {
           $info = drupal_parse_info_file(drupal_get_path('module', 'media') . '/media.info');
-          $media_gt_alpha3 = version_compare($info['version'], '7.x-2.0-alpha3', '>');
+          $media_process_children = version_compare($info['version'], '7.x-2.0-alpha3+34-dev', '>');
         }
 
-        if (!$media_gt_alpha3) {
+        if (!$media_process_children) {
           $element['#after_build'][] = 'manualcrop_media_element_process';
         }
         else {
