@@ -17,7 +17,7 @@ Dependencies
 
 Installation
 ------------
-Start by downoading and installing the Libraries 2.x module.
+Start by downloading and installing the Libraries 2.x module.
 
 Next download and extract the imagesLoaded plugin, rename the extracted folder to
 "jquery.imagesloaded" and place it under "sites/all/libraries". The plugin should
@@ -25,7 +25,7 @@ now be located at "sites/all/libraries/jquery.imagesloaded/jquery.imagesloaded.j
 
 Please note that the 3.x version can also be used, but it depends on jQuery 1.5
 which can only be obtained by installing the jQuery Update module. It's also worth
-menioning that the plugin must have a valid file header (which includes a version
+mentioning that the plugin must have a valid file header (which includes a version
 number) and must be named "jquery.imagesloaded.js" or "jquery.imagesloaded.min.js".
 
 Now download and extract the imgAreaSelect plugin, rename extracted folder to
@@ -36,7 +36,6 @@ When finished you can activate the module via the Modules page!
 
 Configuration
 -------------
-
 After installing the module you need to configure your image styles before you
 can start cropping. Go to Administration » Configuration » Media » Image styles
 and click on the "edit" link for the styles that need a Manual Crop effect.
