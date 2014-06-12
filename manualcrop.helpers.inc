@@ -266,6 +266,24 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
 }
 
 /**
+ * Adds the #after_build entry to a media element.
+ *
+ * @param $element
+ *   The element to alter.
+ *
+ * @return
+ *   TRUE if the element was altered, FALSE otherwise.
+ */
+function _manualcrop_media_element_add_after_build(&$element) {
+  if (isset($element['#media_options']['global'])) {
+    $element['#after_build'][] = 'manualcrop_media_element_process';
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
  * Get the unique javascript crop settings identifier.
  *
  * @param $data
