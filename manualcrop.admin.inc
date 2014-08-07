@@ -295,9 +295,15 @@ function manualcrop_auto_reuse_form($data) {
     ),
   );
 
-  // Get the styles in their correct order.
-  $styles = array_merge(array_fill_keys($data['style_priority'], 0), $styles);
-  $styles = array_filter($styles);
+  if (empty($data['style_priority'])) {
+    // Make sure the style_priority key exists.
+    $data['style_priority'] = array();
+  }
+  else {
+    // Put the styles in their correct order.
+    $styles = array_merge(array_fill_keys($data['style_priority'], 0), $styles);
+    $styles = array_filter($styles);
+  }
 
   // Add each crop image style as row with a weight (priority) element.
   $maxweight = count($data['style_priority']);
