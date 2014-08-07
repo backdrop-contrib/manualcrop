@@ -36,25 +36,29 @@ ManualCrop.init = function(context) {
     });
   });
 
-  // Open, if enabled in the settings, the crop tool when a new file is uploaded.
-  $('.ajax-new-content', context).once('manualcrop-init', function() {
-    var content = $(this);
+  // If the user isn't using a mobile device (screen width should be > 767), the
+  // crop tool should be opened when a new file gets uploaded and "crop after upload"
+  // has been enabled in the settings.
+  if (screen.width > 767) {
+    $('.ajax-new-content', context).once('manualcrop-init', function() {
+      var content = $(this);
 
-    if (!content.html().length) {
-      // If the $form['#file_upload_delta'] is not set or invalid the file module
-      // will add an empty <span> as .ajax-new-content element, so we need the
-      // previous element to execute the after upload function.
-      content = content.prev();
-    }
+      if (!content.html().length) {
+        // If the $form['#file_upload_delta'] is not set or invalid the file module
+        // will add an empty <span> as .ajax-new-content element, so we need the
+        // previous element to execute the after upload function.
+        content = content.prev();
+      }
 
-    if ($('.manualcrop-cropdata', content).length == 1) {
-      for (var identifier in elements) {
-        if (elements[identifier].instantCrop) {
-          $('.manualcrop-style-button, .manualcrop-style-thumb', content).trigger('mousedown');
+      if ($('.manualcrop-cropdata', content).length == 1) {
+        for (var identifier in elements) {
+          if (elements[identifier].instantCrop) {
+            $('.manualcrop-style-button, .manualcrop-style-thumb', content).trigger('mousedown');
+          }
         }
       }
-    }
-  });
+    });
+  }
 
   // Trigger the init handler if a Media modal was opened.
   $('.modal-content', context).once('manualcrop-init', function() {

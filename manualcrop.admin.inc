@@ -678,7 +678,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     $form['manualcrop']['manualcrop_instant_crop'] = array(
       '#type' => 'checkbox',
       '#title' => t('Crop after upload'),
-      '#description' => t('Open the cropping tool direct after the file upload. Note that this will only work if you <strong>enable only one image style</strong>.'),
+      '#description' => t('Open the cropping tool immediatly after a file upload. Please note that this feature requires a single image style to be enabled. Also it will only be applied for screens of at least 768px width.'),
       '#default_value' => $settings['manualcrop_instant_crop'],
     );
   }
