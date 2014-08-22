@@ -566,35 +566,33 @@ function _manualcrop_add_croptool(&$element, $value, &$form_state, $fid, $js_ide
  *   and field_name.
  */
 function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_info) {
-  // Get the FIle Entity widget settings.
-  $settings = variable_get('manualcrop_file_entity_settings_' . $form['#entity']->type, manualcrop_default_widget_settings());
-
-  // Try to get the field instance settings.
+  // Check if a field instance was specified and get its settings.
   if (!empty($instance_info['entity_type']) && !empty($instance_info['bundle']) && !empty($instance_info['field_name'])) {
     $instance = field_info_instance($instance_info['entity_type'], $instance_info['field_name'], $instance_info['bundle']);
 
     if (!empty($instance)) {
-      // A field instance was found, use its settings.
       $settings = $instance['widget']['settings'];
-
-      if (empty($settings['manualcrop_enable'])) {
-        // Manual Crop isn't enabled.
-        return;
-      }
     }
   }
 
-  // Add the croptool.
-  manualcrop_croptool_process($form, $form_state, $form, $form['#entity'], $settings);
-
-  // Add the submit handler. Sometimes we have to add it to the action button
-  // and sometimes we have to add it to the general #submit, based on whether
-  // or not the submit button already has a handler.
-  if (!empty($form['actions']['submit']['#submit'])) {
-    $form['actions']['submit']['#submit'][] = 'manualcrop_croptool_submit';
+  // No valid fields instance specified, use the File Entity settings.
+  if (!isset($settings)) {
+    $settings = variable_get('manualcrop_file_entity_settings_' . $form['#entity']->type, manualcrop_default_widget_settings());
   }
-  else {
-    $form['#submit'][] = 'manualcrop_croptool_submit';
+
+  // Add the croptool if Manual Crop has been enabled.
+  if (!empty($settings['manualcrop_enable'])) {
+    manualcrop_croptool_process($form, $form_state, $form, $form['#entity'], $settings);
+
+    // Add the submit handler. Sometimes we have to add it to the action button
+    // and sometimes we have to add it to the general #submit, based on whether
+    // or not the submit button already has a handler.
+    if (!empty($form['actions']['submit']['#submit'])) {
+      $form['actions']['submit']['#submit'][] = 'manualcrop_croptool_submit';
+    }
+    else {
+      $form['#submit'][] = 'manualcrop_croptool_submit';
+    }
   }
 }
 
