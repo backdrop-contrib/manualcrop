@@ -75,7 +75,7 @@ function manualcrop_uninstall() {
   variable_del('manualcrop_cache_control');
   variable_del('manualcrop_skip_js_check');
 
-  if (module_exists('file_entity')) {
+  if (module_exists('file_entity') && function_exists('file_type_load_all')) {
     // Remove the settings for individual file types.
     foreach (file_type_load_all() as $type) {
       variable_del('manualcrop_file_entity_settings_' . $type->type);
