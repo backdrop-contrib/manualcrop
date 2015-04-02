@@ -830,9 +830,11 @@ function _manualcrop_get_auto_reuse_style_name($file, $data) {
   $crop = manualcrop_load_crop_selection($file);
 
   if ($crop) {
-    // Get a list of existing crop styles (keys) ordered by priority.
-    $styles = array_flip($data['style_priority']) + $crop;
-    $crop = array_intersect_key($styles, $crop);
+    if (!empty($data['style_priority'])) {
+      // Get a list of existing crop styles (keys) ordered by priority.
+      $styles = array_flip($data['style_priority']) + $crop;
+      $crop = array_intersect_key($styles, $crop);
+    }
 
     // Return the first crop selection style name.
     reset($crop);
