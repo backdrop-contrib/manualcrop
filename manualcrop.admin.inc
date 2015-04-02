@@ -20,7 +20,7 @@ function manualcrop_global_settings_form() {
   $form['manualcrop_skip_js_check'] = array(
     '#type' => 'checkbox',
     '#title' => t('Skip javascript cookie check'),
-    '#description' => t("Don't check if the javascript cookie has been set."),
+    '#description' => t('Enable Manual Crop even if the <em>has_js</em> cookie (which is set by Drupal when the brower supports javascript) is missing.'),
     '#default_value' => variable_get('manualcrop_skip_js_check', FALSE),
   );
 
