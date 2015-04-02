@@ -244,11 +244,11 @@ function manualcrop_reuse_form($data) {
     '#required' => TRUE,
   );
 
-  $form['apply_effects'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Apply effects'),
-      '#description' => t('Check to apply the other effects from the selected cropped style.'),
-      '#default_value' => (isset($data['apply_effects']) ? $data['apply_effects'] : FALSE),
+  $form['apply_all_effects'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Apply all effects'),
+    '#description' => t('Apply all effects of the base image style.'),
+    '#default_value' => !empty($data['apply_all_effects']),
   );
 
   return $form;
@@ -349,11 +349,11 @@ function manualcrop_auto_reuse_form($data) {
     unset($styles[arg(5)]);
   }
 
-  $form['apply_effects'] = array(
+  $form['apply_all_effects'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Apply effects'),
-    '#description' => t('Check to apply the other effects from the selected cropped style.'),
-    '#default_value' => (isset($data['apply_effects']) ? $data['apply_effects'] : FALSE),
+    '#title' => t('Apply all effects'),
+    '#description' => t('Apply all effects of the reused image style.'),
+    '#default_value' => !empty($data['apply_all_effects']),
   );
 
   $form['fallback_style'] = array(

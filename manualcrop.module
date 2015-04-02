@@ -911,27 +911,24 @@ function manualcrop_reuse_effect(&$image, $data) {
     return FALSE;
   }
 
+  // Load the style to reuse.
   $style = image_style_load($data['reuse_crop_style']);
 
-  if (isset($data['apply_effects']) && $data['apply_effects']) {
+  if (empty($data['apply_all_effects'])) {
+    // Apply only the crop effect.
+    $effect = reset($style['effects']);
+    return image_effect_apply($image, $effect);
+  }
+  else {
+    // Apply all effects.
     foreach ($style['effects'] as $effect) {
       if (!image_effect_apply($image, $effect)) {
         return FALSE;
       }
     }
+
     return TRUE;
   }
-  else {
-    $effect = reset($style['effects']);
-    return image_effect_apply($image, $effect);
-  }
-
-  if ($effect) {
-    image_effect_apply($image, $effect);
-    return TRUE;
-  }
-
-  return FALSE;
 }
 
 /**
@@ -951,30 +948,30 @@ function manualcrop_reuse_effect(&$image, $data) {
  * @see image_crop_effect()
  */
 function manualcrop_auto_reuse_effect(&$image, $data) {
-  // Get the style to reuse.
-  $style_name = _manualcrop_get_auto_reuse_style_name($image->source, $data);
+  if ($style_name = _manualcrop_get_auto_reuse_style_name($image->source, $data)) {
+    // Load the style to reuse.
+    $style = image_style_load($style_name);
 
-  $style = image_style_load($style_name);
-
-  if ($style_name) {
-    // Load and apply the Manual Crop effect.
-    if (isset($data['apply_effects']) && $data['apply_effects']) {
+    if (empty($data['apply_all_effects'])) {
+      // Apply only the crop effect.
+      $effect = reset($style['effects']);
+      return image_effect_apply($image, $effect);
+    }
+    else {
+      // Apply all effects.
       foreach ($style['effects'] as $effect) {
         if (!image_effect_apply($image, $effect)) {
           return FALSE;
         }
       }
+
       return TRUE;
     }
-    else {
-      $effect = reset($style['effects']);
-      return image_effect_apply($image, $effect);
-    }
-
   }
   elseif (!empty($data['fallback_style'])) {
     // Load and apply all effects of the fallback style.
     $style = image_style_load($data['fallback_style']);
+
     foreach ($style['effects'] as $effect) {
       if (!image_effect_apply($image, $effect)) {
         return FALSE;
