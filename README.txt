@@ -21,12 +21,10 @@ Start by downloading and installing the Libraries 2.x module.
 
 Next download and extract the imagesLoaded plugin, rename the extracted folder to
 "jquery.imagesloaded" and place it under "sites/all/libraries". The plugin should
-now be located at "sites/all/libraries/jquery.imagesloaded/jquery.imagesloaded.js".
+now be located at "sites/all/libraries/jquery.imagesloaded/jquery.imagesloaded.min.js".
 
 Please note that the 3.x version can also be used, but it depends on jQuery 1.5
-which can only be obtained by installing the jQuery Update module. It's also worth
-mentioning that the plugin must have a valid file header (which includes a version
-number) and must be named "jquery.imagesloaded.js" or "jquery.imagesloaded.min.js".
+which can only be obtained by installing the jQuery Update module.
 
 Now download and extract the imgAreaSelect plugin, rename extracted folder to
 "jquery.imgareaselect" and copy it into "sites/all/libraries". The plugin should

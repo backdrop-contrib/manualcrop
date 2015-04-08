@@ -103,40 +103,33 @@ function manualcrop_libraries_info() {
   $libraries = array();
 
   $libraries['jquery.imagesloaded'] = array(
-    'name' => 'jQuery imagesLoaded',
+    'name' => 'imagesLoaded',
     'vendor url' => 'http://desandro.github.io/imagesloaded',
-    'version callback' => 'manualcrop_library_get_version',
     'version arguments' => array(
-      'file' => array(
-        'jquery.imagesloaded.js',
-        'jquery.imagesloaded.min.js',
-      ),
+      'file' => 'jquery.imagesloaded.js',
       'pattern' => '# v([0-9\.]+)#',
       'lines' => 5,
       'cols' => 40,
     ),
     'files' => array(
       'js' => array(
-        'jquery.imagesloaded.js',
+        'jquery.imagesloaded.min.js',
       ),
     ),
     'variants' => array(
-      'minified' => array(
+      'source' => array(
         'files' => array(
           'js' => array(
-            'jquery.imagesloaded.min.js',
+            'jquery.imagesloaded.js',
           ),
         ),
-        'variant callback' => 'manualcrop_library_detect_variant',
-        'variant arguments' => array(),
       ),
     ),
   );
 
   $libraries['jquery.imgareaselect'] = array(
-    'name' => 'jQuery imgAreaSelect',
+    'name' => 'imgAreaSelect',
     'vendor url' => 'http://odyniec.net/projects/imgareaselect',
-    'version callback' => 'libraries_get_version',
     'version arguments' => array(
       'file' => 'scripts/jquery.imgareaselect.js',
       'pattern' => '#version ([0-9\.]+)#',
@@ -145,24 +138,22 @@ function manualcrop_libraries_info() {
     ),
     'files' => array(
       'js' => array(
-        'scripts/jquery.imgareaselect.js',
+        'scripts/jquery.imgareaselect.min.js',
       ),
       'css' => array(
         'css/imgareaselect-animated.css',
       ),
     ),
     'variants' => array(
-      'minified' => array(
+      'source' => array(
         'files' => array(
           'js' => array(
-            'scripts/jquery.imgareaselect.min.js',
+            'scripts/jquery.imgareaselect.js',
           ),
           'css' => array(
             'css/imgareaselect-animated.css',
           ),
         ),
-        'variant callback' => 'manualcrop_library_detect_variant',
-        'variant arguments' => array(),
       ),
       'packed' => array(
         'files' => array(
@@ -173,8 +164,6 @@ function manualcrop_libraries_info() {
             'css/imgareaselect-animated.css',
           ),
         ),
-        'variant callback' => 'manualcrop_library_detect_variant',
-        'variant arguments' => array(),
       ),
     ),
   );
