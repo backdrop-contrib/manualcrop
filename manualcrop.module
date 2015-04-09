@@ -258,24 +258,26 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
     $widget = $context['instance']['widget'];
 
     if (manualcrop_supported_widgets($widget['type'])) {
-      if ($widget['type'] == 'media_generic') {
-        // We don't check if Manual Crop is enabled, this happens in the file
-        // entity edit form.
-        if (!_manualcrop_media_element_add_after_build($element)) {
-          foreach (element_children($element) as $key) {
+      if (!empty($widget['settings']['manualcrop_enable'])) {
+        $after_build = ($widget['type'] == 'media_generic') ? !_manualcrop_media_element_add_after_build($element) : FALSE;
+
+        foreach (element_children($element) as $key) {
+          $element[$key]['#process'][] = 'manualcrop_widget_process';
+          $element[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
+
+          if ($widget['type'] == 'media_generic') {
+            $element[$key]['#element_validate'][] = 'media_element_validate';
+          }
+          elseif ($widget['type'] != 'media') {
+            $element[$key]['#element_validate'][] = 'file_managed_file_validate';
+          }
+
+          if ($after_build) {
             _manualcrop_media_element_add_after_build($element[$key]);
           }
         }
 
         _manualcrop_attach_files();
-      }
-      elseif (!empty($widget['settings']['manualcrop_enable'])) {
-        // Default, add a process and validate callback for each child.
-        foreach (element_children($element) as $key) {
-          $element[$key]['#process'][] = 'manualcrop_widget_process';
-          $element[$key]['#element_validate'][] = 'manualcrop_croptool_validate';
-          $element[$key]['#element_validate'][] = 'file_managed_file_validate';
-        }
 
         if (module_exists('insert')) {
           $element['#after_build'][] = 'manualcrop_insert_element_process';

@@ -601,6 +601,14 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
       defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
     }
 
+    // Change the elements if a Media item is detected.
+    var media = $('.manualcrop-preview-' + fid + ' .media-item[data-fid] .media-thumbnail');
+    if (media.length) {
+      media.prepend(previewHolder);
+      previewHolder = media.find('.manualcrop-preview-cropped');
+      defaultPreview = $('.manualcrop-preview-' + fid + ' .media-item[data-fid] .media-thumbnail > img');
+    }
+
     var toolOpener = $('.manualcrop-style-select-' + fid + " option[value='" + styleName + "'], .manualcrop-style-button-" + fid + ', .manualcrop-style-thumb-' + fid + '-' + styleName + ' .manualcrop-style-thumb-label');
     var hasClass = toolOpener.hasClass('manualcrop-style-cropped');
 
