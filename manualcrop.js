@@ -601,8 +601,9 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
       defaultPreview = $('.manualcrop-preview-' + fid + ' > img');
     }
 
-    // Change the elements if a Media item is detected.
+    // Change the elements if Media is detected.
     var media = $('.manualcrop-preview-' + fid + ' .media-item[data-fid] .media-thumbnail');
+
     if (media.length) {
       media.prepend(previewHolder);
       previewHolder = media.find('.manualcrop-preview-cropped');

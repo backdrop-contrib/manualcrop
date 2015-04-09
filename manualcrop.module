@@ -259,7 +259,10 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
 
     if (manualcrop_supported_widgets($widget['type'])) {
       if (!empty($widget['settings']['manualcrop_enable'])) {
-        $after_build = ($widget['type'] == 'media_generic') ? !_manualcrop_media_element_add_after_build($element) : FALSE;
+        $after_build = FALSE;
+        if ($widget['type'] == 'media_generic') {
+          $after_build = !_manualcrop_media_element_add_after_build($element);
+        }
 
         foreach (element_children($element) as $key) {
           $element[$key]['#process'][] = 'manualcrop_widget_process';
