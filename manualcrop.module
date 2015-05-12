@@ -401,10 +401,11 @@ function manualcrop_media_element_process($element) {
   // Attach the options as javascript settings.
   foreach ($element['#attached']['js'] as &$js) {
     if (isset($js['data']['media'])) {
-      if (!isset($js['data']['media']['elements'][$element['#id']]['global'])) {
-        $js['data']['media']['elements'][$element['#id']]['global'] = array();
+      if (!isset($js['data']['media']['elements']['#' . $element['#id']]['global'])) {
+        $js['data']['media']['elements']['#' . $element['#id']]['global'] = array();
       }
-      $js['data']['media']['elements'][$element['#id']]['global'] += $data;
+
+      $js['data']['media']['elements']['#' . $element['#id']]['global'] += $data;
       break;
     }
   }
