@@ -131,39 +131,17 @@ function manualcrop_libraries_info() {
     'name' => 'imgAreaSelect',
     'vendor url' => 'http://odyniec.net/projects/imgareaselect',
     'version arguments' => array(
-      'file' => 'scripts/jquery.imgareaselect.js',
-      'pattern' => '#version ([0-9\.]+)#',
+      'file' => 'jquery.imgareaselect.dev.js',
+      'pattern' => '#version ([0-9\.]+(?:-[a-z0-9\.]+)?)#',
       'lines' => 10,
-      'cols' => 20,
+      'cols' => 30,
     ),
     'files' => array(
       'js' => array(
-        'scripts/jquery.imgareaselect.min.js',
+        'jquery.imgareaselect.dev.js',
       ),
       'css' => array(
-        'css/imgareaselect-animated.css',
-      ),
-    ),
-    'variants' => array(
-      'source' => array(
-        'files' => array(
-          'js' => array(
-            'scripts/jquery.imgareaselect.js',
-          ),
-          'css' => array(
-            'css/imgareaselect-animated.css',
-          ),
-        ),
-      ),
-      'packed' => array(
-        'files' => array(
-          'js' => array(
-            'scripts/jquery.imgareaselect.pack.js',
-          ),
-          'css' => array(
-            'css/imgareaselect-animated.css',
-          ),
-        ),
+        'distfiles/css/imgareaselect-animated.css',
       ),
     ),
   );
