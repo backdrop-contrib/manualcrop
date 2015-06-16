@@ -104,7 +104,7 @@ function manualcrop_libraries_info() {
 
   $libraries['jquery.imagesloaded'] = array(
     'name' => 'imagesLoaded',
-    'vendor url' => 'http://desandro.github.io/imagesloaded',
+    'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v2.1.1',
     'version arguments' => array(
       'file' => 'jquery.imagesloaded.js',
       'pattern' => '# v([0-9\.]+)#',
