@@ -151,115 +151,111 @@ function manualcrop_instance_required_styles($settings) {
 function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $settings = array(), $instance = NULL, $preview = 'preview') {
   static $processed_forms;
 
-  if (user_access('use manualcrop') && (!empty($_COOKIE['has_js']) || variable_get('manualcrop_skip_js_check', FALSE))) {
-    $styles = manualcrop_styles_with_crop();
+  if (user_access('use manualcrop') && $styles = manualcrop_styles_with_crop()) {
+    // Merge-in the instance or default settings.
+    if (is_array($instance)) {
+      $settings += $instance['widget']['settings'];
+    }
+    else {
+      $settings += manualcrop_default_widget_settings();
+    }
 
-    if (!empty($styles)) {
-      // Merge-in the instance or default settings.
-      if (is_array($instance)) {
-        $settings += $instance['widget']['settings'];
+    // Exclude or include styles.
+    if (!empty($settings['manualcrop_styles_list'])) {
+      if ($settings['manualcrop_styles_mode'] == 'include') {
+        $styles = array_intersect_key($styles, $settings['manualcrop_styles_list']);
       }
       else {
-        $settings += manualcrop_default_widget_settings();
+        $styles = array_diff_key($styles, $settings['manualcrop_styles_list']);
       }
 
-      // Exclude or include styles.
-      if (!empty($settings['manualcrop_styles_list'])) {
-        if ($settings['manualcrop_styles_mode'] == 'include') {
-          $styles = array_intersect_key($styles, $settings['manualcrop_styles_list']);
-        }
-        else {
-          $styles = array_diff_key($styles, $settings['manualcrop_styles_list']);
-        }
-
-        if (empty($styles)) {
-          // Leave if all styles were filtered.
-          return FALSE;
-        }
+      if (empty($styles)) {
+        // Leave if all styles were filtered.
+        return FALSE;
       }
+    }
 
-      // Required image styles.
-      $required = manualcrop_instance_required_styles($settings);
+    // Required image styles.
+    $required = manualcrop_instance_required_styles($settings);
 
-      // Make sure the build id exists.
-      if (!isset($form['#build_id'])) {
-        $form['#build_id'] = 'form-' . drupal_random_key();
-      }
+    // Make sure the build id exists.
+    if (!isset($form['#build_id'])) {
+      $form['#build_id'] = 'form-' . drupal_random_key();
+    }
 
-      // Reset the images array.
-      if (!isset($processed_forms[$form['#build_id']])) {
-        $processed_forms[$form['#build_id']] = $form['#build_id'];
+    // Reset the images array.
+    if (!isset($processed_forms[$form['#build_id']])) {
+      $processed_forms[$form['#build_id']] = $form['#build_id'];
 
-        if (!isset($form_state['manualcrop_data'])) {
-          $form_state['manualcrop_data'] = array('images' => array());
-        }
-        else {
-          $form_state['manualcrop_data']['images'] = array();
-        }
-      }
-
-      // Get the container and item reference.
-      if (is_array($instance)) {
-        // A FAPI field instance has been passed, so $element is the container
-        // and $element['#value'] can be used for storing data.
-        $container = &$element;
-        $value = &$element['#value'];
+      if (!isset($form_state['manualcrop_data'])) {
+        $form_state['manualcrop_data'] = array('images' => array());
       }
       else {
-        // The FAPI is not used, we'll create a manualcrop container as parent
-        // for all manualcrop enabled files.
-        if (!isset($element['manualcrop'])) {
-          $element['manualcrop'] = array(
-            '#tree' => TRUE,
-          );
-        }
+        $form_state['manualcrop_data']['images'] = array();
+      }
+    }
 
-        // Create a file specific container.
-        $element['manualcrop']['file_' . $file->fid] = array(
-          '#type' => 'value',
-          '#default_value' => array(),
-          '#element_validate' => array('manualcrop_croptool_validate'),
-          '#parents' => array('manualcrop', 'file_' . $file->fid),
+    // Get the container and item reference.
+    if (is_array($instance)) {
+      // A FAPI field instance has been passed, so $element is the container
+      // and $element['#value'] can be used for storing data.
+      $container = &$element;
+      $value = &$element['#value'];
+    }
+    else {
+      // The FAPI is not used, we'll create a manualcrop container as parent
+      // for all manualcrop enabled files.
+      if (!isset($element['manualcrop'])) {
+        $element['manualcrop'] = array(
+          '#tree' => TRUE,
         );
-
-        // Link to the newly created container and item.
-        $container = &$element['manualcrop']['file_' . $file->fid];
-        $value = &$container['#default_value'];
       }
 
-      // Alter the preview element if it exists and the thumblist option isn't enabled.
-      if (empty($settings['manualcrop_thumblist']) && isset($preview) && isset($element[$preview])) {
-        $element[$preview]['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $file->fid . '"><div class="manualcrop-preview-cropped"></div>';
-        $element[$preview]['#suffix'] = '</div>';
-      }
-
-      // Save some image data to improve processing.
-      $image = image_get_info($file->uri);
-      $form_state['manualcrop_data']['images'][$file->fid] = array(
-        'uri' => $file->uri,
-        'filename' => $file->filename,
-        'width' => $image['width'],
-        'height' => $image['height'],
-        'element_parents' => $container['#parents'],
-        'required_styles' => $required,
+      // Create a file specific container.
+      $element['manualcrop']['file_' . $file->fid] = array(
+        '#type' => 'value',
+        '#default_value' => array(),
+        '#element_validate' => array('manualcrop_croptool_validate'),
+        '#parents' => array('manualcrop', 'file_' . $file->fid),
       );
 
-      // Get the crop selections for this file.
-      $submitted = (isset($form_state['inline_entity_form']) ? FALSE : $form_state['submitted']);
-      if (!$submitted && !isset($value['manualcrop_selections'])) {
-        $value['manualcrop_selections'] = array();
-        foreach (manualcrop_load_crop_selection($file->uri) as $data) {
-          $value['manualcrop_selections'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
-        }
-      }
-
-      // Add the dependencies and croptool.
-      $js_identifier = _manualcrop_js_identifier(is_array($instance) ? $instance : $file);
-      _manualcrop_attach_dependencies($element, $form_state, $js_identifier, $settings);
-      _manualcrop_add_croptool($container, $value, $form_state, $file->fid, $js_identifier, $styles, $required, $settings);
-
-      return TRUE;
+      // Link to the newly created container and item.
+      $container = &$element['manualcrop']['file_' . $file->fid];
+      $value = &$container['#default_value'];
     }
+
+    // Alter the preview element if it exists and the thumblist option isn't enabled.
+    if (empty($settings['manualcrop_thumblist']) && isset($preview) && isset($element[$preview])) {
+      $element[$preview]['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $file->fid . '"><div class="manualcrop-preview-cropped"></div>';
+      $element[$preview]['#suffix'] = '</div>';
+    }
+
+    // Save some image data to improve processing.
+    $image = image_get_info($file->uri);
+    $form_state['manualcrop_data']['images'][$file->fid] = array(
+      'uri' => $file->uri,
+      'filename' => $file->filename,
+      'width' => $image['width'],
+      'height' => $image['height'],
+      'element_parents' => $container['#parents'],
+      'required_styles' => $required,
+    );
+
+    // Get the crop selections for this file.
+    $submitted = (isset($form_state['inline_entity_form']) ? FALSE : $form_state['submitted']);
+    if (!$submitted && !isset($value['manualcrop_selections'])) {
+      $value['manualcrop_selections'] = array();
+      foreach (manualcrop_load_crop_selection($file->uri) as $data) {
+        $value['manualcrop_selections'][$data->style_name] = $data->x . '|' . $data->y . '|' . $data->width . '|' . $data->height;
+      }
+    }
+
+    // Add the dependencies and croptool.
+    $js_identifier = _manualcrop_js_identifier(is_array($instance) ? $instance : $file);
+    _manualcrop_attach_dependencies($element, $form_state, $js_identifier, $settings);
+    _manualcrop_add_croptool($container, $value, $form_state, $file->fid, $js_identifier, $styles, $required, $settings);
+
+    return TRUE;
   }
 
   return FALSE;
