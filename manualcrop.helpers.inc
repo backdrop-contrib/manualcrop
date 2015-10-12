@@ -313,47 +313,43 @@ function _manualcrop_js_identifier($data) {
  *   Widget settings.
  */
 function _manualcrop_attach_dependencies(&$element, $form_state, $js_identifier, $settings = array()) {
-  static $added;
-
   // Attach the required files.
   _manualcrop_attach_files($element);
 
-  if (!isset($added[$js_identifier]) || $added[$js_identifier] != $form_state['rebuild']) {
-    $added[$js_identifier] = $form_state['rebuild'];
+  $added[$js_identifier] = $form_state['rebuild'];
 
-    // Generate image style settings.
-    $styles = &drupal_static(__FUNCTION__);
+  // Generate image style settings.
+  $styles = &drupal_static(__FUNCTION__);
 
-    if (!is_array($styles)) {
-      $styles = array();
-      foreach (manualcrop_styles_with_crop() as $style_name => $data) {
-        $styles[$style_name] = array(
-          'effect' => $data['effect']['name'],
-          'data' => $data['effect']['data'],
-          'label' => $data['label'],
-        );
-      }
+  if (!is_array($styles)) {
+    $styles = array();
+    foreach (manualcrop_styles_with_crop() as $style_name => $data) {
+      $styles[$style_name] = array(
+        'effect' => $data['effect']['name'],
+        'data' => $data['effect']['data'],
+        'label' => $data['label'],
+      );
     }
-
-    // Attach the element settings.
-    $element['#attached']['js'][] = array(
-      'data' => array(
-        'manualcrop' => array(
-          'styles' => $styles,
-          'elements' => array(
-            $js_identifier => array(
-              'keyboard' => !empty($settings['manualcrop_keyboard']),
-              'required' => manualcrop_instance_required_styles($settings),
-              'instantCrop' => !empty($settings['manualcrop_instant_crop']),
-              'defaultCropArea' => !empty($settings['manualcrop_default_crop_area']),
-              'maximizeDefaultCropArea' => !empty($settings['manualcrop_maximize_default_crop_area']),
-            ),
-          ),
-        )
-      ),
-      'type' => 'setting',
-    );
   }
+
+  // Attach the element settings.
+  $element['#attached']['js'][] = array(
+    'data' => array(
+      'manualcrop' => array(
+        'styles' => $styles,
+        'elements' => array(
+          $js_identifier => array(
+            'keyboard' => !empty($settings['manualcrop_keyboard']),
+            'required' => manualcrop_instance_required_styles($settings),
+            'instantCrop' => !empty($settings['manualcrop_instant_crop']),
+            'defaultCropArea' => !empty($settings['manualcrop_default_crop_area']),
+            'maximizeDefaultCropArea' => !empty($settings['manualcrop_maximize_default_crop_area']),
+          ),
+        ),
+      )
+    ),
+    'type' => 'setting',
+  );
 }
 
 /**
