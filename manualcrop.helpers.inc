@@ -651,7 +651,10 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
   }
 
   if (isset($style_name)) {
-    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE c.style_name = :name AND f.uri = :uri', array(
+    // The fetchObject() call below will use the first result found by this
+    // query, so order it by file revision ID descending to use the most recent
+    // manual crop settings associated with the provided file URI.
+    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE c.style_name = :name AND f.uri = :uri ORDER BY c.vid DESC', array(
       ':name' => $style_name,
       ':uri' => $file,
     ));
@@ -659,7 +662,11 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
     return $result->fetchObject();
   }
   else {
-    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE f.uri = :uri', array(
+    // The fetchAllAssoc() call below will use the last result found by this
+    // query for each style name, so order it by file revision ID ascending
+    // to use the most recent manual crop settings associated with the provided
+    // file URL for each style.
+    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE f.uri = :uri ORDER BY c.vid ASC', array(
       ':uri' => $file,
     ));
 
