@@ -816,7 +816,7 @@ function manualcrop_crop_and_scale_effect(&$image, $data) {
   else {
     // Automated crop, don't use image_scale_and_crop_effect() unless
     // upscaling is allowed or both image dimensions are bigger than
-    // the desired dimensions. This way unwanted upscaling is prevented.
+    // the desired dimensions.
     if ($scale_data['upscale'] || ($image->info['width'] > $scale_data['width'] && $image->info['height'] > $scale_data['height'])) {
       if (!image_scale_and_crop_effect($image, $scale_data)) {
         return FALSE;
