@@ -538,11 +538,11 @@ function _manualcrop_add_croptool(&$element, $value, &$form_state, $fid, $js_ide
   }
 
   // The FAPI widget can have a alt and/or title field, increase their weight.
-  if (isset($element['alt'])) {
+  if (isset($element['alt']['#weight'])) {
     $element['alt']['#weight']++;
   }
 
-  if (isset($element['title'])) {
+  if (isset($element['title']['#weight'])) {
     $element['title']['#weight']++;
   }
 }
