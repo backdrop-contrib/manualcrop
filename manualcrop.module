@@ -498,7 +498,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
 
     // Show a success message when not using the FAPI.
     if (!empty($form['manualcrop'])) {
-      drupal_set_message(t('The crop selections have been saved.'), 'status', FALSE);
+      drupal_set_message(t('The crop selections have been saved.'));
     }
 
     // Prevent additional submits.
