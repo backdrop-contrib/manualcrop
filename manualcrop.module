@@ -478,7 +478,9 @@ function manualcrop_croptool_validate($element, &$form_state) {
  * Form submit handler; Saves each crop selection.
  */
 function manualcrop_croptool_submit($form, &$form_state) {
-  if (!empty($form_state['manualcrop_data']['selections'])) {
+  static $submitted = FALSE;
+
+  if (!$submitted && !empty($form_state['manualcrop_data']['selections'])) {
     // Loop trough the selections to save them.
     foreach ($form_state['manualcrop_data']['selections'] as $fid => $data) {
       // In general this file entity should be loaded from a cache, so this
@@ -498,6 +500,9 @@ function manualcrop_croptool_submit($form, &$form_state) {
     if (!empty($form['manualcrop'])) {
       drupal_set_message(t('The crop selections have been saved.'), 'status', FALSE);
     }
+
+    // Prevent additional submits.
+    $submitted = TRUE;
   }
 }
 
