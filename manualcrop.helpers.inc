@@ -226,8 +226,12 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
 
     // Alter the preview element if it exists and the thumblist option isn't enabled.
     if (empty($settings['manualcrop_thumblist']) && isset($preview) && isset($element[$preview])) {
-      $element[$preview]['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $file->fid . '"><div class="manualcrop-preview-cropped"></div>';
-      $element[$preview]['#suffix'] = '</div>';
+      $element[$preview] += array(
+        '#prefix' => '',
+        '#suffix' => '',
+      );
+      $element[$preview]['#prefix'] = '<div class="manualcrop-preview manualcrop-preview-' . $file->fid . '"><div class="manualcrop-preview-cropped"></div>' . $element[$preview]['#prefix'];
+      $element[$preview]['#suffix'] .= '</div>';
     }
 
     // Save some image data to improve processing.
