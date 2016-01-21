@@ -422,22 +422,20 @@ function _manualcrop_add_croptool(&$element, $value, &$form_state, $fid, $js_ide
 
   // Original image for cropping.
   $element['manualcrop_' . $crop_type] = array(
-    '#type' => 'markup',
-    '#markup' => theme('manualcrop_croptool_' . $crop_type, array(
-      'attributes' => array(
-        'id' => array('manualcrop-' . $crop_type . '-' . $fid),
-        'class' => array('manualcrop-' . $crop_type, 'element-hidden'),
-      ),
-      'image' => array(
-        'path' => $file_info['uri'],
-        'alt' => $file_info['filename'],
-        'width' => $file_info['width'],
-        'height' => $file_info['height'],
-        'attributes' => array('class' => array('manualcrop-image')),
-      ),
-      'crop_info' => !empty($settings['manualcrop_crop_info']),
-      'instant_preview' => !empty($settings['manualcrop_instant_preview']),
-    )),
+    '#theme' => 'manualcrop_croptool_' . $crop_type,
+    '#attributes' => array(
+      'id' => array('manualcrop-' . $crop_type . '-' . $fid),
+      'class' => array('manualcrop-' . $crop_type, 'element-hidden'),
+    ),
+    '#image' => array(
+      'path' => $file_info['uri'],
+      'alt' => $file_info['filename'],
+      'width' => $file_info['width'],
+      'height' => $file_info['height'],
+      'attributes' => array('class' => array('manualcrop-image')),
+    ),
+    '#crop_info' => !empty($settings['manualcrop_crop_info']),
+    '#instant_preview' => !empty($settings['manualcrop_instant_preview']),
   );
 
   // Image style options.
