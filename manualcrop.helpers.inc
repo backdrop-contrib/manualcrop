@@ -642,24 +642,26 @@ function manualcrop_save_crop_data($file, $data) {
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
-  $query = db_select('manualcrop', 'mc');
+  $query = db_select('manualcrop', 'c');
 
   if (module_exists('file_entity_revisions')) {
-    $query->join('file_managed', 'f', 'mc.vid = f.vid');
-    $query->join('file_managed_revisions', 'r', 'f.vid = r.vid AND r.uri = :uri', array(':uri' => $file));
+    $query->innerJoin('file_managed', 'f', 'c.vid = f.vid');
+    $query->innerJoin('file_managed_revisions', 'r', 'f.vid = r.vid AND r.uri = :uri', array(':uri' => $file));
   }
   else {
-    $query->join('file_managed', 'f', 'mc.fid = f.fid');
+    $query->innerJoin('file_managed', 'f', 'c.fid = f.fid');
     $query->condition('f.uri', $file);
   }
 
   if (isset($style_name)) {
-    $query->fields('mc', array('x', 'y', 'width', 'height', 'style_name'));
-    $query->condition('mc.style_name', $style_name);
+    $query->fields('c', array('x', 'y', 'width', 'height', 'style_name'));
+    $query->condition('c.style_name', $style_name);
+
     return $query->execute()->fetchObject();
   }
   else {
-    $query->fields('mc', array('x', 'y', 'width', 'height'));
+    $query->fields('c', array('x', 'y', 'width', 'height'));
+
     return $query->execute()->fetchAllAssoc('style_name');
   }
 }
