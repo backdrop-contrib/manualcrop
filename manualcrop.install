@@ -130,9 +130,6 @@ function manualcrop_schema() {
       ),
     ),
     'primary key' => array('fid', 'vid', 'style_name'),
-    'indexes' => array(
-      'vid' => array('vid'),
-    ),
   );
 
   return $schema;
@@ -451,13 +448,6 @@ function manualcrop_update_7110() {
 
   // Drop the old table.
   db_drop_table('manualcrop_old');
-}
-
-/**
- * Add index on vid.
- */
-function manualcrop_update_7111() {
-  db_add_index('manualcrop', 'vid', array('vid'));
 }
 
 /**

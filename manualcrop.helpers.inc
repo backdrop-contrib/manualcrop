@@ -642,27 +642,37 @@ function manualcrop_save_crop_data($file, $data) {
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
-  $query = db_select('manualcrop', 'c');
-
+  // Choose which table to use based on whether or not file_entity_revisions module is enabled.
   if (module_exists('file_entity_revisions')) {
-    $query->innerJoin('file_managed', 'f', 'c.vid = f.vid');
-    $query->innerJoin('file_managed_revisions', 'r', 'f.vid = r.vid AND r.uri = :uri', array(':uri' => $file));
+    $table = 'file_managed_revisions';
+    $key = 'vid';
   }
   else {
-    $query->innerJoin('file_managed', 'f', 'c.fid = f.fid');
-    $query->condition('f.uri', $file);
+    $table = 'file_managed';
+    $key = 'fid';
   }
 
   if (isset($style_name)) {
-    $query->fields('c', array('x', 'y', 'width', 'height', 'style_name'));
-    $query->condition('c.style_name', $style_name);
+    // The fetchObject() call below will use the first result found by this
+    // query, so order it by file revision ID descending to use the most recent
+    // manual crop settings associated with the provided file URI.
+    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE c.style_name = :name AND f.uri = :uri ORDER BY c.vid DESC', array(
+      ':name' => $style_name,
+      ':uri' => $file,
+    ));
 
-    return $query->execute()->fetchObject();
+    return $result->fetchObject();
   }
   else {
-    $query->fields('c', array('x', 'y', 'width', 'height'));
+    // The fetchAllAssoc() call below will use the last result found by this
+    // query for each style name, so order it by file revision ID ascending
+    // to use the most recent manual crop settings associated with the provided
+    // file URL for each style.
+    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE f.uri = :uri ORDER BY c.vid ASC', array(
+      ':uri' => $file,
+    ));
 
-    return $query->execute()->fetchAllAssoc('style_name');
+    return $result->fetchAllAssoc('style_name');
   }
 }
 
