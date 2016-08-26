@@ -31,7 +31,7 @@ function manualcrop_requirements($phase) {
           'description' => $t('Download and copy the <a href="@link">@name</a> library to %path.', array(
             '@link' => $info['vendor url'],
             '@name' => $info['name'],
-            '%path' => 'sites/all/libraries/' . $name,
+            '%path' => 'libraries/' . $name,
           )),
           'severity' => REQUIREMENT_ERROR,
         );
@@ -453,6 +453,9 @@ function manualcrop_update_7110() {
 /**
  * Grant the crop permission to all user roles.
  */
+ 
+ /*
+   
 function _manualcrop_grant_crop_permission() {
   foreach (user_roles() as $rid => $role) {
     db_merge('role_permission')
@@ -466,3 +469,4 @@ function _manualcrop_grant_crop_permission() {
       ->execute();
   }
 }
+*/

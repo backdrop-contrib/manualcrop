@@ -7,6 +7,12 @@
 require_once 'manualcrop.helpers.inc';
 require_once 'manualcrop.admin.inc';
 
+function hook_autoload_info() {
+  return array(
+    'ClassName' => 'includes/views/manualcrop.views.inc',
+  );
+}
+
 /**
  * Implements hook_permission().
  */
@@ -34,7 +40,7 @@ function manualcrop_menu() {
   $items['admin/config/media/manualcrop'] = array(
     'title' => 'Manual Crop',
     'description' => 'Configure the global Manual Crop options.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('manualcrop_global_settings_form'),
     'access arguments' => array('administer manualcrop settings'),
     'type' => MENU_NORMAL_ITEM,
@@ -92,7 +98,7 @@ function manualcrop_help($path) {
 function manualcrop_views_api() {
   return array(
     'api' => 3,
-    'path' => drupal_get_path('module', 'manualcrop') . '/includes/views',
+    'path' => backdrop_get_path('module', 'manualcrop') . '/includes/views',
   );
 }
 
@@ -407,7 +413,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
 
     // Loop trough the positions to get the Manual Crop data.
     foreach ($form_state['manualcrop_data']['images'] as $fid => $image) {
-      $value = drupal_array_get_nested_value($form_state['values'], $image['element_parents']);
+      $value = backdrop_array_get_nested_value($form_state['values'], $image['element_parents']);
 
       if (!empty($value['manualcrop_selections'])) {
         // Create a selections array for the current image, the first element is
@@ -498,7 +504,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
 
     // Show a success message when not using the FAPI.
     if (!empty($form['manualcrop'])) {
-      drupal_set_message(t('The crop selections have been saved.'));
+      backdrop_set_message(t('The crop selections have been saved.'));
     }
 
     // Prevent additional submits.
@@ -584,7 +590,7 @@ function manualcrop_preprocess_image_url_formatter(&$variables) {
  * @ingroup themeable
  */
 function theme_manualcrop_croptool_overlay($variables) {
-  $output = '<div ' . drupal_attributes($variables['attributes']) . '>';
+  $output = '<div ' . backdrop_attributes($variables['attributes']) . '>';
 
   $output .= '<div class="manualcrop-overlay-bg"></div>';
 
@@ -643,7 +649,7 @@ function theme_manualcrop_croptool_overlay($variables) {
  * @ingroup themeable
  */
 function theme_manualcrop_croptool_inline($variables) {
-  $output = '<div ' . drupal_attributes($variables['attributes']) . '>';
+  $output = '<div ' . backdrop_attributes($variables['attributes']) . '>';
 
   $output .= '<div class="manualcrop-image-holder">';
   $output .= theme('image', $variables['image']);
@@ -706,7 +712,7 @@ function theme_manualcrop_croptool_inline($variables) {
  * @ingroup themeable
  */
 function theme_manualcrop_thumblist($variables) {
-  $output = '<div ' . drupal_attributes($variables['attributes']) . '>';
+  $output = '<div ' . backdrop_attributes($variables['attributes']) . '>';
   $output .= '<div class="clearfix">';
   $output .= implode('', $variables['images']);
   $output .= '</div>';
@@ -730,7 +736,7 @@ function theme_manualcrop_thumblist($variables) {
  * @ingroup themeable
  */
 function theme_manualcrop_thumblist_image($variables) {
-  $output = '<a ' . drupal_attributes($variables['attributes']) . '>';
+  $output = '<a ' . backdrop_attributes($variables['attributes']) . '>';
   $output .= '<strong class="manualcrop-style-thumb-label">' . check_plain($variables['style']) . '</strong>';
   $output .= $variables['image'];
   $output .= '</a>';
@@ -961,7 +967,7 @@ function manualcrop_auto_reuse_effect(&$image, $data) {
  * Implements hook_insert_styles().
  */
 function manualcrop_insert_styles() {
-  $insert_styles = &drupal_static(__FUNCTION__);
+  $insert_styles = &backdrop_static(__FUNCTION__);
 
   if (is_null($insert_styles)) {
     $styles = manualcrop_styles_with_crop(FALSE, NULL, TRUE);

@@ -224,8 +224,8 @@ function manualcrop_reuse_form($data) {
   $styles = manualcrop_styles_with_crop(FALSE, 5, TRUE);
 
   if (empty($styles)) {
-    drupal_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
-    drupal_goto('admin/config/media/image-styles/edit/' . arg(5));
+    backdrop_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
+    backdrop_goto('admin/config/media/image-styles/edit/' . arg(5));
   }
 
   $form['reuse_crop_style'] = array(
@@ -277,8 +277,8 @@ function manualcrop_auto_reuse_form($data) {
   $styles = manualcrop_styles_with_crop(FALSE, 5, TRUE);
 
   if (empty($styles)) {
-    drupal_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
-    drupal_goto('admin/config/media/image-styles/edit/' . arg(5));
+    backdrop_set_message(t('No Manual Crop enabled image style could be found. To reuse a crop selection, you need to create at least one image style that uses Manual Crop.'), 'warning');
+    backdrop_goto('admin/config/media/image-styles/edit/' . arg(5));
   }
 
   // Table with all crop image styles.
@@ -330,7 +330,7 @@ function manualcrop_auto_reuse_form($data) {
   }
 
   // Add a tabledrag for a cleaner interface.
-  drupal_add_tabledrag('manualcrop-style-priority', 'order', 'sibling', 'manualcrop-style-priority-weight');
+  backdrop_add_tabledrag('manualcrop-style-priority', 'order', 'sibling', 'manualcrop-style-priority-weight');
 
   // Get a list of allowed fallback styles.
   $styles = array_diff_key(image_styles(), manualcrop_styles_with_crop(TRUE));

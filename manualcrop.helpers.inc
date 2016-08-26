@@ -17,12 +17,12 @@
  *   Array of widget types.
  */
 function manualcrop_supported_widgets($widget_type = NULL, $settings = array()) {
-  $widgets = &drupal_static(__FUNCTION__);
+  $widgets = &backdrop_static(__FUNCTION__);
 
   if (!isset($widgets)) {
     // Collect information about the supported widgets.
     $widgets = module_invoke_all('manualcrop_supported_widgets');
-    drupal_alter('manualcrop_supported_widgets', $widgets);
+    backdrop_alter('manualcrop_supported_widgets', $widgets);
   }
 
   // Make sure $settings contains only valid entries.
@@ -180,7 +180,7 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
 
     // Make sure the build id exists.
     if (!isset($form['#build_id'])) {
-      $form['#build_id'] = 'form-' . drupal_random_key();
+      $form['#build_id'] = 'form-' . backdrop_random_key();
     }
 
     // Reset the images array.
@@ -294,7 +294,7 @@ function _manualcrop_media_element_add_after_build(&$element) {
  */
 function _manualcrop_js_identifier($data) {
   if (is_array($data) && !empty($data['field_name'])) {
-    return drupal_clean_css_identifier($data['field_name']);
+    return backdrop_clean_css_identifier($data['field_name']);
   }
   elseif (is_object($data) && isset($data->fid)) {
     return 'manualcrop-file-' . $data->fid;
@@ -323,7 +323,7 @@ function _manualcrop_attach_dependencies(&$element, $form_state, $js_identifier,
   $added[$js_identifier] = $form_state['rebuild'];
 
   // Generate image style settings.
-  $styles = &drupal_static(__FUNCTION__);
+  $styles = &backdrop_static(__FUNCTION__);
 
   if (!is_array($styles)) {
     $styles = array();
@@ -367,12 +367,12 @@ function _manualcrop_attach_files(&$element = NULL) {
   $ie = (!empty($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE);
 
   if ($ie || $element) {
-    $path = drupal_get_path('module', 'manualcrop');
+    $path = backdrop_get_path('module', 'manualcrop');
 
     if ($ie) {
       // IE has some issues with the lazy loading of css files, so we preload
       // anything that contains CSS. See http://drupal.org/node/1071818 for more info.
-      drupal_add_css($path . '/manualcrop.css');
+      backdrop_add_css($path . '/manualcrop.css');
       libraries_load('jquery.imgareaselect');
     }
 
@@ -618,7 +618,7 @@ function manualcrop_save_crop_data($file, $data) {
         'vid' => $vid,
         'style_name' => $style_name
       ));
-      drupal_write_record('manualcrop', $record);
+      backdrop_write_record('manualcrop', $record);
     }
   }
 }
@@ -695,7 +695,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
  *   - "effect": Manual Crop effect data.
  */
 function manualcrop_styles_with_crop($include_reuse = FALSE, $exclude_arg = NULL, $return_label = FALSE) {
-  $hascrop = &drupal_static(__FUNCTION__);
+  $hascrop = &backdrop_static(__FUNCTION__);
 
   if (!is_array($hascrop)) {
     $hascrop = array(array(), array());
@@ -875,7 +875,7 @@ function _manualcrop_add_cache_control($style_name, $url) {
       // Get the image path from the URL.
       $match = '/styles/' . $style_name . '/';
       $path = parse_url($url, PHP_URL_PATH);
-      $path = drupal_substr($path, (strrpos($path, $match) + drupal_strlen($match)));
+      $path = backdrop_substr($path, (strrpos($path, $match) + backdrop_strlen($match)));
       $path = explode('/', $path);
 
       // Build the local image URI.
