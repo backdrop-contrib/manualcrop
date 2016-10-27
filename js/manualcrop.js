@@ -9,7 +9,7 @@ var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: nul
  *   Current context as DOM object.
  */
 ManualCrop.init = function(context) {
-  var elements = Drupal.settings.manualcrop.elements;
+  var elements = Backdrop.settings.manualcrop.elements;
 
   // Add a css class to the select options of required crop styles.
   for (var identifier in elements) {
@@ -110,8 +110,8 @@ ManualCrop.showCroptool = function(identifier, style, fid) {
       }
 
       // Get the settings.
-      var styleSettings = Drupal.settings.manualcrop.styles[styleName] || null;
-      var elementSettings = Drupal.settings.manualcrop.elements[identifier] || null;
+      var styleSettings = Backdrop.settings.manualcrop.styles[styleName] || null;
+      var elementSettings = Backdrop.settings.manualcrop.elements[identifier] || null;
 
       // Get the destination element and the current selection.
       ManualCrop.output = $('#manualcrop-area-' + fid + '-' + styleName);
@@ -674,10 +674,10 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
         toolOpener.addClass('manualcrop-style-cropped');
 
         if (toolOpener.is('input')) {
-          toolOpener.val(toolOpener.val() + ' ' + Drupal.t('(cropped)'));
+          toolOpener.val(toolOpener.val() + ' ' + Backdrop.t('(cropped)'));
         }
         else {
-          toolOpener.text(toolOpener.text() + ' ' + Drupal.t('(cropped)'));
+          toolOpener.text(toolOpener.text() + ' ' + Backdrop.t('(cropped)'));
         }
       }
     } else if (hasClass) {
@@ -685,10 +685,10 @@ ManualCrop.selectionStored = function(element, fid, styleName) {
       toolOpener.removeClass('manualcrop-style-cropped');
 
       if (toolOpener.is('input')) {
-        toolOpener.val(toolOpener.val().substr(0, (toolOpener.val().length - Drupal.t('(cropped)').length - 1)));
+        toolOpener.val(toolOpener.val().substr(0, (toolOpener.val().length - Backdrop.t('(cropped)').length - 1)));
       }
       else {
-        toolOpener.text(toolOpener.text().substr(0, (toolOpener.text().length - Drupal.t('(cropped)').length - 1)));
+        toolOpener.text(toolOpener.text().substr(0, (toolOpener.text().length - Backdrop.t('(cropped)').length - 1)));
       }
     }
   });
@@ -890,13 +890,13 @@ ManualCrop.isLoaded = function(selector, callback) {
       }
       else if (!ManualCrop.loadErrorShown) {
         ManualCrop.loadErrorShown = true;
-        alert(Drupal.t('It appears that some of the images could not be loaded for cropping, please try again in another browser.'));
+        alert(Backdrop.t('It appears that some of the images could not be loaded for cropping, please try again in another browser.'));
       }
     });
   }
 }
 
-Drupal.behaviors.manualcrop = {
+Backdrop.behaviors.manualcrop = {
   attach: function(context, settings) {
     // Extract the DOM element.
     if (typeof context == 'string') {

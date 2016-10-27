@@ -50,7 +50,7 @@ function manualcrop_install() {
   db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
 
   // Grant the crop permission to all user roles.
-  _manualcrop_grant_crop_permission();
+  //_manualcrop_grant_crop_permission();
 }
 
 /**

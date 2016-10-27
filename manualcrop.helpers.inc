@@ -377,8 +377,8 @@ function _manualcrop_attach_files(&$element = NULL) {
     }
 
     if ($element) {
-      $element['#attached']['css'][] = $path . '/manualcrop.css';
-      $element['#attached']['js'][] = $path . '/manualcrop.js';
+      $element['#attached']['css'][] = $path . '/css/manualcrop.css';
+      $element['#attached']['js'][] = $path . '/js/manualcrop.js';
       $element['#attached']['libraries_load'][] = array('jquery.imgareaselect');
       $element['#attached']['libraries_load'][] = array('jquery.imagesloaded');
     }
@@ -576,7 +576,7 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
   }
 
   // Add the croptool if Manual Crop has been enabled.
-  if (!empty($settings['manualcrop_enable'])) {
+  if (1 || !empty($settings['manualcrop_enable'])) {
     manualcrop_croptool_process($form, $form_state, $form, $form['#entity'], $settings);
 
     // Add the submit handler. Sometimes we have to add it to the action button
@@ -780,7 +780,7 @@ function _manualcrop_image_style_label($style) {
 
     // Load custom string for overriding.
     if (!isset($custom_strings[$langcode])) {
-      $custom_strings[$langcode] = variable_get('locale_custom_strings_' . $langcode, array());
+      $custom_strings[$langcode] = config_get('locale','custom_strings_' . $langcode);
     }
 
     // Get the human readable name from the custom strings or make it ourself.
@@ -806,7 +806,7 @@ function _manualcrop_image_style_label($style) {
  *   TRUE if this is a Manual Crop (cropping/reuse) effect, FALSE otherwise.
  */
 function _manualcrop_is_own_effect($effect, $crop_effect = NULL) {
-  if ($effect['module'] == 'manualcrop') {
+  if (isset($effect['module']) && $effect['module'] == 'manualcrop') {
     if (is_null($crop_effect)) {
       return TRUE;
     };
@@ -860,7 +860,7 @@ function _manualcrop_get_auto_reuse_style_name($file, $data) {
  */
 function _manualcrop_add_cache_control($style_name, $url) {
   // Is cache control enabled?
-  if (variable_get('manualcrop_cache_control', TRUE)) {
+  if (config_get('manualcrop','cache_control')) {
     $styles = manualcrop_styles_with_crop(TRUE);
 
     // Does this image style have a Manual Crop effect?

@@ -9,27 +9,46 @@
  */
 function manualcrop_global_settings_form() {
   $form = array();
+  
+  $config = config('manualcrop.settings');
 
-  $form['manualcrop_cache_control'] = array(
+  $form['cache_control'] = array(
     '#type' => 'checkbox',
     '#title' => t('Reload cache-control'),
     '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image and provide the user with the latest, re-cropped version of the image when the image is reloaded.'),
-    '#default_value' => variable_get('manualcrop_cache_control', TRUE),
+    '#default_value' => $config->get('cache_control'),
   );
 
   $form['#submit'] = array('manualcrop_global_settings_form_submit');
+  
+  $form['actions']['#type'] = 'actions';
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Configuration'),
+  );
 
-  return system_settings_form($form);
+  return $form;
+
+}
+
+function manualcrop_global_settings_form_validate ($form, &$form_state) {
+
 }
 
 /**
  * Form submit handler; Clears the Manual Crop cache if the cache control gets disabled.
  */
 function manualcrop_global_settings_form_submit($form, &$form_state) {
-  if (!$form_state['values']['manualcrop_cache_control']) {
+  if (!$form_state['values']['cache_control']) {
     // Clear the cached image paths.
     cache_clear_all('manualcrop', 'cache', TRUE);
   }
+  $config = config('manualcrop.settings');
+  $values = $form_state['values'];
+  $config->set('cache_control', $values['cache_control']);
+  $config->save();
+
+  backdrop_set_message(t('Your Manual Crop settings have been saved.'));
 }
 
 /**
@@ -585,8 +604,9 @@ function manualcrop_form_field_ui_field_edit_form_alter(&$form, $form_state) {
  */
 function manualcrop_form_file_entity_file_type_form_alter(&$form, &$form_state) {
   if (isset($form['#file_type']) && $form['#file_type']->type == 'image') {
+    $config = config('manualcrop.settings');
     // Get the previously saved or default settings.
-    $settings = variable_get('manualcrop_file_entity_settings_' . $form['#file_type']->type, manualcrop_default_widget_settings());
+    $settings = $config->get('manualcrop_file_entity_settings_' . $form['#file_type']->type);
 
     // Add the settings form elements.
     $form += manualcrop_field_widget_settings_form('image_image', $settings);
@@ -602,7 +622,8 @@ function manualcrop_form_file_entity_file_type_form_alter(&$form, &$form_state) 
  */
 function manualcrop_form_file_entity_file_type_form_submit($form, &$form_state) {
   if (!empty($form_state['values']['manualcrop'])) {
-    variable_set('manualcrop_file_entity_settings_' . $form['#file_type']->type, $form_state['values']['manualcrop']);
+    $config = config('manualcrop.settings');
+    $config->set('file_entity_settings_' . $form['#file_type']->type, $form_state['values']['manualcrop']);
   }
 }
 

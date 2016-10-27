@@ -6,12 +6,7 @@
 
 require_once 'manualcrop.helpers.inc';
 require_once 'manualcrop.admin.inc';
-
-function hook_autoload_info() {
-  return array(
-    'ClassName' => 'includes/views/manualcrop.views.inc',
-  );
-}
+require_once 'includes/views/manualcrop.views.inc';
 
 /**
  * Implements hook_permission().
@@ -110,23 +105,23 @@ function manualcrop_libraries_info() {
 
   $libraries['jquery.imagesloaded'] = array(
     'name' => 'imagesLoaded',
-    'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v2.1.1',
+    'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v3.2.0',
     'version arguments' => array(
-      'file' => 'jquery.imagesloaded.js',
+      'file' => 'imagesloaded.js',
       'pattern' => '# v([0-9\.]+)#',
       'lines' => 5,
       'cols' => 40,
     ),
     'files' => array(
       'js' => array(
-        'jquery.imagesloaded.min.js',
+        'imagesloaded.pkgd.min.js',
       ),
     ),
     'variants' => array(
       'source' => array(
         'files' => array(
           'js' => array(
-            'jquery.imagesloaded.js',
+            'imagesloaded.js',
           ),
         ),
       ),
@@ -485,6 +480,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
  */
 function manualcrop_croptool_submit($form, &$form_state) {
   static $submitted = FALSE;
+  $config = config('manualcrop.settings');
 
   if (!$submitted && !empty($form_state['manualcrop_data']['selections'])) {
     // Loop trough the selections to save them.
@@ -497,7 +493,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
       image_path_flush($data['path']);
     }
 
-    if (variable_get('manualcrop_cache_control', TRUE)) {
+    if ($config->get('cache_control')) {
       // Clear the cached image paths.
       cache_clear_all('manualcrop:', 'cache', TRUE);
     }
@@ -534,6 +530,9 @@ function manualcrop_entity_update($file, $type) {
   // This uses hook_entity_update to guarantee it comes after the revision has
   // been saved, which uses hook_file_update().
   // Bail if it's not a file or presave() did not give us new data to write.
+  
+  $config = config('manualcrop.settings');
+  
   if ($type != 'file' || empty($file->manualcrop_data)) {
     return;
   }
@@ -542,7 +541,7 @@ function manualcrop_entity_update($file, $type) {
   // can be cropped without harming the prior revision.
   manualcrop_save_crop_data($file, $file->manualcrop_data);
 
-  if (variable_get('manualcrop_cache_control', TRUE)) {
+  if ($config->get('cache_control')) {
     // Clear the cached image paths.
     cache_clear_all('manualcrop:', 'cache', TRUE);
   }
@@ -596,6 +595,27 @@ function theme_manualcrop_croptool_overlay($variables) {
 
   $output .= '<div class="manualcrop-image-holder">';
   $output .= theme('image', $variables["image"]);
+
+  /*
+  $output .= print_r($variables["image"], TRUE);
+    Array
+    (
+        [path] => public://field/image/1502-CEDC-graphic-01_2.jpg
+        [alt] => 1502-CEDC-graphic-01.jpg
+        [width] => 735
+        [height] => 732
+        [attributes] => Array
+            (
+                [class] => Array
+                    (
+                        [0] => manualcrop-image
+                    )
+    
+            )
+    
+    )
+  */
+
   $output .= '</div>';
 
   if ($variables['crop_info']) {
