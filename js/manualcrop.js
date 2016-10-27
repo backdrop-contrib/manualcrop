@@ -9,7 +9,7 @@ var ManualCrop = { croptool: null, oldSelection: null, widget: null, output: nul
  *   Current context as DOM object.
  */
 ManualCrop.init = function(context) {
-  var elements = Backdrop.settings.manualcrop.elements;
+  var elements = backdrop.settings.manualcrop.elements;
 
   // Add a css class to the select options of required crop styles.
   for (var identifier in elements) {

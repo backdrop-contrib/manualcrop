@@ -624,6 +624,7 @@ function manualcrop_form_file_entity_file_type_form_submit($form, &$form_state) 
   if (!empty($form_state['values']['manualcrop'])) {
     $config = config('manualcrop.settings');
     $config->set('file_entity_settings_' . $form['#file_type']->type, $form_state['values']['manualcrop']);
+    $config->save();
   }
 }
 

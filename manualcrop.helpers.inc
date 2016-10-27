@@ -572,11 +572,11 @@ function _manualcrop_process_file_entity_form(&$form, &$form_state, $instance_in
 
   // No valid fields instance specified, use the File Entity settings.
   if (!isset($settings)) {
-    $settings = variable_get('manualcrop_file_entity_settings_' . $form['#entity']->type, manualcrop_default_widget_settings());
+    $settings = config_get('manualcrop.settings','manualcrop_file_entity_settings_' . $form['#entity']->type);
   }
 
   // Add the croptool if Manual Crop has been enabled.
-  if (1 || !empty($settings['manualcrop_enable'])) {
+  if (!empty($settings['manualcrop_enable'])) {
     manualcrop_croptool_process($form, $form_state, $form, $form['#entity'], $settings);
 
     // Add the submit handler. Sometimes we have to add it to the action button

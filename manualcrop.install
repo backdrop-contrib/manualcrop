@@ -50,7 +50,7 @@ function manualcrop_install() {
   db_query("UPDATE {system} SET weight = 20 WHERE name = 'manualcrop'");
 
   // Grant the crop permission to all user roles.
-  //_manualcrop_grant_crop_permission();
+  _manualcrop_grant_crop_permission();
 }
 
 /**
@@ -454,19 +454,8 @@ function manualcrop_update_7110() {
  * Grant the crop permission to all user roles.
  */
  
- /*
-   
 function _manualcrop_grant_crop_permission() {
   foreach (user_roles() as $rid => $role) {
-    db_merge('role_permission')
-      ->key(array(
-        'rid' => $rid,
-        'permission' => 'use manualcrop',
-      ))
-      ->fields(array(
-        'module' => 'manualcrop',
-      ))
-      ->execute();
+    user_role_grant_permissions($rid , array('use manualcrop'));
   }
 }
-*/
