@@ -5,7 +5,7 @@ _IN PROCESS, CURRENTLY INCOMPLETE_
 The Manual Crop module exposes a set of image style effects that allow you
 to crop (and scale) an image after uploading.
 
-![Save Draft](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/manualcrop-screenshot.png "Save Draft example")
+![Manual Crop](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/manualcrop-image-effect.png "Manual Crop image effect example")
 
 
 ##Dependencies
@@ -28,7 +28,7 @@ now be located at `libraries/jquery.imagesloaded/imagesloaded.pkgd.min.js`.
  - Now download and extract the imgAreaSelect plugin, rename extracted folder to
 "jquery.imgareaselect" and copy it into "libraries". The plugin should
 now be located at `libraries/jquery.imgareaselect/jquery.imgareaselect.dev.js`.
-- Install this module using the official 
+ - Install this module using the official 
   [Backdrop CMS instructions](https://backdropcms.org/guide/modules)
 
 ##Configuration and Usage
