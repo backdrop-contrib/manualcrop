@@ -58,6 +58,7 @@ function manualcrop_install() {
  */
 function manualcrop_uninstall() {
   variable_del('manualcrop_cache_control');
+  variable_del('manualcrop_force_effect_order');
 
   if (module_exists('file_entity') && function_exists('file_type_load_all')) {
     // Remove the settings for individual file types.

@@ -17,6 +17,13 @@ function manualcrop_global_settings_form() {
     '#default_value' => variable_get('manualcrop_cache_control', TRUE),
   );
 
+  $form['manualcrop_force_effect_order'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force Manual Crop effects to run first'),
+    '#description' => t('Manual Crop effects must execute before the dimentions of the original image are changed. <strong>Disable at your own risk!</strong'),
+    '#default_value' => variable_get('manualcrop_force_effect_order', TRUE),
+  );
+
   $form['#submit'] = array('manualcrop_global_settings_form_submit');
 
   return system_settings_form($form);
@@ -408,7 +415,7 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
     // Add the effect info on submit.
     array_unshift($form['#submit'], 'manualcrop_add_effect_info');
   }
-  elseif (!empty($style['effects'])) {
+  elseif (!empty($style['effects']) && variable_get('manualcrop_force_effect_order', TRUE)) {
     // Force the effect order for none-Manual Crop effects.
     $form['#submit'][] = 'manualcrop_force_effect_order';
   }
@@ -470,8 +477,10 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
       $form['#submit'] = array('image_style_form_submit');
     }
 
-    // Reorder effects on submit.
-    $form['#submit'][] = 'manualcrop_force_effect_order';
+    if (variable_get('manualcrop_force_effect_order', TRUE)) {
+      // Reorder effects on submit.
+      $form['#submit'][] = 'manualcrop_force_effect_order';
+    }
 
     // Update style name in effect data.
     $form['#submit'][] = 'manualcrop_update_style_name';
