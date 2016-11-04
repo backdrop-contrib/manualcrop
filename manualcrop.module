@@ -272,12 +272,18 @@ function manualcrop_field_widget_form_alter(&$element, &$form_state, $context) {
  * Implements hook_field_attach_submit().
  */
 function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_state) {
-  // We don't do this to file_entity_edit because that form can use revisions
-  // if file_entity_revisions is enabled, and we want to save our crop data
-  // AFTER we know the revision id.
-  if (user_access('use manualcrop') && (!isset($form['#form_id']) || $form['#form_id'] != 'file_entity_edit')) {
-    manualcrop_croptool_submit($form, $form_state);
+  if (!user_access('use manualcrop')) {
+    // The user is not allowed to crop images.
+    return;
   }
+
+  if (isset($form['#form_id']) && $form['#form_id'] == 'file_entity_edit') {
+    // Skip the file_entity_edit form because it may use revisions and
+    // we want to save our crop data when the revision id is known.
+    return;
+  }
+
+  manualcrop_croptool_submit($form, $form_state);
 }
 
 /**
@@ -319,8 +325,6 @@ function manualcrop_widget_process($element, &$form_state, $form) {
 /**
  * Additional after build callback to modify form elements added by the Insert module.
  *
- * @param $element
- *   The element to process.
  */
 function manualcrop_insert_element_process($element) {
   foreach (element_children($element) as $key) {
@@ -361,11 +365,8 @@ function manualcrop_insert_content($item, $style, $widget) {
 
 /**
  * Additional after build callback to modify the Media widget.
- *
- * @param $element
- *   The element to process.
  */
-function manualcrop_media_element_process($element) {
+function manualcrop_media_element_after_build($element) {
   $data = array(
     'manualcrop' => array(
       'entity_type' => $element['#entity_type'],
@@ -503,6 +504,7 @@ function manualcrop_croptool_submit($form, &$form_state) {
     }
 
     // Prevent additional submits.
+    unset($form_state['manualcrop_data']['selections']);
     $submitted = TRUE;
   }
 }
