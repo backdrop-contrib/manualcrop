@@ -103,8 +103,6 @@ function manualcrop_views_api() {
 function manualcrop_libraries_info() {
   $libraries = array();
 
-  //TODO: Test with upgraded library below
-  /*
   $libraries['jquery.imagesloaded'] = array(
     'name' => 'imagesLoaded',
     'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v3.2.0',
@@ -129,33 +127,7 @@ function manualcrop_libraries_info() {
       ),
     ),
   );
-  */
-
-  $libraries['jquery.imagesloaded'] = array(
-    'name' => 'imagesLoaded',
-    'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v2.1.2',
-    'version arguments' => array(
-      'file' => 'jquery.imagesloaded.js',
-      'pattern' => '# v([0-9\.]+)#',
-      'lines' => 5,
-      'cols' => 40,
-    ),
-    'files' => array(
-      'js' => array(
-        'jquery.imagesloaded.min.js',
-      ),
-    ),
-    'variants' => array(
-      'source' => array(
-        'files' => array(
-          'js' => array(
-            'imagesloaded.js',
-          ),
-        ),
-      ),
-    ),
-  );
-
+  
   $libraries['jquery.imgareaselect'] = array(
     'name' => 'imgAreaSelect',
     'vendor url' => 'https://github.com/odyniec/imgareaselect/tree/v0.9.11-rc.1',
