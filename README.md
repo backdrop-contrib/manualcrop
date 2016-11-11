@@ -1,23 +1,21 @@
 #Manual Crop
 
-_IN PROCESS, CURRENTLY INCOMPLETE_
-
 The Manual Crop module exposes a set of image style effects that allow you
 to crop (and scale) an image after uploading.
 
-![Manual Crop](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/manualcrop-image-effect.png "Manual Crop image effect example")
+![Manual Crop - image styles](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/manualcrop-image-effect.png "Manual Crop - image styles")
+
+![Manual Crop - upload image](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/cropping-tools.jpg "Manual Crop - upload image")
+
+![Manual Crop - cropping tool](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/image-upload-crop-button.jpg "Manual Crop - cropping tools")
 
 
 ##Dependencies
 
-- Libraries 2.x
+- Libraries module
 - jQuery plugins:
-    - imagesLoaded:
-        + Website: http://desandro.github.io/imagesloaded
-        + Download: https://github.com/desandro/imagesloaded/archive/v3.2.0.zip
-    - imgAreaSelect:
-        + Website: http://odyniec.net/projects/imgareaselect
-        + Download: https://github.com/odyniec/imgareaselect/archive/v0.9.11-rc.1.tar.gz
+    - [imagesLoaded](https://github.com/desandro/imagesloaded)
+    - [imgAreaSelect](https://github.com/odyniec/imgareaselect)
 
 ##Installation
 
@@ -62,7 +60,6 @@ Bugs and Feature requests should be reported in the
 ##Current Maintainers
 
  - [Laryn Kragt Bakker](https://github.com/laryn) - [CEDC.org](https://cedc.org)
- - Help wanted!
 
 ##Credits
 
