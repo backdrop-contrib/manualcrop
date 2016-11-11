@@ -18,6 +18,13 @@ function manualcrop_global_settings_form() {
     '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image and provide the user with the latest, re-cropped version of the image when the image is reloaded.'),
     '#default_value' => $config->get('cache_control'),
   );
+  
+  $form['force_effect_order'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Force Manual Crop effects to run first'),
+     '#description' => t('Manual Crop effects must execute before the dimensions of the original image are changed. <strong>Disable at your own risk!</strong'),
+     '#default_value' => $config->get('force_effect_order'),
+   );
 
   $form['#submit'] = array('manualcrop_global_settings_form_submit');
   
@@ -46,6 +53,7 @@ function manualcrop_global_settings_form_submit($form, &$form_state) {
   $config = config('manualcrop.settings');
   $values = $form_state['values'];
   $config->set('cache_control', $values['cache_control']);
+  $config->set('force_effect_order', $values['force_effect_order']);
   $config->save();
 
   backdrop_set_message(t('Your Manual Crop settings have been saved.'));
@@ -417,6 +425,7 @@ function theme_manualcrop_auto_reuse_summary($variables) {
 function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
   $style = $form_state['image_style'];
   $effect = $form_state['image_effect'];
+  $force_effect_order = config_get('manualcrop.settings','force_effect_order');
 
   if (_manualcrop_is_own_effect($effect)) {
     // Effect specific submit handler.
@@ -427,8 +436,8 @@ function manualcrop_form_image_effect_form_alter(&$form, &$form_state) {
     // Add the effect info on submit.
     array_unshift($form['#submit'], 'manualcrop_add_effect_info');
   }
-  elseif (!empty($style['effects'])) {
-    // Force the effect order for none-Manual Crop effects.
+  elseif (!empty($style['effects']) && $force_effect_order) {
+    // Force the effect order for non-Manual Crop effects.
     $form['#submit'][] = 'manualcrop_force_effect_order';
   }
 }
@@ -489,9 +498,10 @@ function manualcrop_form_image_style_form_alter(&$form, &$form_state) {
       $form['#submit'] = array('image_style_form_submit');
     }
 
-    // Reorder effects on submit.
-    $form['#submit'][] = 'manualcrop_force_effect_order';
-
+    if (config_get('manualcrop.settings','force_effect_order')) {
+      // Reorder effects on submit.
+      $form['#submit'][] = 'manualcrop_force_effect_order';
+    }
     // Update style name in effect data.
     $form['#submit'][] = 'manualcrop_update_style_name';
 
@@ -535,7 +545,7 @@ function manualcrop_force_effect_order($form, &$form_state) {
         if ($eid != key($style['effects'])) {
           // Change the weight of this effect to the weight of the first effect minus 1.
           $effect['weight'] = $first['weight'] - 1;
-          image_effect_save($effect);
+          image_effect_save($style['name'],$effect);
         }
 
         break;

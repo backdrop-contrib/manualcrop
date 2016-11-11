@@ -183,16 +183,10 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
       $form['#build_id'] = 'form-' . backdrop_random_key();
     }
 
-    // Reset the images array.
+    // Reset the data array.
     if (!isset($processed_forms[$form['#build_id']])) {
       $processed_forms[$form['#build_id']] = $form['#build_id'];
-
-      if (!isset($form_state['manualcrop_data'])) {
-        $form_state['manualcrop_data'] = array('images' => array());
-      }
-      else {
-        $form_state['manualcrop_data']['images'] = array();
-      }
+      $form_state['manualcrop_data'] = array();
     }
 
     // Get the container and item reference.
@@ -276,7 +270,7 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
  */
 function _manualcrop_media_element_add_after_build(&$element) {
   if (isset($element['#media_options']['global'])) {
-    $element['#after_build'][] = 'manualcrop_media_element_process';
+    $element['#after_build'][] = 'manualcrop_media_element_after_build';
     return TRUE;
   }
 
