@@ -103,6 +103,8 @@ function manualcrop_views_api() {
 function manualcrop_libraries_info() {
   $libraries = array();
 
+  //TODO: Test with upgraded library below
+  /*
   $libraries['jquery.imagesloaded'] = array(
     'name' => 'imagesLoaded',
     'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v3.2.0',
@@ -115,6 +117,32 @@ function manualcrop_libraries_info() {
     'files' => array(
       'js' => array(
         'imagesloaded.pkgd.min.js',
+      ),
+    ),
+    'variants' => array(
+      'source' => array(
+        'files' => array(
+          'js' => array(
+            'imagesloaded.js',
+          ),
+        ),
+      ),
+    ),
+  );
+  */
+
+  $libraries['jquery.imagesloaded'] = array(
+    'name' => 'imagesLoaded',
+    'vendor url' => 'https://github.com/desandro/imagesloaded/tree/v2.1.2',
+    'version arguments' => array(
+      'file' => 'jquery.imagesloaded.js',
+      'pattern' => '# v([0-9\.]+)#',
+      'lines' => 5,
+      'cols' => 40,
+    ),
+    'files' => array(
+      'js' => array(
+        'jquery.imagesloaded.min.js',
       ),
     ),
     'variants' => array(
@@ -596,27 +624,6 @@ function theme_manualcrop_croptool_overlay($variables) {
 
   $output .= '<div class="manualcrop-image-holder">';
   $output .= theme('image', $variables["image"]);
-
-  /*
-  $output .= print_r($variables["image"], TRUE);
-    Array
-    (
-        [path] => public://field/image/1502-CEDC-graphic-01_2.jpg
-        [alt] => 1502-CEDC-graphic-01.jpg
-        [width] => 735
-        [height] => 732
-        [attributes] => Array
-            (
-                [class] => Array
-                    (
-                        [0] => manualcrop-image
-                    )
-    
-            )
-    
-    )
-  */
-
   $output .= '</div>';
 
   if ($variables['crop_info']) {

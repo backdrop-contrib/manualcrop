@@ -428,7 +428,7 @@ function _manualcrop_add_croptool(&$element, $value, &$form_state, $fid, $js_ide
       'class' => array('manualcrop-' . $crop_type, 'element-hidden'),
     ),
     '#image' => array(
-      'path' => $file_info['uri'],
+      'uri' => $file_info['uri'],
       'alt' => $file_info['filename'],
       'width' => $file_info['width'],
       'height' => $file_info['height'],
@@ -470,7 +470,7 @@ function _manualcrop_add_croptool(&$element, $value, &$form_state, $fid, $js_ide
       $style_options[$style_name] = theme('manualcrop_thumblist_image', array(
         'style' => $style_clean_name,
         'image' => $prefix . theme('image_style', array(
-            'path' => $file_info['uri'],
+            'uri' => $file_info['uri'],
             'alt' => $file_info['filename'],
             'width' => $file_info['width'],
             'height' => $file_info['height'],
