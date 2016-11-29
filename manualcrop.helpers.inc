@@ -269,7 +269,7 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
  *   TRUE if the element was altered, FALSE otherwise.
  */
 function _manualcrop_media_element_add_after_build(&$element) {
-  if (isset($element['#media_options']['global'])) {
+  if (isset($element['#media_options']['global']) && isset($element['#entity_type']) && isset($element['#bundle'])) {
     $element['#after_build'][] = 'manualcrop_media_element_after_build';
     return TRUE;
   }
