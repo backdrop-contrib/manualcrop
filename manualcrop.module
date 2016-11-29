@@ -402,7 +402,15 @@ function manualcrop_media_element_after_build($element) {
  * Element validation handler; Validates each crop selection.
  */
 function manualcrop_croptool_validate($element, &$form_state) {
-  if (!empty($form_state['manualcrop_data']['images']) && (!isset($form_state['triggering_element']) || !in_array($form_state['triggering_element']['#value'], array(t('Upload'), t('Browse'), t('Remove'))))) {
+  if (!empty($form_state['manualcrop_data']['images'])) {
+    if (isset($form_state['triggering_element'])) {
+      // Skip validation when needed.
+      $te = $form_state['triggering_element'];
+      if (!empty($te['#manualcrop_skip']) || in_array($te['#value'], array(t('Upload'), t('Remove'), t('Browse')))) {
+        return;
+      }
+    }
+
     // Create a new key, to store processed selections, in the data array.
     $form_state['manualcrop_data']['selections'] = array();
     $selections = &$form_state['manualcrop_data']['selections'];
