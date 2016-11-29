@@ -112,11 +112,11 @@ function manualcrop_default_widget_settings() {
  */
 function manualcrop_instance_required_styles($settings) {
   // Make sure to exclude unavailable styles.
-  if (!empty($settings['manualcrop_require_cropping']) && !empty($settings['manualcrop_styles_list'])) {
-    if ($settings['manualcrop_styles_mode'] == 'include') {
+  if (!empty($settings['manualcrop_require_cropping'])) {
+    if ($settings['manualcrop_styles_mode'] == 'include' && !empty($settings['manualcrop_styles_list'])) {
       return array_intersect($settings['manualcrop_require_cropping'], $settings['manualcrop_styles_list']);
     }
-    else {
+    elseif ($settings['manualcrop_styles_mode'] == 'exclude') {
       return array_diff($settings['manualcrop_require_cropping'], $settings['manualcrop_styles_list']);
     }
   }
