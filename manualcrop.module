@@ -379,14 +379,16 @@ function manualcrop_media_element_after_build($element) {
   $element['#media_options']['global'] += $data;
 
   // Attach the options as javascript settings.
-  foreach ($element['#attached']['js'] as &$js) {
-    if (isset($js['data']['media'])) {
-      if (!isset($js['data']['media']['elements']['#' . $element['#id']]['global'])) {
-        $js['data']['media']['elements']['#' . $element['#id']]['global'] = array();
-      }
+  if (!empty($element['#attached']['js'])) {
+    foreach ($element['#attached']['js'] as &$js) {
+      if (isset($js['data']['media'])) {
+        if (!isset($js['data']['media']['elements']['#' . $element['#id']]['global'])) {
+          $js['data']['media']['elements']['#' . $element['#id']]['global'] = array();
+        }
 
-      $js['data']['media']['elements']['#' . $element['#id']]['global'] += $data;
-      break;
+        $js['data']['media']['elements']['#' . $element['#id']]['global'] += $data;
+        break;
+      }
     }
   }
 
