@@ -66,6 +66,13 @@ function manualcrop_uninstall() {
   }
 }
 
+ /**
+ * Add index on vid.
+ */
+function manualcrop_update_1001() {
+  db_add_index('manualcrop', 'vid', array('vid'));
+}
+
 /**
  * Move manualcrop settings from variables to config.
  */
@@ -91,6 +98,8 @@ function manualcrop_update_1000() {
     update_variable_del($file_entity_var);
   }
 }
+
+
 
 /**
  * Implements hook_update_last_removed().
@@ -162,6 +171,9 @@ function manualcrop_schema() {
       ),
     ),
     'primary key' => array('fid', 'vid', 'style_name'),
+    'indexes' => array(
+      'vid' => array('vid'),
+    ),
   );
 
   return $schema;

@@ -112,11 +112,11 @@ function manualcrop_default_widget_settings() {
  */
 function manualcrop_instance_required_styles($settings) {
   // Make sure to exclude unavailable styles.
-  if (!empty($settings['manualcrop_require_cropping']) && !empty($settings['manualcrop_styles_list'])) {
-    if ($settings['manualcrop_styles_mode'] == 'include') {
+  if (!empty($settings['manualcrop_require_cropping'])) {
+    if ($settings['manualcrop_styles_mode'] == 'include' && !empty($settings['manualcrop_styles_list'])) {
       return array_intersect($settings['manualcrop_require_cropping'], $settings['manualcrop_styles_list']);
     }
-    else {
+    elseif ($settings['manualcrop_styles_mode'] == 'exclude') {
       return array_diff($settings['manualcrop_require_cropping'], $settings['manualcrop_styles_list']);
     }
   }
@@ -269,7 +269,7 @@ function manualcrop_croptool_process(&$form, &$form_state, &$element, $file, $se
  *   TRUE if the element was altered, FALSE otherwise.
  */
 function _manualcrop_media_element_add_after_build(&$element) {
-  if (isset($element['#media_options']['global'])) {
+  if (isset($element['#media_options']['global']) && isset($element['#entity_type']) && isset($element['#bundle'])) {
     $element['#after_build'][] = 'manualcrop_media_element_after_build';
     return TRUE;
   }
@@ -636,37 +636,40 @@ function manualcrop_save_crop_data($file, $data) {
  *   - "height": An integer representing the height in pixels.
  */
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
-  // Choose which table to use based on whether or not file_entity_revisions module is enabled.
-  if (module_exists('file_entity_revisions')) {
-    $table = 'file_managed_revisions';
-    $key = 'vid';
-  }
+  $query = db_select('manualcrop', 'mc');
+  $use_revisions = module_exists('file_entity_revisions');
+  
+  if ($use_revisions) {
+    $query->join('file_managed_revisions', 'r', 'mc.vid = r.vid AND r.uri = :uri', array(':uri' => $file));  }
   else {
-    $table = 'file_managed';
-    $key = 'fid';
+    $query->join('file_managed', 'f', 'mc.fid = f.fid');
+    $query->condition('f.uri', $file);
   }
+
+  $query->fields('mc', array('x', 'y', 'width', 'height', 'style_name'));
 
   if (isset($style_name)) {
-    // The fetchObject() call below will use the first result found by this
-    // query, so order it by file revision ID descending to use the most recent
-    // manual crop settings associated with the provided file URI.
-    $result = db_query('SELECT c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE c.style_name = :name AND f.uri = :uri ORDER BY c.vid DESC', array(
-      ':name' => $style_name,
-      ':uri' => $file,
-    ));
-
-    return $result->fetchObject();
+    $query->condition('mc.style_name', $style_name);
+    
+    if ($use_revisions) {
+      // Order by file revision ID descending to use the most recent Manual
+      // Crop settings associated with the provided file URI.
+      $query->orderBy('r.vid', 'DESC');
+      $query->range(0, 1);
+    }
+    
+    return $query->execute()->fetchObject();
   }
   else {
-    // The fetchAllAssoc() call below will use the last result found by this
-    // query for each style name, so order it by file revision ID ascending
-    // to use the most recent manual crop settings associated with the provided
-    // file URL for each style.
-    $result = db_query('SELECT c.style_name, c.x, c.y, c.width, c.height FROM {manualcrop} c INNER JOIN {' . $table . '} f ON c.' . $key . ' = f.' . $key . ' WHERE f.uri = :uri ORDER BY c.vid ASC', array(
-      ':uri' => $file,
-    ));
-
-    return $result->fetchAllAssoc('style_name');
+    if ($use_revisions) {
+      // The fetchAllAssoc() call below will use the last result found by this
+      // query for each style name, so order it by file revision ID ascending
+      // to use the most recent Manual Crop settings associated with the
+      // provided file URL for each style.
+      $query->orderBy('r.vid', 'ASC');
+    }
+    
+    return $query->execute()->fetchAllAssoc('style_name');  
   }
 }
 
