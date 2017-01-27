@@ -134,7 +134,7 @@ function manualcrop_libraries_info() {
       'file' => 'imgareaselect.jquery.json',
       'pattern' => '#"version"[\t ]*:[\t ]*"([^"]+)"#',
       'lines' => 6,
-      'cols' => 30,
+      'cols' => 40,
     ),
     'files' => array(
       'js' => array(
