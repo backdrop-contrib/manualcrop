@@ -1,4 +1,4 @@
-#Manual Crop
+# Manual Crop
 
 The Manual Crop module exposes a set of image style effects that allow you
 to crop (and scale) an image after uploading.
@@ -10,14 +10,14 @@ to crop (and scale) an image after uploading.
 ![Manual Crop - cropping tool](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/images/image-upload-crop-button.jpg "Manual Crop - cropping tools")
 
 
-##Dependencies
+## Dependencies
 
 - Libraries module
 - jQuery plugins:
-    - [imagesLoaded](https://github.com/desandro/imagesloaded)
-    - [imgAreaSelect](https://github.com/odyniec/imgareaselect)
+    - [imagesLoaded](https://github.com/desandro/imagesloaded) v4.1.1
+    - [imgAreaSelect](https://github.com/odyniec/imgareaselect) v0.9.11-rc.1
 
-##Installation
+## Installation
 
  - Start by downloading and installing the Libraries module.
  - Next download and extract the imagesLoaded plugin, rename the extracted folder to
@@ -29,7 +29,7 @@ now be located at `libraries/jquery.imgareaselect/jquery.imgareaselect.dev.js`.
  - Install this module using the official 
   [Backdrop CMS instructions](https://backdropcms.org/guide/modules)
 
-##Configuration and Usage
+## Configuration and Usage
 
 After installing the module you need to configure your image styles before you
 can start cropping. Go to `Administration » Configuration » Media » Image styles`
@@ -52,21 +52,21 @@ at client-side cached image gets refreshed whenever the crop selection changes.
 To prevent an SEO impact, this can be disabled by unchecking the
 `Reload cache-control` setting at `admin/config/media/manualcrop`.
 
-##Issues
+## Issues
 
 Bugs and Feature requests should be reported in the 
 [Issue Queue](https://github.com/backdrop-contrib/manualcrop/issues)
 
-##Current Maintainers
+## Current Maintainers
 
  - [Laryn Kragt Bakker](https://github.com/laryn) - [CEDC.org](https://cedc.org)
 
-##Credits
+## Credits
 
 - Ported to Backdrop CMS by [Laryn Kragt Bakker](https://github.com/laryn) - [CEDC.org](https://cedc.org).
 - Current maintainer for the Drupal module: [Matthijs](https://www.drupal.org/u/matthijs).
 
-##License
+## License
 
 This project is GPL v2 software. See the [LICENSE.txt](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/LICENSE.txt) 
 file in this directory for complete text.
