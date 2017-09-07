@@ -108,59 +108,6 @@ function manualcrop_views_api() {
 }
 
 /**
- * Implements hook_libraries_info().
- */
-function manualcrop_libraries_info() {
-  $libraries = array();
-
-  $libraries['jquery.imagesloaded'] = array(
-    'name' => 'imagesLoaded',
-    'vendor url' => 'https://github.com/desandro/imagesloaded',
-    'version arguments' => array(
-      'file' => 'imagesloaded.js',
-      'pattern' => '# v([0-9\.]+)#',
-      'lines' => 5,
-      'cols' => 40,
-    ),
-    'files' => array(
-      'js' => array(
-        'imagesloaded.pkgd.min.js',
-      ),
-    ),
-    'variants' => array(
-      'source' => array(
-        'files' => array(
-          'js' => array(
-            'imagesloaded.js',
-          ),
-        ),
-      ),
-    ),
-  );
-  
-  $libraries['jquery.imgareaselect'] = array(
-    'name' => 'imgAreaSelect',
-    'vendor url' => 'https://github.com/odyniec/imgareaselect/tree/v0.9.11-rc.1',
-    'version arguments' => array(
-      'file' => 'imgareaselect.jquery.json',
-      'pattern' => '#"version"[\t ]*:[\t ]*"([^"]+)"#',
-      'lines' => 6,
-      'cols' => 30,
-    ),
-    'files' => array(
-      'js' => array(
-        'jquery.imgareaselect.dev.js',
-      ),
-      'css' => array(
-        'distfiles/css/imgareaselect-animated.css',
-      ),
-    ),
-  );
-
-  return $libraries;
-}
-
-/**
  * Implements hook_file_type_delete().
  */
 function manualcrop_file_type_delete($type) {

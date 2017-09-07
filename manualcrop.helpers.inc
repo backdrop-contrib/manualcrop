@@ -366,15 +366,15 @@ function _manualcrop_attach_files(&$element = NULL) {
     if ($ie) {
       // IE has some issues with the lazy loading of css files, so we preload
       // anything that contains CSS. See http://drupal.org/node/1071818 for more info.
-      backdrop_add_css($path . '/manualcrop.css');
-      libraries_load('jquery.imgareaselect');
+      backdrop_add_css($path . '/css/manualcrop.css');
+      backdrop_add_library('imgareaselect', 'imgareaselect');
     }
 
     if ($element) {
       $element['#attached']['css'][] = $path . '/css/manualcrop.css';
       $element['#attached']['js'][] = $path . '/js/manualcrop.js';
-      $element['#attached']['libraries_load'][] = array('jquery.imgareaselect');
-      $element['#attached']['libraries_load'][] = array('jquery.imagesloaded');
+      $element['#attached']['library'][] = array('imgareaselect', 'imgareaselect');
+      $element['#attached']['library'][] = array('imagesloaded', 'imagesloaded');
     }
   }
 }

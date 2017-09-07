@@ -11,31 +11,39 @@ function manualcrop_requirements($phase) {
   $requirements = array();
 
   if ($phase == 'runtime') {
-    $libraries = array('jquery.imagesloaded', 'jquery.imgareaselect');
+    $libraries = array('imagesloaded' => 'imagesLoaded', 'imgareaselect' => 'ImgAreaSelect');
     $t = get_t();
+    $req_error = array();
 
-    foreach ($libraries as $name) {
-      $info = libraries_detect($name);
-
-      if ($info['installed']) {
-        $requirements[$name] = array(
-          'title' => $info['name'],
-          'value' => $info['version'],
-          'severity' => REQUIREMENT_OK,
-        );
+    foreach ($libraries as $machinename => $name) {
+      $installed = module_exists($machinename);
+      if (!$installed) {
+        $req_error[] = $machinename;
       }
-      else {
-        $requirements[$name] = array(
-          'title' => $info['name'],
-          'value' => $t('Not installed'),
-          'description' => $t('Download and copy the <a href="@link">@name</a> library to %path.', array(
-            '@link' => $info['vendor url'],
-            '@name' => $info['name'],
-            '%path' => 'libraries/' . $name,
-          )),
-          'severity' => REQUIREMENT_ERROR,
-        );
+    }
+    if (!empty($req_error)) {
+      if (count($req_error > 1)) {
+        $value = $t('Required libraries not installed');
+        $connector = $names = '';
+        foreach ($req_error as $library) {
+          $names .= $connector . $libraries[$library];
+          $connector = ', ';
+        }
+        $description = $t('Download and enable the following modules: @names.', array(
+          '@names' => $names,
+        ));
+      } else {
+        $value = $t('Required library not installed');
+        $description = $t('Download and enable the @name module.', array(
+          '@name' => $req_error[0],
+        ));
       }
+      $requirements['manualcrop'] = array(
+        'title' => $t('Manual Crop'),
+        'value' => $value,
+        'description' => $description,
+        'severity' => REQUIREMENT_ERROR,
+      );
     }
   }
 

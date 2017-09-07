@@ -12,21 +12,12 @@ to crop (and scale) an image after uploading.
 
 ## Dependencies
 
-- Libraries module
-- jQuery plugins:
-    - [imagesLoaded](https://github.com/desandro/imagesloaded) v4.1.1
-    - [imgAreaSelect](https://github.com/odyniec/imgareaselect) v0.9.11-rc.1
+- imagesLoaded module
+- ImgAreaSelect module
 
 ## Installation
 
- - Start by downloading and installing the Libraries module.
- - Next download and extract the imagesLoaded plugin, rename the extracted folder to
-"jquery.imagesloaded" and place it under "libraries". The plugin should
-now be located at `libraries/jquery.imagesloaded/imagesloaded.pkgd.min.js`.
- - Now download and extract the imgAreaSelect plugin, rename extracted folder to
-"jquery.imgareaselect" and copy it into "libraries". The plugin should
-now be located at `libraries/jquery.imgareaselect/jquery.imgareaselect.dev.js`.
- - Install this module using the official 
+ - Install this module and its dependencies using the official 
   [Backdrop CMS instructions](https://backdropcms.org/guide/modules)
 
 ## Configuration and Usage

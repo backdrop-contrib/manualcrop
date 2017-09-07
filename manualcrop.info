@@ -7,4 +7,5 @@ type = module
 configure = admin/config/media/manualcrop
 
 dependencies[] = image
-dependencies[] = libraries
+dependencies[] = imgareaselect
+dependencies[] = imagesloaded
