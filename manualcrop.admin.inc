@@ -685,7 +685,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     $form['manualcrop']['manualcrop_thumblist'] = array(
       '#type' => 'checkbox',
       '#title' => t('List thumbs'),
-      '#description' => t('Instead showing a button or selection list, show all thumbails (this will disable the preview thumbnail).'),
+      '#description' => t('Instead of showing a button or selection list, show all thumbnails (this will disable the preview thumbnail).'),
       '#default_value' => $settings['manualcrop_thumblist'],
     );
   }
@@ -717,7 +717,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     $form['manualcrop']['manualcrop_instant_crop'] = array(
       '#type' => 'checkbox',
       '#title' => t('Crop after upload'),
-      '#description' => t('Open the cropping tool immediatly after a file upload. Please note that this feature requires a single image style to be enabled. Also it will only be applied for screens of at least 768px width.'),
+      '#description' => t('Open the cropping tool immediately after a file upload. Please note that this feature requires a single image style to be enabled. Also it will only be applied for screens of at least 768px width.'),
       '#default_value' => $settings['manualcrop_instant_crop'],
     );
   }

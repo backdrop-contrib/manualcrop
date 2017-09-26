@@ -65,55 +65,12 @@ function manualcrop_install() {
  * Implements hook_uninstall().
  */
 function manualcrop_uninstall() {
-
   if (module_exists('file_entity') && function_exists('file_type_load_all')) {
     // Remove the settings for individual file types.
     foreach (file_type_load_all() as $type) {
       variable_del('manualcrop_file_entity_settings_' . $type->type);
     }
   }
-}
-
- /**
- * Add index on vid.
- */
-function manualcrop_update_1001() {
-  db_add_index('manualcrop', 'vid', array('vid'));
-}
-
-/**
- * Move manualcrop settings from variables to config.
- */
-function manualcrop_update_1000() {
-  
-  // Migrate variables to config.
-  $config = config('manualcrop.settings');
-  if (module_exists('file_entity') && function_exists('file_type_load_all')) {
-    // Remove the settings for individual file types.
-    foreach (file_type_load_all() as $type) {
-      $file_entity_vars[] = 'manualcrop_file_entity_settings_' . $type->type;
-      $config->set('file_entity_settings_' . $type->type, 'manualcrop_file_entity_settings_' . $type->type);
-    }
-  }
-  $config->set('cache_control', update_variable_get('manualcrop_cache_control', 1));
-  $config->set('force_effect_order', update_variable_get('manualcrop_force_effect_order', 1));
-  $config->save();
-
-  // Delete variables.
-  update_variable_del('manualcrop_cache_control');
-  update_variable_del('manualcrop_force_effect_order');
-  foreach($file_entity_vars as $file_entity_var) {
-    update_variable_del($file_entity_var);
-  }
-}
-
-
-
-/**
- * Implements hook_update_last_removed().
- */
-function manualcrop_update_last_removed() {
-  return 7110;
 }
 
 /**
@@ -185,6 +142,48 @@ function manualcrop_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Add index on vid.
+ */
+function manualcrop_update_1001() {
+  db_add_index('manualcrop', 'vid', array('vid'));
+}
+
+/**
+ * Move manualcrop settings from variables to config.
+ */
+function manualcrop_update_1000() {
+  
+  // Migrate variables to config.
+  $config = config('manualcrop.settings');
+  if (module_exists('file_entity') && function_exists('file_type_load_all')) {
+    // Remove the settings for individual file types.
+    foreach (file_type_load_all() as $type) {
+      $file_entity_vars[] = 'manualcrop_file_entity_settings_' . $type->type;
+      $config->set('file_entity_settings_' . $type->type, 'manualcrop_file_entity_settings_' . $type->type);
+    }
+  }
+  $config->set('cache_control', update_variable_get('manualcrop_cache_control', 1));
+  $config->set('force_effect_order', update_variable_get('manualcrop_force_effect_order', 1));
+  $config->save();
+
+  // Delete variables.
+  update_variable_del('manualcrop_cache_control');
+  update_variable_del('manualcrop_force_effect_order');
+  foreach($file_entity_vars as $file_entity_var) {
+    update_variable_del($file_entity_var);
+  }
+}
+
+
+
+/**
+ * Implements hook_update_last_removed().
+ */
+function manualcrop_update_last_removed() {
+  return 7110;
 }
 
 /**

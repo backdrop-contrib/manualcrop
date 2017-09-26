@@ -638,26 +638,24 @@ function manualcrop_save_crop_data($file, $data) {
 function manualcrop_load_crop_selection($file, $style_name = NULL) {
   $query = db_select('manualcrop', 'mc');
   $use_revisions = module_exists('file_entity_revisions');
-  
   if ($use_revisions) {
-    $query->join('file_managed_revisions', 'r', 'mc.vid = r.vid AND r.uri = :uri', array(':uri' => $file));  }
+    $query->join('file_managed_revisions', 'r', 'mc.vid = r.vid AND r.uri = :uri', array(':uri' => $file));
+  }
   else {
     $query->join('file_managed', 'f', 'mc.fid = f.fid');
     $query->condition('f.uri', $file);
   }
 
   $query->fields('mc', array('x', 'y', 'width', 'height', 'style_name'));
-
   if (isset($style_name)) {
     $query->condition('mc.style_name', $style_name);
-    
+
     if ($use_revisions) {
       // Order by file revision ID descending to use the most recent Manual
       // Crop settings associated with the provided file URI.
       $query->orderBy('r.vid', 'DESC');
       $query->range(0, 1);
     }
-    
     return $query->execute()->fetchObject();
   }
   else {
@@ -668,8 +666,7 @@ function manualcrop_load_crop_selection($file, $style_name = NULL) {
       // provided file URL for each style.
       $query->orderBy('r.vid', 'ASC');
     }
-    
-    return $query->execute()->fetchAllAssoc('style_name');  
+    return $query->execute()->fetchAllAssoc('style_name');
   }
 }
 
