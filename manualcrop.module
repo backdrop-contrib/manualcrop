@@ -277,7 +277,7 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
     return;
   }
 
-  if (isset($form['#form_id']) && $form['#form_id'] == 'file_entity_edit') {
+  if (isset($form['#form_id']) && $form['#form_id'] === 'file_entity_edit' && module_exists('file_entity_revisions')) {
     // Skip the file_entity_edit form because it may use revisions and
     // we want to save our crop data when the revision id is known.
     return;
