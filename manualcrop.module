@@ -378,6 +378,11 @@ function manualcrop_media_element_after_build($element) {
   // Add the options to the element.
   $element['#media_options']['global'] += $data;
 
+  // Update the cached options.
+  $element_js_class = drupal_html_class('js-media-element-' . $element['#id']);
+  $cid = $element['browse_button']['#attached']['js'][0]['data']['media']['elements']['.' . $element_js_class]['global']['options'];
+  cache_set('media_options:' . $cid, $element['#media_options']['global'], 'cache_form', REQUEST_TIME + 21600);
+
   // Attach the options as javascript settings.
   if (!empty($element['#attached']['js'])) {
     foreach ($element['#attached']['js'] as &$js) {
