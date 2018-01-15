@@ -20,7 +20,7 @@ function manualcrop_global_settings_form() {
   $form['manualcrop_force_effect_order'] = array(
     '#type' => 'checkbox',
     '#title' => t('Force Manual Crop effects to run first'),
-    '#description' => t('Manual Crop effects must execute before the dimensions of the original image are changed. <strong>Disable at your own risk!</strong'),
+    '#description' => t('Manual Crop effects must execute before the dimensions of the original image are changed. <strong>Disable at your own risk!</strong>'),
     '#default_value' => variable_get('manualcrop_force_effect_order', TRUE),
   );
 
