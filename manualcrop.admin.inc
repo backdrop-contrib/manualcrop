@@ -379,7 +379,7 @@ function manualcrop_auto_reuse_form($data) {
   $form['fallback_style'] = array(
     '#type' => 'select',
     '#title' => t('Fallback image style'),
-    '#description' => t('Image style to use if no cropping selections is found for an image.'),
+    '#description' => t('Image style to use if no cropping selection is found for an image.'),
     '#options' => $styles,
     '#default_value' => (isset($data['fallback_style']) ? $data['fallback_style'] : ''),
   );
@@ -725,7 +725,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
   $form['manualcrop']['manualcrop_default_crop_area'] = array(
     '#type' => 'checkbox',
     '#title' => t('Default crop area'),
-    '#description' => t('Create a default crop area when opening the croptool for uncropped images.'),
+    '#description' => t('Create a default crop area when opening the cropping tool for uncropped images.'),
     '#default_value' => $settings['manualcrop_default_crop_area'],
   );
 

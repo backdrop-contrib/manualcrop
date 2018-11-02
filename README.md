@@ -1,4 +1,4 @@
-# Manual Crop
+# ![Manual Crop](https://github.com/backdrop-contrib/manualcrop/blob/1.x-1.x/imagescmanualcrop.png "FManual Crop for BackdropCMS")
 
 The Manual Crop module exposes a set of image style effects that allow you
 to crop (and scale) an image after uploading.
