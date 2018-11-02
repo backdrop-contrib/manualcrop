@@ -875,6 +875,10 @@ function manualcrop_reuse_effect(&$image, $data) {
   // Load the style to reuse.
   $style = image_style_load($data['reuse_crop_style']);
 
+  if (!$style) {
+    return FALSE;
+  }
+
   if (empty($data['apply_all_effects'])) {
     // Apply only the crop effect.
     $effect = reset($style['effects']);
