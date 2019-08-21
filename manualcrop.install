@@ -148,6 +148,9 @@ function manualcrop_schema() {
  * Add index on vid.
  */
 function manualcrop_update_1001() {
+  if (db_index_exists('manualcrop', 'vid')) {
+    db_drop_index('manualcrop', 'vid');
+  }
   db_add_index('manualcrop', 'vid', array('vid'));
 }
 
@@ -155,7 +158,6 @@ function manualcrop_update_1001() {
  * Move manualcrop settings from variables to config.
  */
 function manualcrop_update_1000() {
-  
   // Migrate variables to config.
   $config = config('manualcrop.settings');
   if (module_exists('file_entity') && function_exists('file_type_load_all')) {
@@ -189,7 +191,6 @@ function manualcrop_update_last_removed() {
 /**
  * Grant the crop permission to all user roles.
  */
- 
 function _manualcrop_grant_crop_permission() {
   foreach (user_roles() as $rid => $role) {
     user_role_grant_permissions($rid , array('use manualcrop'));
