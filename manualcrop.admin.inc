@@ -657,24 +657,35 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
 
   // Add the Manual Crop fieldset.
   $form['manualcrop'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Manual Crop'),
-    '#description' => t(''),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#type' => 'container',
     '#weight' => 25,
     '#parents' => array('instance', 'widget', 'settings'),
   );
 
   $form['manualcrop']['manualcrop_enable'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable'),
+    '#title' => t('Enable Manual Crop'),
     '#description' => t('Enable the Manual Crop features. To enable Manual Crop for this field, you must configure a Manual Crop image effect on at least one image style.'),
     '#default_value' => ($settings['manualcrop_enable'] && !empty($style_options)),
     '#disabled' => empty($style_options),
   );
 
-  $form['manualcrop']['manualcrop_keyboard'] = array(
+  // Add the Manual Crop settings (wrapped).
+  $form['manualcrop']['cropsettings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Manual Crop Settings'),
+    '#description' => t(''),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#parents' => array('instance', 'widget', 'settings'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="instance[widget][settings][manualcrop_enable]"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $form['manualcrop']['cropsettings']['manualcrop_keyboard'] = array(
     '#type' => 'checkbox',
     '#title' => t('Keyboard shortcuts'),
     '#description' => t('Enable the keyboard shortcuts.'),
@@ -682,7 +693,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
   );
 
   if (manualcrop_supported_widgets($widget_type, 'thumblist')) {
-    $form['manualcrop']['manualcrop_thumblist'] = array(
+    $form['manualcrop']['cropsettings']['manualcrop_thumblist'] = array(
       '#type' => 'checkbox',
       '#title' => t('List thumbs'),
       '#description' => t('Instead of showing a button or selection list, show all thumbnails (this will disable the preview thumbnail).'),
@@ -691,7 +702,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
   }
 
   if (manualcrop_supported_widgets($widget_type, 'inline_crop')) {
-    $form['manualcrop']['manualcrop_inline_crop'] = array(
+    $form['manualcrop']['cropsettings']['manualcrop_inline_crop'] = array(
       '#type' => 'checkbox',
       '#title' => t('Inline cropping'),
       '#description' => t('Instead of opening an overlay, use inline cropping.'),
@@ -699,14 +710,14 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     );
   }
 
-  $form['manualcrop']['manualcrop_crop_info'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_crop_info'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show crop info'),
     '#description' => t('Show the crop selection details.'),
     '#default_value' => $settings['manualcrop_crop_info'],
   );
 
-  $form['manualcrop']['manualcrop_instant_preview'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_instant_preview'] = array(
     '#type' => 'checkbox',
     '#title' => t('Instant preview'),
     '#description' => t('Show an instant preview of the crop selection.'),
@@ -714,7 +725,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
   );
 
   if (manualcrop_supported_widgets($widget_type, 'instant_crop')) {
-    $form['manualcrop']['manualcrop_instant_crop'] = array(
+    $form['manualcrop']['cropsettings']['manualcrop_instant_crop'] = array(
       '#type' => 'checkbox',
       '#title' => t('Crop after upload'),
       '#description' => t('Open the cropping tool immediately after a file upload. Please note that this feature requires a single image style to be enabled. Also it will only be applied for screens of at least 768px width.'),
@@ -722,14 +733,14 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     );
   }
 
-  $form['manualcrop']['manualcrop_default_crop_area'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_default_crop_area'] = array(
     '#type' => 'checkbox',
     '#title' => t('Default crop area'),
     '#description' => t('Create a default crop area when opening the cropping tool for uncropped images.'),
     '#default_value' => $settings['manualcrop_default_crop_area'],
   );
 
-  $form['manualcrop']['manualcrop_maximize_default_crop_area'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_maximize_default_crop_area'] = array(
     '#type' => 'checkbox',
     '#title' => t('Maximize default crop area'),
     '#description' => t('Maximize the default crop area.'),
@@ -742,7 +753,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     ),
   );
 
-  $form['manualcrop']['manualcrop_styles_mode'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_styles_mode'] = array(
     '#type' => 'radios',
     '#title' => t('Styles list mode'),
     '#options' => array(
@@ -754,7 +765,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
 
   $style_options = array_map('check_plain', $style_options);
 
-  $form['manualcrop']['manualcrop_styles_list'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_styles_list'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Styles list'),
     '#description' => t('Select all styles that should be shown or hidden (as selected above) in the widget. Please note that hiding styles will override requiring them and existing cropping selections will be kept.'),
@@ -764,7 +775,7 @@ function manualcrop_field_widget_settings_form($widget_type, $settings) {
     '#multicolumn' => array('width' => 3),
   );
 
-  $form['manualcrop']['manualcrop_require_cropping'] = array(
+  $form['manualcrop']['cropsettings']['manualcrop_require_cropping'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Required croppings'),
     '#description' => t('Select all styles that must have a crop selection.'),
