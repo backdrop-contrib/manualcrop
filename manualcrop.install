@@ -145,16 +145,6 @@ function manualcrop_schema() {
 }
 
 /**
- * Add index on vid.
- */
-function manualcrop_update_1001() {
-  if (db_index_exists('manualcrop', 'vid')) {
-    db_drop_index('manualcrop', 'vid');
-  }
-  db_add_index('manualcrop', 'vid', array('vid'));
-}
-
-/**
  * Move manualcrop settings from variables to config.
  */
 function manualcrop_update_1000() {
@@ -180,7 +170,15 @@ function manualcrop_update_1000() {
   }
 }
 
-
+/**
+ * Add index on vid.
+ */
+function manualcrop_update_1001() {
+  if (db_index_exists('manualcrop', 'vid')) {
+    db_drop_index('manualcrop', 'vid');
+  }
+  db_add_index('manualcrop', 'vid', array('vid'));
+}
 
 /**
  * Implements hook_update_last_removed().
