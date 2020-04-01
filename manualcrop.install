@@ -160,6 +160,7 @@ function manualcrop_update_1001() {
 function manualcrop_update_1000() {
   // Migrate variables to config.
   $config = config('manualcrop.settings');
+  $file_entity_vars = array();
   if (module_exists('file_entity') && function_exists('file_type_load_all')) {
     // Remove the settings for individual file types.
     foreach (file_type_load_all() as $type) {
@@ -174,7 +175,7 @@ function manualcrop_update_1000() {
   // Delete variables.
   update_variable_del('manualcrop_cache_control');
   update_variable_del('manualcrop_force_effect_order');
-  foreach($file_entity_vars as $file_entity_var) {
+  foreach ($file_entity_vars as $file_entity_var) {
     update_variable_del($file_entity_var);
   }
 }
