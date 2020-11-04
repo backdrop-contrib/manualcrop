@@ -996,7 +996,7 @@ function _manualcrop_update_style_name_in_image_effect($style_name, $new_style_n
         if (isset($data[$key]) && $data[$key] == $style_name) {
           if (is_null($new_style_name) && $effect['name'] == 'manualcrop_reuse') {
             // The reuse effect requires an image style.
-            image_effect_delete($effect);
+            image_effect_delete($style_name, $effect);
           }
           else {
             $effect['data'][$key] = $new_style_name;
