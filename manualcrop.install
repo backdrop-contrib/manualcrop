@@ -22,7 +22,7 @@ function manualcrop_requirements($phase) {
       }
     }
     if (!empty($req_error)) {
-      if (count($req_error > 1)) {
+      if (count($req_error) > 1) {
         $value = $t('Required libraries not installed');
         $connector = $names = '';
         foreach ($req_error as $library) {
