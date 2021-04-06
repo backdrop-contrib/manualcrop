@@ -597,22 +597,17 @@ function manualcrop_save_crop_data($file, $data) {
   // If file_entity_revisions isn't enabled, use 0.
   $vid = (isset($file->vid) ? $file->vid : 0);
 
-  // Delete the existing data.
-  db_delete('manualcrop')
-    ->condition('fid', $file->fid)
-    ->condition('vid', $vid)
-    ->condition('style_name', array_keys($data))
-    ->execute();
-
   // Save the new crop selections.
   foreach ($data as $style_name => $selection) {
     if ($selection) {
-      $record = array_merge($selection, array(
-        'fid' => $file->fid,
-        'vid' => $vid,
-        'style_name' => $style_name
-      ));
-      backdrop_write_record('manualcrop', $record);
+      db_merge('manualcrop')
+        ->key(array(
+          'fid' => $file->fid,
+          'vid' => $vid,
+          'style_name' => $style_name,
+        ))
+        ->fields($selection)
+        ->execute();
     }
   }
 }
