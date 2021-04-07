@@ -9,16 +9,21 @@
  */
 function manualcrop_requirements($phase) {
   $requirements = array();
+  $dependencies = array('imagesloaded' => 'imagesLoaded', 'imgareaselect' => 'ImgAreaSelect');
+  $t = get_t();
 
   if ($phase == 'runtime') {
-    $libraries = array('imagesloaded' => 'imagesLoaded', 'imgareaselect' => 'ImgAreaSelect');
-    $t = get_t();
     $req_error = array();
-
-    foreach ($libraries as $machinename => $name) {
+    foreach ($dependencies as $machinename => $name) {
       $installed = module_exists($machinename);
       if (!$installed) {
-        $req_error[] = $machinename;
+        if (file_exists(BACKDROP_ROOT . '/modules/' . $machinename)) {
+            module_enable(array($machinename), FALSE);
+            backdrop_set_message(t('The %module dependency has been enabled.', array('%module' => $name)));
+        }
+        else {
+            $req_error[] = $machinename;
+        }
       }
     }
     if (!empty($req_error)) {
