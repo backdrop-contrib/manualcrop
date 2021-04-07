@@ -9,20 +9,16 @@
  */
 function manualcrop_requirements($phase) {
   $requirements = array();
-  $dependencies = array('imagesloaded' => 'imagesLoaded', 'imgareaselect' => 'ImgAreaSelect');
-  $t = get_t();
 
   if ($phase == 'runtime') {
+    $libraries = array('imagesloaded' => 'imagesLoaded', 'imgareaselect' => 'ImgAreaSelect');
+    $t = get_t();
     $req_error = array();
-    foreach ($dependencies as $machinename => $name) {
+
+    foreach ($libraries as $machinename => $name) {
       $installed = module_exists($machinename);
       if (!$installed) {
-        if (file_exists(BACKDROP_ROOT . '/' . $machinename)) {
-            module_enable(array($machinename), FALSE);
-            backdrop_set_message(t('The %module dependency has been enabled.', array('%module' => $name)));
-        } else {
-            $req_error[] = $machinename;
-        }
+        $req_error[] = $machinename;
       }
     }
     if (!empty($req_error)) {
@@ -30,7 +26,7 @@ function manualcrop_requirements($phase) {
         $value = $t('Required libraries not installed');
         $connector = $names = '';
         foreach ($req_error as $library) {
-          $names .= $connector . $dependencies[$library];
+          $names .= $connector . $libraries[$library];
           $connector = ', ';
         }
         $description = $t('Download and enable the following modules: @names.', array(
