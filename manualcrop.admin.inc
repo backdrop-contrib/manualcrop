@@ -9,7 +9,7 @@
  */
 function manualcrop_global_settings_form() {
   $form = array();
-  
+
   $config = config('manualcrop.settings');
 
   $form['cache_control'] = array(
@@ -18,7 +18,7 @@ function manualcrop_global_settings_form() {
     '#description' => t('When enabled, a cache-controlling variable will be added to the cropped image path. This variable will change as soon as you re-crop the image and provide the user with the latest, re-cropped version of the image when the image is reloaded.'),
     '#default_value' => $config->get('cache_control'),
   );
-  
+
   $form['force_effect_order'] = array(
      '#type' => 'checkbox',
      '#title' => t('Force Manual Crop effects to run first'),
@@ -27,7 +27,7 @@ function manualcrop_global_settings_form() {
    );
 
   $form['#submit'] = array('manualcrop_global_settings_form_submit');
-  
+
   $form['actions']['#type'] = 'actions';
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -545,7 +545,7 @@ function manualcrop_force_effect_order($form, &$form_state) {
         if ($eid != key($style['effects'])) {
           // Change the weight of this effect to the weight of the first effect minus 1.
           $effect['weight'] = $first['weight'] - 1;
-          image_effect_save($style['name'],$effect);
+          image_effect_save($style['name'], $effect);
         }
 
         break;
@@ -568,7 +568,7 @@ function manualcrop_update_style_name($form, &$form_state) {
       if (_manualcrop_is_own_effect($effect, TRUE)) {
         // Change the style name in the effect data and save it.
         $effect['data']['style_name'] = $form_state['values']['name'];
-        image_effect_save($effect);
+        image_effect_save($style['name'], $effect);
 
         // Update the crop selections.
         db_update('manualcrop')
