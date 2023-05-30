@@ -458,7 +458,7 @@ ManualCrop.setSelection = function(x1, y1, x2, y2) {
   }
 
   if (ManualCrop.croptool) {
-    ManualCrop.widget.setSelection(selection.x1, selection.y1, selection.x2, selection.y2);
+    ManualCrop.widget.setSelection(selection.x1, selection.y1, selection.x2 - 1, selection.y2 - 1);
     ManualCrop.widget.setOptions({hide: false, show: true});
     ManualCrop.widget.update();
     ManualCrop.updateSelection(null, selection);
