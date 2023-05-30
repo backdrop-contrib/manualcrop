@@ -239,7 +239,7 @@ function manualcrop_field_attach_submit($entity_type, $entity, $form, &$form_sta
     // we want to save our crop data when the revision id is known.
     return;
   }
-  
+
   manualcrop_croptool_submit($form, $form_state);
 }
 
@@ -335,7 +335,7 @@ function manualcrop_media_element_after_build($element) {
   $element['#media_options']['global'] += $data;
 
   // Update the cached options.
-  $element_js_class = drupal_html_class('js-media-element-' . $element['#id']);
+  $element_js_class = backdrop_html_class('js-media-element-' . $element['#id']);
   $cid = $element['browse_button']['#attached']['js'][0]['data']['media']['elements']['.' . $element_js_class]['global']['options'];
   cache_set('media_options:' . $cid, $element['#media_options']['global'], 'cache_form', REQUEST_TIME + 21600);
 
@@ -502,9 +502,9 @@ function manualcrop_entity_update($file, $type) {
   // This uses hook_entity_update to guarantee it comes after the revision has
   // been saved, which uses hook_file_update().
   // Bail if it's not a file or presave() did not give us new data to write.
-  
+
   $config = config('manualcrop.settings');
-  
+
   if ($type != 'file' || empty($file->manualcrop_data)) {
     return;
   }
