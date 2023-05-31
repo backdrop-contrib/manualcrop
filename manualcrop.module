@@ -328,7 +328,7 @@ function manualcrop_media_element_after_build($element) {
       'entity_type' => $element['#entity_type'],
       'bundle' => $element['#bundle'],
       'field_name' => $element['#field_name'],
-    )
+    ),
   );
 
   // Add the options to the element.
@@ -429,7 +429,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
             $error_set = TRUE;
             form_set_error($element_key, t('The crop selection for %filename (@style image style) is invalid, please clear it or reselect.', array(
               '@style' => $clean_style_name,
-              '%filename' => $image['filename']
+              '%filename' => $image['filename'],
             )));
           }
           elseif (in_array($style_name, $image['required_styles'], TRUE)) {
@@ -437,7 +437,7 @@ function manualcrop_croptool_validate($element, &$form_state) {
             $error_set = TRUE;
             form_set_error($element_key, t('%filename must have a cropping selection for the @style image style.', array(
               '@style' => $clean_style_name,
-              '%filename' => $image['filename']
+              '%filename' => $image['filename'],
             )));
           }
         }
@@ -454,14 +454,53 @@ function manualcrop_croptool_submit($form, &$form_state) {
   $config = config('manualcrop.settings');
 
   if (!$submitted && !empty($form_state['manualcrop_data']['selections'])) {
-    // Loop trough the selections to save them.
+    // Loop through the selections to save them. In general this file entity
+    // should be loaded from a cache, so this should not cost any performance.
     foreach ($form_state['manualcrop_data']['selections'] as $fid => $data) {
-      // In general this file entity should be loaded from a cache, so this
-      // should not cost any performance.
-      manualcrop_save_crop_data(file_load($fid), $data['styles']);
+      // Default not to flush image styles upon saving, for better performance.
+      $save_flush = FALSE;
+      foreach ($data['styles'] as $style_name => $style_data) {
+        $load_crop = manualcrop_load_crop_selection($data['path'], $style_name);
 
-      // Clear the cached versions of this image.
-      image_path_flush($data['path']);
+        if ($data['styles'][$style_name]) {
+          // A new crop is available.
+          if (isset($load_crop) && isset($style_name) && isset($load_crop->x)) {
+            // A previous cropping exists, so check if values have changed.
+            if ($load_crop->x != $data['styles'][$style_name]['x'] ||
+              $load_crop->y != $data['styles'][$style_name]['y'] ||
+              $load_crop->width != $data['styles'][$style_name]['width'] ||
+              $load_crop->height != $data['styles'][$style_name]['height']
+              ) {
+              $save_flush = TRUE;
+            } else {
+              // The crop selection for this style has not changed. Remove it
+              // from the list.
+              unset($data['styles'][$style_name]);
+            }
+          } else {
+            // A new crop is supplied with no previous croppings.
+            $save_flush = TRUE;
+          }
+
+        } elseif (isset($load_crop) && isset($style_name) && isset($load_crop->x)) {
+          // A new crop is supplied but a previous crop exists.
+          $save_flush = TRUE;
+        } else {
+          // No new crop is supplied and no previous crop exists. Remove this
+          // style from the list.
+          unset($data['styles'][$style_name]);
+        }
+      }
+      if ($save_flush) {
+        manualcrop_save_crop_data(file_load($fid), $data['styles']);
+        // Clear the cached versions of this image and style(s).
+        foreach ($data['styles'] as $style_name => $style_data) {
+          $image_path = image_style_path($style_name, $data['path']);
+          if (file_exists($image_path)) {
+            file_unmanaged_delete($image_path);
+          }
+        }
+      }
     }
 
     if ($config->get('cache_control')) {
@@ -502,7 +541,6 @@ function manualcrop_entity_update($file, $type) {
   // This uses hook_entity_update to guarantee it comes after the revision has
   // been saved, which uses hook_file_update().
   // Bail if it's not a file or presave() did not give us new data to write.
-
   $config = config('manualcrop.settings');
 
   if ($type != 'file' || empty($file->manualcrop_data)) {
