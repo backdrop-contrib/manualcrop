@@ -998,9 +998,9 @@ function _manualcrop_update_style_name_in_image_effect($style_name, $new_style_n
             // The reuse effect requires an image style.
             image_effect_delete($style['name'], $effect);
           }
-          else {
+          elseif (!empty($new_style_name)) {
             $effect['data'][$key] = $new_style_name;
-            image_effect_save($effect);
+            image_effect_save($new_style_name, $effect);
           }
         }
       }
